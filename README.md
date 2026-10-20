@@ -28,9 +28,9 @@ Photos at their original resolution, videos with sound, one click or one key.
 
 ## Install
 
-1. Download or clone this repo.
+1. Download **salva-stories-vX.Y.Z.zip** from the [latest release](https://github.com/DredsGG/salva-stories/releases/latest).
 2. Open `chrome://extensions` and turn on **Developer mode**.
-3. Click **Load unpacked** and pick the `extension/` folder.
+3. Drag the zip onto the page (or unzip it and use **Load unpacked**). From a clone of this repo, load the `extension/` folder.
 4. Reload instagram.com (already open tabs don't get the script until you reload).
 
 If you have other story downloaders installed, turn them off: their buttons sit on top of these.
