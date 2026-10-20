@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Salva Stories</title>
+<script src="theme-init.js"></script>
+<style>
+  :root { color-scheme: light; --bg:#fff; --fg:#111; --mute:#666; --line:#e5e5e5; --acc:#d62976; --hover:rgba(0,0,0,.06); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; --bg:#161616; --fg:#f2f2f2; --mute:#9a9a9a; --line:#2c2c2c; --hover:rgba(255,255,255,.08); } }
+  :root[data-theme="dark"] { color-scheme: dark; --bg:#161616; --fg:#f2f2f2; --mute:#9a9a9a; --line:#2c2c2c; --hover:rgba(255,255,255,.08); }
+  body { transition: background-color .2s ease, color .2s ease; }
+  body { margin:0; width:320px; background:var(--bg); color:var(--fg); font: 13px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display:flex; align-items:center; gap:10px; padding:14px 16px 10px; border-bottom:1px solid var(--line); }
+  header img { width:28px; height:28px; }
+  h1 { font-size:15px; margin:0; white-space:nowrap; }
+  .v { color:var(--mute); font-size:11px; }
+  main { padding:6px 16px 14px; }
+  label.row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+  label.row:last-of-type { border-bottom:0; }
+  .t { display:block; font-weight:600; }
+  .d { display:block; color:var(--mute); font-size:11.5px; }
+  input[type=checkbox] { width:18px; height:18px; accent-color:var(--acc); flex:none; }
+  .folder { padding:9px 0; border-bottom:1px solid var(--line); }
+  .folder input { width:100%; box-sizing:border-box; margin-top:5px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--fg); font:inherit; }
+  footer { padding:0 16px 12px; color:var(--mute); font-size:11.5px; }
+  .sig { display:flex; align-items:baseline; justify-content:center; gap:7px; margin:0 16px; padding:11px 0 13px; border-top:1px solid var(--line);
+    text-decoration:none; color:var(--mute); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; }
+  .sig .mark { width:11px; height:11px; flex:none; align-self:center; position:relative; top:1px; }
+  .sig > span { line-height:1; }
+  .sig .name { font-size:14px; letter-spacing:.02em; text-transform:none; font-weight:800; font-style:normal; line-height:1;
+    background:linear-gradient(90deg,#962fbf 0%,#d62976 50%,#fa7e1e 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    background-size:200% 100%; background-position:0% 0; transition:background-position .6s ease; }
+  .sig:hover .name { background-position:100% 0; }
+  .sig:hover .mark { transform:rotate(90deg); }
+  .sig .mark { transition:transform .6s ease; }
+  kbd { border:1px solid var(--line); border-radius:4px; padding:0 4px; font-size:11px; }
+  .tools { margin-left:auto; display:flex; align-items:center; gap:8px; }
+  .theme { all:unset; box-sizing:border-box; width:26px; height:26px; border-radius:50%; display:grid; place-items:center; cursor:pointer; color:var(--fg); transition:background .15s ease; }
+  .theme:hover { background:var(--hover); }
+  .theme:focus-visible { outline:2px solid var(--acc); outline-offset:2px; }
+  .theme svg { width:17px; height:17px; transition:transform .45s cubic-bezier(.3,1.4,.5,1), opacity .2s ease; }
+  .theme:active svg { transform:rotate(-30deg) scale(.9); }
+  .theme .sun { display:none; } .theme .moon { display:block; }
+  .dark .theme .sun { display:block; } .dark .theme .moon { display:none; }
+  .sep { width:1px; height:18px; background:var(--line); }
+  .langs { display:flex; gap:2px; align-items:center; }
+  /* bandeira e anel no MESMO svg (círculos concêntricos em vetor): fica centralizado em qualquer zoom/escala do Windows */
+  .langs button { all:unset; box-sizing:border-box; width:32px; height:32px; border-radius:50%; cursor:pointer; transition:transform .15s ease; }
+  .langs button svg { display:block; width:32px; height:32px; }
+  .langs .flag { opacity:.45; filter:saturate(.6); transition:opacity .15s ease, filter .15s ease; }
+  .langs .ring { opacity:0; transition:opacity .2s ease; }
+  .langs button:hover .flag { opacity:.85; filter:none; }
+  .langs button:hover { transform:translateY(-1px); }
+  .langs button.on .flag { opacity:1; filter:none; }
+  .langs button.on .ring { opacity:1; }
+  .langs button:focus-visible { outline:2px solid var(--acc); outline-offset:1px; }
+</style>
+</head>
+<body>
+<header><img src="../icons/icon-48.png" alt=""><div><h1>Salva Stories</h1><div class="v" id="ver"></div></div>
+  <div class="tools">
+  <button type="button" class="theme" id="theme"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.55 1.55M17.15 17.15l1.55 1.55M5.3 18.7l1.55-1.55M17.15 6.85l1.55-1.55"/></svg></button>
+  <span class="sep" aria-hidden="true"></span>
+  <div class="langs" role="radiogroup" aria-label="Idioma">
+    <button type="button" data-lang="pt" role="radio" title="Português"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><clipPath id="clip-pt"><circle cx="16" cy="16" r="12"/></clipPath><linearGradient id="ring-pt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#962fbf"/><stop offset=".55" stop-color="#d62976"/><stop offset="1" stop-color="#fa7e1e"/></linearGradient></defs><g class="flag" clip-path="url(#clip-pt)"><g transform="translate(4 4) scale(1.2)"><rect width="20" height="20" fill="#009c3b"/><path d="M10 3.2 18.6 10 10 16.8 1.4 10z" fill="#ffdf00"/><circle cx="10" cy="10" r="4.1" fill="#002776"/><path d="M6.1 9.1q4.2-1.5 7.8 1.6" stroke="#fff" stroke-width=".9" fill="none"/></g></g><circle class="ring" cx="16" cy="16" r="13.5" fill="none" stroke="url(#ring-pt)" stroke-width="3.4"/></svg></button>
+    <button type="button" data-lang="en" role="radio" title="English"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><clipPath id="clip-en"><circle cx="16" cy="16" r="12"/></clipPath><linearGradient id="ring-en" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#962fbf"/><stop offset=".55" stop-color="#d62976"/><stop offset="1" stop-color="#fa7e1e"/></linearGradient></defs><g class="flag" clip-path="url(#clip-en)"><g transform="translate(4 4) scale(1.2)"><rect width="20" height="20" fill="#fff"/><path fill="#b22234" d="M0 0h20v1.54H0zm0 3.08h20v1.54H0zm0 3.08h20V7.7H0zm0 3.08h20v1.54H0zm0 3.08h20v1.54H0zm0 3.08h20v1.54H0zm0 3.08h20V20H0z"/><rect width="9.5" height="10.77" fill="#3c3b6e"/><g fill="#fff"><circle cx="2" cy="2" r=".55"/><circle cx="4.7" cy="2" r=".55"/><circle cx="7.4" cy="2" r=".55"/><circle cx="3.35" cy="4.2" r=".55"/><circle cx="6.05" cy="4.2" r=".55"/><circle cx="2" cy="6.4" r=".55"/><circle cx="4.7" cy="6.4" r=".55"/><circle cx="7.4" cy="6.4" r=".55"/><circle cx="3.35" cy="8.6" r=".55"/><circle cx="6.05" cy="8.6" r=".55"/></g></g></g><circle class="ring" cx="16" cy="16" r="13.5" fill="none" stroke="url(#ring-en)" stroke-width="3.4"/></svg></button>
+    <button type="button" data-lang="es" role="radio" title="Español"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><clipPath id="clip-es"><circle cx="16" cy="16" r="12"/></clipPath><linearGradient id="ring-es" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#962fbf"/><stop offset=".55" stop-color="#d62976"/><stop offset="1" stop-color="#fa7e1e"/></linearGradient></defs><g class="flag" clip-path="url(#clip-es)"><g transform="translate(4 4) scale(1.2)"><rect width="20" height="20" fill="#c60b1e"/><rect y="5" width="20" height="10" fill="#ffc400"/></g></g><circle class="ring" cx="16" cy="16" r="13.5" fill="none" stroke="url(#ring-es)" stroke-width="3.4"/></svg></button>
+  </div>
+  </div>
+</header>
+<main>
+  <div class="folder">
+    <span class="t" data-i="folder">Pasta em Downloads</span>
+    <input id="folder" type="text" spellcheck="false" placeholder="Instagram Stories">
+  </div>
+  <label class="row"><span><span class="t" data-i="perUser">Subpasta por perfil</span><span class="d" data-i="perUserD">Downloads/Instagram Stories/usuario/…</span></span><input type="checkbox" id="perUser"></label>
+  <label class="row"><span><span class="t" data-i="maxQ">Vídeo na resolução máxima</span><span class="d" data-i="maxQD">Quando o original passa de 720p, junta vídeo e som em alta (pode vir em VP9). Se falhar, salva o 720p.</span></span><input type="checkbox" id="maxQuality"></label>
+  <label class="row"><span><span class="t" data-i="all">Botão "salvar todos"</span><span class="d" data-i="allD">Baixa todos os stories da pessoa aberta</span></span><input type="checkbox" id="showAll"></label>
+  <label class="row"><span><span class="t" data-i="hotkey">Atalho de teclado</span><span class="d" data-i="hotkeyD" data-html="1"><kbd>D</kbd> salva o atual · <kbd>Shift</kbd>+<kbd>D</kbd> salva todos</span></span><input type="checkbox" id="hotkey"></label>
+  <label class="row"><span><span class="t" data-i="ghost">Modo fantasma</span><span class="d" data-i="ghostD">Não avisa que você viu o story.</span></span><input type="checkbox" id="ghost"></label>
+</main>
+<footer data-i="saved">As mudanças são salvas na hora.</footer>
+<a class="sig" href="https://github.com/DredsGG" target="_blank" rel="noopener" title="Dreds no GitHub">
+  <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#962fbf"/><stop offset=".5" stop-color="#d62976"/><stop offset="1" stop-color="#fa7e1e"/></linearGradient></defs><path fill="url(#g)" d="M12 0c.9 6.3 5.7 11.1 12 12-6.3.9-11.1 5.7-12 12-.9-6.3-5.7-11.1-12-12C6.3 11.1 11.1 6.3 12 0z"/></svg>
+  <span data-i="madeBy">feito por</span><span class="name">Dreds</span>
+</a>
+<script src="popup.js"></script>
+</body>
+</html>
