@@ -46,7 +46,7 @@ function page(kind) {
 
 let seenHits = 0;
 const ctx = await chromium.launchPersistentContext(path.join(DIR, 'profile-' + Date.now()), {
-  ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
+  executablePath: process.env.CHROME_PATH || undefined, // ex.: CHROME_PATH=/caminho/do/chrome (sem isso usa o Chromium do Playwright)
   headless: true,
   args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`, '--headless=new', '--ignore-certificate-errors', '--disable-features=LocalNetworkAccessChecks,BlockInsecurePrivateNetworkRequests,PrivateNetworkAccessSendPreflights'],
   acceptDownloads: true,
@@ -142,11 +142,24 @@ await wait(500);
 await p.evaluate(() => window.sendSeen());
 results.ghost = { hitsWithGhostOff: hitsOff, hitsAfterGhostOn: seenHits };
 
-// 7) popup abre e mostra os ajustes
-const pop = await ctx.newPage();
-await pop.goto(`chrome-extension://${extId}/popup/popup.html`);
-results.popup = await pop.evaluate(() => ({ ver: document.getElementById('ver').textContent, ghost: document.getElementById('ghost').checked, maxQ: document.getElementById('maxQuality').checked, folder: document.getElementById('folder').value }));
-await pop.screenshot({ path: path.join(DIR, 'popup.png') });
+// 7) menu dentro do Instagram (desde a v1.4.0 não há popup): engrenagem do story abre, mostra ajustes e versão;
+//    a chave do modo fantasma grava no storage; Alt+S fecha; digitar "d" no campo de pasta não baixa nada
+await p.goto('https://www.instagram.com/stories/pessoa.teste/111/');
+await wait(1200);
+const stack = await p.evaluate(() => { const r = document.querySelector('salva-stories').getBoundingClientRect(); return { x: r.x, y: r.y, h: r.height }; });
+await p.mouse.click(stack.x + 22, stack.y + stack.h - 18); // engrenagem = último botão da pilha
+await wait(500);
+const menu = () => p.evaluate(() => window.__salvaStoriesMenuDebug());
+let m = await menu();
+results.menu = { openedByGear: m.open, version: m.version, ghostShown: m.S.ghost };
+await p.mouse.click(m.at.ghost.x, m.at.ghost.y); await wait(400);
+results.menu.ghostAfterSwitch = (await sw.evaluate(() => chrome.storage.sync.get('ghost'))).ghost;
+const nCalls = (await sw.evaluate(() => self.__calls.length));
+m = await menu(); await p.mouse.click(m.at.folder.x, m.at.folder.y); await p.keyboard.type('dd'); await wait(700);
+results.menu.typingDidNotDownload = (await sw.evaluate(() => self.__calls.length)) === nCalls;
+await p.keyboard.press('Alt+s'); await wait(300);
+results.menu.closedByAltS = !(await menu()).open;
+await sw.evaluate(() => chrome.storage.sync.set({ folder: 'Instagram Stories', ghost: false }));
 
 await p.goto('https://www.instagram.com/stories/pessoa.teste/111/');
 await wait(1000);

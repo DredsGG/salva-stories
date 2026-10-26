@@ -1,7 +1,7 @@
 // Salva Stories — service worker: valida e faz os downloads.
 import { muxDash } from './remux.js';
 
-const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: 'pt' };
+const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: 'pt', theme: 'auto', player: true, profileBtn: true, inboxTools: true };
 const ERR = {
   pt: { video: 'trilha de vídeo inválida', audio: 'trilha de áudio inválida', host: 'endereço de mídia fora do Instagram', refused: 'download recusado', none: 'nada baixado' },
   en: { video: 'invalid video track', audio: 'invalid audio track', host: 'media address outside Instagram', refused: 'download refused', none: 'nothing downloaded' },
@@ -42,6 +42,7 @@ function filenameFor(job, s) {
   const f = folderPath(s.folder);
   if (f) parts.push(f);
   if (s.perUser) parts.push(clean(job.user, 'instagram'));
+  if (job.sub) { const sub = folderPath(job.sub); if (sub) parts.push(sub); } // ex.: posts/2026-10-01_ABC (perfil), videos (player)
   const ext = /^(jpg|png|webp|heic|mp4|m4v)$/.test(job.ext) ? job.ext : (job.type === 'video' ? 'mp4' : 'jpg');
   parts.push(clean(job.name, 'story') + '.' + ext);
   return parts.join('/');
@@ -102,7 +103,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
     const s = await chrome.storage.sync.get(DEFAULTS);
     lang = s.lang || 'pt';
-    const jobs = Array.isArray(msg.jobs) ? msg.jobs.slice(0, 100) : [];
+    const jobs = Array.isArray(msg.jobs) ? msg.jobs.slice(0, 60) : []; // o perfil manda em lotes
     let count = 0;
     const errors = [];
     for (const job of jobs) {
@@ -112,7 +113,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       } catch (e) {
         errors.push(e.message || String(e));
       }
-      if (jobs.length > 1) await new Promise((r) => setTimeout(r, 250));
+      if (jobs.length > 1) await new Promise((r) => setTimeout(r, 600 + Math.random() * 600)); // espaça os pedidos à CDN
     }
     sendResponse(count ? { ok: true, count, errors } : { ok: false, error: errors[0] || tr('none') });
   })();
@@ -124,4 +125,14 @@ chrome.runtime.onInstalled.addListener(async () => {
   const missing = {};
   for (const k of Object.keys(DEFAULTS)) if (!(k in cur)) missing[k] = DEFAULTS[k];
   if (Object.keys(missing).length) await chrome.storage.sync.set(missing);
+});
+
+// Sem popup desde a v1.4.0: o clique no ícone abre o menu dentro do Instagram.
+// Fora do Instagram (ou com a aba sem a extensão carregada), abre o Instagram.
+chrome.action.onClicked.addListener(async (tab) => {
+  try {
+    await chrome.tabs.sendMessage(tab.id, { type: 'salva-stories:toggle-menu' });
+  } catch (_) {
+    chrome.tabs.create({ url: 'https://www.instagram.com/' });
+  }
 });

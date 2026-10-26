@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Salva Stories",
-  "version": "1.3.2",
-  "description": "Botão para salvar o story do Instagram que está na tela: foto na resolução original, vídeo com som. Feito por Dreds.",
+  "version": "1.5.1",
+  "description": "Salva stories, posts e vídeos do Instagram, player com velocidade, seleção no Direct e análise de seguidores. Feito por Dreds.",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -10,8 +10,7 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_popup": "popup/popup.html",
-    "default_title": "Salva Stories",
+    "default_title": "Salva Stories — ajustes no Instagram (Alt+S)",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png"
@@ -35,7 +34,13 @@
         "https://www.instagram.com/*"
       ],
       "js": [
-        "src/page.js"
+        "src/page.js",
+        "src/kit.js",
+        "src/menu.js",
+        "src/profile.js",
+        "src/player.js",
+        "src/inbox.js",
+        "src/follows.js"
       ],
       "run_at": "document_start",
       "world": "MAIN"
