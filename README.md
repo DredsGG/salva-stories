@@ -11,7 +11,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 ![Version](https://img.shields.io/badge/version-1.5.2-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-<img src="docs/salva-stories-story-buttons.png" width="340" alt="An open Instagram story with the two Salva Stories buttons on its right side: save this story and save all stories from this profile, plus a gear that opens the settings">&nbsp;&nbsp;<img src="docs/salva-stories-menu.png" width="300" alt="Salva Stories settings menu inside Instagram: download folder, subfolder per profile, maximum video resolution, save-all button, keyboard shortcut, ghost mode, followers tool and video player">
+<img src="docs/salva-stories-story-buttons.png" width="400" alt="An open Instagram story with the two Salva Stories buttons on its right side: save this story and save all stories from this profile, plus a gear that opens the settings">&nbsp;&nbsp;<img src="docs/salva-stories-menu.png" width="266" alt="Salva Stories settings menu inside Instagram: download folder, subfolder per profile, maximum video resolution, save-all button, keyboard shortcut, ghost mode, followers tool and video player">
 
 </div>
 
