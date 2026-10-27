@@ -99,7 +99,7 @@
     const bar = $('.bar2');
     bar.addEventListener('pointerenter', () => { overBar = true; });
     bar.addEventListener('pointerleave', () => { overBar = false; poke(); });
-    $('.pp').addEventListener('click', () => { if (!cur) return; cur.paused ? cur.play().catch(() => {}) : cur.pause(); sync(); });
+    $('.pp').addEventListener('click', () => { if (!cur) return; cur.paused ? resume(cur) : hold(cur); sync(); });
     $('.bk').addEventListener('click', () => { if (cur) { cur.currentTime = Math.max(0, cur.currentTime - 10); sync(); } });
     $('.fw').addEventListener('click', () => { if (!cur) return; const d = cur.duration; cur.currentTime = isFinite(d) && d > 0 ? Math.min(d - 0.1, cur.currentTime + 10) : cur.currentTime + 10; sync(); });
     $('.mu').addEventListener('click', () => { if (!cur) return; setMuted(cur, !cur.muted); sync(); });
@@ -133,6 +133,29 @@
 
   const fmt = (s) => { s = Math.max(0, Math.floor(s || 0)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = String(s % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${x}` : `${m}:${x}`; };
   const rateLabel = (r) => String(r).replace('.', K().lang() === 'en' ? '.' : ',') + '×';
+
+  // Pausa que o Instagram respeita. O gerenciador de vídeos do feed acha que o vídeo ainda está tocando e chama play()
+  // de novo quando a página rola (medido no feed real, 26/10/2026). Enquanto o usuário pausou pelo nosso botão, os
+  // play() do Instagram nesse vídeo são ignorados. Solta ao dar play pelo nosso botão, ao tocar no vídeo do Instagram
+  // ou quando a fonte do vídeo muda.
+  const NATIVE_PLAY = HTMLMediaElement.prototype.play;
+  function guard(v) {
+    if (v.__ssGuard) return;
+    v.__ssGuard = true;
+    v.play = function () { if (v.__ssHold) { API() && API().log('info', 'player: play() do Instagram ignorado (pausado pelo usuário)'); return Promise.resolve(); } return NATIVE_PLAY.call(v); };
+    // reserva: se algo tocar mesmo assim, pausa de novo
+    v.addEventListener('play', () => { if (v.__ssHold) v.pause(); });
+    v.addEventListener('loadstart', () => { if (v.__ssHold && v.__ssHoldSrc && v.currentSrc && v.currentSrc !== v.__ssHoldSrc) v.__ssHold = false; });
+  }
+  function hold(v) { guard(v); v.__ssHold = true; v.__ssHoldSrc = v.currentSrc; v.pause(); }
+  function resume(v) { v.__ssHold = false; NATIVE_PLAY.call(v).catch(() => {}); }
+  // toque no próprio vídeo (fora da nossa barra) devolve o controle ao Instagram
+  addEventListener('pointerdown', (e) => {
+    const v = cur;
+    if (!v || !v.__ssHold || (ui && e.composedPath().includes(ui.host))) return;
+    const r = v.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) v.__ssHold = false;
+  }, true);
 
   // o Instagram costuma remutar o vídeo logo depois; se o usuário pediu som pelo nosso botão, devolve uma vez
   function setMuted(v, m) {
@@ -310,7 +333,9 @@
       if (!r || !r.ok) throw new Error((r && r.error) || '?');
       const s = API().settings() || {};
       ui.toast(`${t('saved')} Downloads/${s.folder || 'Instagram Stories'}/${s.perUser === false ? '' : job.user + '/'}videos`);
+      API().log('info', 'player: vídeo baixado');
     } catch (e) {
+      API().log('error', 'player: ' + (e.message === t('noId') ? 'vídeo não achado nos dados' : String(e.message).slice(0, 160)));
       ui.toast(e.message === t('noId') ? e.message : `${t('fail')} ${e.message}`);
     } finally {
       btn.classList.remove('busy');
@@ -327,5 +352,5 @@
   watch();
   const __box = (el) => { if (!el || el.hidden) return null; const r = el.getBoundingClientRect(); return r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } : null; };
   window.__salvaStoriesPlayerDebug = () => ({ shown: !!(ui && ui.$('.bar2').classList.contains('show')),
-    at: ui ? { pp: __box(ui.$('.pp')), back: __box(ui.$('.bk')), fwd: __box(ui.$('.fw')), speed: __box(ui.$('.spd')), mute: __box(ui.$('.mu')), dl: __box(ui.$('.dl')), seek: __box(ui.$('.seek')), rates: ui.$$('.menu button').map((b) => ({ r: b.dataset.r, ...(__box(b) || {}) })) } : null, enabled, cur: cur ? { src: (cur.currentSrc || '').slice(0, 30), rate: cur.playbackRate, muted: cur.muted, vol: cur.volume } : null, pref });
+    at: ui ? { pp: __box(ui.$('.pp')), back: __box(ui.$('.bk')), fwd: __box(ui.$('.fw')), speed: __box(ui.$('.spd')), mute: __box(ui.$('.mu')), dl: __box(ui.$('.dl')), seek: __box(ui.$('.seek')), rates: ui.$$('.menu button').map((b) => ({ r: b.dataset.r, ...(__box(b) || {}) })) } : null, enabled, cur: cur ? { src: (cur.currentSrc || '').slice(0, 30), hold: !!cur.__ssHold, paused: cur.paused, rate: cur.playbackRate, muted: cur.muted, vol: cur.volume } : null, pref });
 })();

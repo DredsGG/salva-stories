@@ -8,6 +8,10 @@
   // dados grandes (varreduras de seguidores) ficam no storage.local, só com este prefixo
   const LOCAL_PREFIX = 'ss.follows.';
   const ENUM = { lang: ['pt', 'en', 'es'], theme: ['auto', 'light', 'dark'] };
+  const UPD_KEY = 'ss.update';
+  // tem de bater com o SW_BUILD do sw.js desta versão: se o Chrome ficou com o service worker antigo, o menu avisa
+  const EXPECT_SW = 'ss-sw-1.5.2';
+  const UPD_CMDS = ['check', 'apply', 'dismiss', 'seen', 'guide'];
   let lang = 'pt';
   let dead = false;
 
@@ -28,6 +32,21 @@
     } catch (_) { markDead(); }
   }
 
+  function sendUpdate() {
+    if (!alive()) return;
+    try { chrome.storage.local.get([UPD_KEY, 'ss.disco'], (r) => { post({ kind: 'upd', state: (r && r[UPD_KEY]) || {} }); post({ kind: 'disco', state: (r && r['ss.disco']) || null }); }); } catch (_) {}
+  }
+  // o service worker que está rodando é o desta versão?
+  function pingSw() {
+    if (!alive()) return;
+    try {
+      chrome.runtime.sendMessage({ type: 'salva-stories:ping' }, (r) => {
+        void chrome.runtime.lastError;
+        post({ kind: 'sw', ok: !!(r && r.build === EXPECT_SW), build: (r && r.build) || null });
+      });
+    } catch (_) { markDead(); }
+  }
+
   function clean(patch) {
     const out = {};
     for (const [k, v] of Object.entries(patch || {})) {
@@ -42,7 +61,19 @@
     if (ev.source !== window || ev.origin !== location.origin) return;
     const d = ev.data;
     if (!d || d.__salvaStories !== 'page') return;
-    if (d.kind === 'hello') sendSettings();
+    if (d.kind === 'hello') { sendSettings(); sendUpdate(); pingSw(); }
+    if (d.kind === 'updCmd') {
+      if (!UPD_CMDS.includes(d.cmd)) return;
+      if (!alive()) return markDead();
+      const data = d.cmd === 'guide' ? (/^#[a-z]+$/.test(d.data || '') ? d.data : '') : d.cmd === 'dismiss' ? (typeof d.data === 'string' ? d.data.slice(0, 20) : null) : null;
+      try {
+        chrome.runtime.sendMessage({ type: 'salva-stories:update', cmd: d.cmd, data }, (res) => {
+          const err = chrome.runtime.lastError;
+          post({ kind: 'updRes', cmd: d.cmd, res: err ? { erro: err.message } : (res || {}) });
+        });
+      } catch (_) { markDead(); }
+      return;
+    }
     if (d.kind === 'set') {
       const patch = clean(d.patch);
       if (!Object.keys(patch).length) return;
@@ -74,9 +105,18 @@
   });
 
   try {
-    chrome.storage.onChanged.addListener((changes, area) => { if (area === 'sync') sendSettings(); });
-    // clique no ícone da extensão na barra do Chrome → abre/fecha o menu
-    chrome.runtime.onMessage.addListener((msg) => { if (msg && msg.type === 'salva-stories:toggle-menu') post({ kind: 'toggleMenu' }); });
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'sync') sendSettings();
+      if (area === 'local' && changes[UPD_KEY]) post({ kind: 'upd', state: changes[UPD_KEY].newValue || {} });
+    });
+    chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
+      // clique no ícone da extensão na barra do Chrome → abre/fecha o menu
+      if (msg && msg.type === 'salva-stories:toggle-menu') post({ kind: 'toggleMenu' });
+      // antes de se recarregar para a versão nova, o service worker pergunta se a aba está no meio de um trabalho longo
+      if (msg && msg.type === 'salva-stories:busy?') { reply({ busy: (parseInt(document.documentElement.dataset.ssBusy || '0', 10) || 0) > 0 }); }
+    });
   } catch (_) { markDead(); }
   sendSettings();
+  sendUpdate();
+  pingSw();
 })();

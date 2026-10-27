@@ -269,6 +269,7 @@
 
   async function run(user) {
     busy = true; cancelFlag = false;
+    K().busy(true);
     const c = ui.$('.card'), go = c.querySelector('.go');
     ui.$('.pill').classList.add('busy');
     go.innerHTML = K().esc(t('cancel')); go.className = 'btn sec go';
@@ -286,10 +287,15 @@
         const r = await API().askExtension(batch);
         ok += (r && r.count) || 0; fail += batch.length - ((r && r.count) || 0);
       }
+      API().log(fail ? 'warn' : 'info', `baixar perfil: ${posts.length} posts, ${ok} arquivos ok, ${fail} falhas${cancelFlag ? ', cancelado' : ''}`);
       if (cancelFlag) setProgress(t('canceled') + ' ' + t('done', K().nf(ok), folderOf(user)), ok / jobs.length);
       else setProgress(t('done', K().nf(ok), folderOf(user)) + (fail ? ' · ' + t('failed', K().nf(fail)) : ''), 1);
+    } catch (e) {
+      API().log('error', 'baixar perfil: ' + String((e && e.message) || e).slice(0, 160));
+      throw e;
     } finally {
       busy = false;
+      K().busy(false);
       ui.$('.pill').classList.remove('busy');
       go.innerHTML = K().ICON.dl + K().esc(t('again')); go.className = 'btn pri go';
       for (const el of c.querySelectorAll('.chip, .checks input')) el.disabled = false;

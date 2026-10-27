@@ -108,6 +108,23 @@
     return found;
   }
 
+  // ───────────────────────── registro (vai junto no "Relatar bug") ─────────────────────────
+  // Só o que a extensão fez: contagens, tipos e erros. Nada da conta (sem usuário, e-mail, token ou cookie).
+  const LOG = [];
+  function log(level, msg) {
+    LOG.push({ t: Date.now(), level: level || 'info', msg: String(msg).slice(0, 240) });
+    if (LOG.length > 150) LOG.splice(0, LOG.length - 150);
+  }
+  // erros dos nossos scripts (o endereço do arquivo é chrome-extension://…/src/x.js)
+  addEventListener('error', (e) => {
+    const f = String((e && e.filename) || '');
+    if (/^chrome-extension:\/\//.test(f)) log('error', `${(e.message || 'erro').slice(0, 160)} @ ${f.split('/').slice(-2).join('/')}:${e.lineno || 0}`);
+  }, true);
+  addEventListener('unhandledrejection', (e) => {
+    const st = String((e && e.reason && e.reason.stack) || '');
+    if (st.includes('chrome-extension://')) log('error', 'promise: ' + String((e.reason && e.reason.message) || e.reason).slice(0, 160));
+  });
+
   const dataListeners = [];
   function emitData(obj) { for (const fn of dataListeners) { try { fn(obj); } catch (_) {} } }
   function parseMaybe(text) {
@@ -509,8 +526,10 @@
       const msg = await fn();
       btn.classList.remove('busy'); btn.classList.add('ok'); btn.innerHTML = ICON_OK;
       toast(msg);
+      log('info', 'story salvo: ' + msg);
     } catch (e) {
       console.warn(TAG, e);
+      log('error', 'story não salvo: ' + String((e && e.message) || e).replace(/\d{8,}/g, '#').slice(0, 160));
       btn.classList.remove('busy'); btn.classList.add('err'); btn.innerHTML = ICON_ERR;
       toast(t('notSaved') + (e && e.message ? e.message : e));
     }
@@ -562,7 +581,7 @@
       onData: (fn) => { dataListeners.push(fn); },
       settings: () => settings,
       whenSettings: () => settingsReady,
-      appId, csrf, fiberOf, pkFromFiber, ITEMS_HAS: (pk) => ITEMS.has(String(pk)),
+      appId, csrf, fiberOf, pkFromFiber, log, logs: () => LOG.slice(), itemCount: () => ITEMS.size, ITEMS_HAS: (pk) => ITEMS.has(String(pk)),
       lang: () => (settings && settings.lang) || 'pt',
     }),
   });

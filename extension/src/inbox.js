@@ -148,6 +148,7 @@
   async function selectAll() {
     const sc = listBox();
     busy = true; stop = false;
+    K().busy(true);
     const p = ui.$('.prog'); p.hidden = false;
     p.querySelector('.bar i').style.width = '0%';
     render();
@@ -172,7 +173,9 @@
       }
       p.querySelector('.bar i').style.width = '100%';
       p.querySelector('.st').textContent = stop ? t('stopped') + ' ' + t('sel', SEL.size) : t('loaded', SEL.size);
+      API().log('info', `direct: "todas" selecionou ${SEL.size}`);
     } finally {
+      K().busy(false);
       busy = false; stop = false;
       render();
       setTimeout(() => { if (!busy && ui) ui.$('.prog').hidden = true; layout(); }, 3500);
@@ -366,7 +369,9 @@
     if (!SEL.size) { ui.toast(t('pick')); return; }
     if (action === 'del' && !(await confirmDelete(SEL.size))) return;
     busy = true; stop = false;
+    K().busy(true);
     const keys = [...SEL];
+    const res = {};
     const p = ui.$('.prog'); p.hidden = false;
     let done = 0, skipped = 0;
     render();
@@ -378,6 +383,7 @@
         let r = 'err';
         try { r = await doOne(keys[i], action); } catch (e) { r = 'err:' + (e && e.message); }
         lastResult = r;
+        res[r] = (res[r] || 0) + 1;
         if (r === 'ok') { done++; SEL.delete(keys[i]); if (action === 'del') KNOWN.delete(keys[i]); } else skipped++;
         render();
         if (r === 'blocked') { stop = true; ui.toast(t('blocked')); break; }
@@ -389,7 +395,9 @@
       p.querySelector('.bar i').style.width = '100%';
       p.querySelector('.st').textContent = stop ? t('stopped') + ' ' + t('done', done, skipped) : t('done', done, skipped);
       ui.toast(p.querySelector('.st').textContent);
+      API().log(skipped ? 'warn' : 'info', `direct: ação ${action} em ${keys.length}: ` + Object.entries(res).map(([k, v]) => `${k} ${v}`).join(', '));
     } finally {
+      K().busy(false);
       busy = false; stop = false;
       render();
       setTimeout(() => { if (!busy && ui) ui.$('.prog').hidden = true; layout(); }, 4000);

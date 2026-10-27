@@ -1,4 +1,4 @@
-// Testes da v1.5.0: ícone/fantasma fora dos stories, baixar perfil, player, seleção no Direct, seguidores.
+// Testes da v1.5.x: ícone/fantasma fora dos stories, baixar perfil, player, seleção no Direct, seguidores, atualização e relatar bug.
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
@@ -84,7 +84,8 @@ const postPage = shell(`<main style="margin-left:72px;display:grid;justify-items
     <div style="padding:10px 0">♡ 💬 ➤ <br><b>123 curtidas</b></div>
   </article></main>
 <script type="application/json">${JSON.stringify({ require: [['x', { data: { xdt_shortcode_media: { items: [vitem] } } }]] })}</script>
-<script>v.play().catch(()=>{});</script>`);
+<div style="height:1400px"></div>
+<script>v.play().catch(()=>{}); window.igPlays=0; addEventListener('scroll', () => { if (v.paused) { window.igPlays++; v.play().catch(()=>{}); } });</script>`);
 
 // ───────── Direct simulado: 40 conversas, carrega 15 por vez ao rolar e "virtualiza" as linhas longe da tela ─────────
 const names = Array.from({ length: 40 }, (_, i) => ['ana.souza', 'bruno.dev', 'carla_m', 'diego.f', 'eduarda', 'felipe.r', 'gabi.art', 'henrique', 'isa.l', 'joao.p'][i % 10] + (i >= 10 ? '_' + i : ''));
@@ -174,6 +175,9 @@ await ctx.route('https://www.instagram.com/**', async (route) => {
   if (p.startsWith('/direct/inbox')) return route.fulfill({ status: 200, contentType: 'text/html', body: inboxPage });
   return route.fulfill({ status: 200, contentType: 'text/html', body: shell('<main style="margin-left:420px;padding-top:40px">Feed simulado</main>') });
 });
+let ghHits = 0;
+await ctx.route('https://api.github.com/**', (r) => { ghHits++; return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tag_name: 'v9.9.9', html_url: 'https://github.com/DredsGG/salva-stories/releases/tag/v9.9.9', body: '### Install\n1. Download the zip.\n2. Open chrome://extensions.\n\n\nNew: download whole profiles faster.\n- Fixed the player on reels.\n- Faster story saves.', assets: [{ name: 'salva-stories-v9.9.9.zip', browser_download_url: 'https://github.com/DredsGG/salva-stories/releases/download/v9.9.9/salva-stories-v9.9.9.zip' }] }) }); });
+await ctx.route('https://github.com/**', (r) => r.fulfill({ status: 200, contentType: 'application/zip', body: Buffer.from('PK\x05\x06' + '\0'.repeat(18), 'binary') }));
 let [sw] = ctx.serviceWorkers(); if (!sw) sw = await ctx.waitForEvent('serviceworker');
 await wait(800);
 await sw.evaluate(() => { self.__calls = []; const orig = chrome.downloads.download.bind(chrome.downloads); chrome.downloads.download = (o, cb) => { self.__calls.push(o.filename); return orig(o, cb); }; });
@@ -235,6 +239,10 @@ if (ONLY === 'all' || ONLY === 'player') {
   out.p0 = await vid();
   await p.screenshot({ path: path.join(SHOT, `player-${mode}.png`), clip: { x: vr.x - 20, y: vr.y - 10, width: vr.w + 40, height: vr.h + 20 } });
   await clickAt(d.at.pp); await wait(300); out.pAfterPause = await vid();
+  // o "Instagram" da página tenta dar play ao rolar: tem que continuar pausado
+  await p.mouse.wheel(0, 40); await wait(400); await p.mouse.wheel(0, -40); await wait(600);
+  out.pausedAfterIgScroll = await vid(); out.igPlayCalls = await p.evaluate(() => window.igPlays);
+  await p.mouse.move(vr.x + vr.w / 2, vr.y + vr.h / 2); await wait(400); d = await dbgOf('__salvaStoriesPlayerDebug');
   await clickAt(d.at.fwd); await wait(200); out.pAfterFwd = await vid();
   await clickAt(d.at.back); await wait(200); out.pAfterBack = await vid();
   await clickAt(d.at.speed); await wait(300);
@@ -249,7 +257,12 @@ if (ONLY === 'all' || ONLY === 'player') {
   // seek: clica a 75% da linha
   d = await dbgOf('__salvaStoriesPlayerDebug');
   const seekW = await p.evaluate(() => null);
-  await clickAt(d.at.pp); await wait(200); // volta a tocar
+  await clickAt(d.at.pp); await wait(300); out.pAfterResume = await vid(); // volta a tocar pelo nosso botão
+  // pausa de novo e toca no vídeo do Instagram: devolve o controle (o próximo play do Instagram vale)
+  await clickAt(d.at.pp); await wait(200); await p.mouse.click(vr.x + vr.w / 2, vr.y + 120); await wait(200);
+  out.holdAfterIgTap = (await dbgOf('__salvaStoriesPlayerDebug')).cur;
+  await p.mouse.wheel(0, 40); await wait(400); await p.mouse.wheel(0, -40); await wait(600); out.playsAfterIgTapScroll = await vid();
+  await p.mouse.move(vr.x + vr.w / 2, vr.y + vr.h / 2); await wait(400); d = await dbgOf('__salvaStoriesPlayerDebug');
   await p.screenshot({ path: path.join(SHOT, `player-playing-${mode}.png`), clip: { x: vr.x - 20, y: vr.y - 10, width: vr.w + 40, height: vr.h + 20 } });
   await clickAt(d.at.dl); await wait(3000);
   out.playerDownload = await downloads(1);
@@ -338,6 +351,44 @@ if (ONLY === 'all' || ONLY === 'follows') {
   out.apiHits = { ...apiHits };
   out.stored = await sw.evaluate((me) => chrome.storage.local.get('ss.follows.' + me).then((r) => { const x = r['ss.follows.' + me]; return x && { fol: x.followers.length, fing: x.following.length, prev: x.prev && x.prev.followers.length, hist: x.history.length, kb: Math.round(JSON.stringify(x).length / 1024) }; }), ME);
   void stamp1;
+}
+
+// 6) atualização + relatar bug no menu
+if (ONLY === 'all' || ONLY === 'upd') {
+  await p.goto('https://www.instagram.com/'); await wait(1500);
+  out.realGithub = await sw.evaluate(() => chrome.storage.local.get('ss.update').then((r) => { const u = r['ss.update'] || {}; return { ultima: u.ultima, disponivel: u.disponivel, zip: !!u.zip, erro: u.erro }; }));
+  await sw.evaluate(() => chrome.storage.local.get('ss.update').then((r) => chrome.storage.local.set({ 'ss.update': Object.assign({}, r['ss.update'] || {}, { procuradoEm: Date.now(), ultima: '9.9.9', disponivel: true, dispensada: null, notas: '### Install\n1. Download the zip.\n2. Open chrome://extensions.\n\n\nNew: download whole profiles faster.\n- Fixed the player on reels.\n- Faster story saves.', zip: 'https://github.com/DredsGG/salva-stories/releases/download/v9.9.9/salva-stories-v9.9.9.zip', pagina: 'https://github.com/DredsGG/salva-stories/releases/tag/v9.9.9' }) })));
+  await wait(500);
+  let m = await dbgOf('__salvaStoriesMenuDebug');
+  out.swOk = m.swOk;
+  await p.mouse.click(m.slot.x + 24, m.slot.y + 24); await wait(1200);
+  m = await dbgOf('__salvaStoriesMenuDebug');
+  out.upd = { ultima: m.upd.ultima, disponivel: m.upd.disponivel, inst: m.upd.instalacao, erro: m.upd.erro, ghHits };
+  await p.screenshot({ path: path.join(SHOT, `update-card-${mode}.png`) });
+  // Atualizar → baixa o zip
+  if (m.at.ugo) { await p.mouse.click(m.at.ugo.x, m.at.ugo.y); await wait(2500); }
+  out.updDownloads = await sw.evaluate(() => new Promise((r) => chrome.downloads.search({ orderBy: ['-startTime'], limit: 2 }, (d) => r(d.map((x) => x.url.slice(0, 80) + ' ' + x.state)))));
+  m = await dbgOf('__salvaStoriesMenuDebug');
+  out.afterApply = { open: m.open, pages: ctx.pages().map((x) => x.url().slice(0, 60)) };
+  if (!m.open) { await p.mouse.click(m.slot.x + 24, m.slot.y + 24); await wait(800); m = await dbgOf('__salvaStoriesMenuDebug'); }
+  await p.screenshot({ path: path.join(SHOT, `update-downloaded-${mode}.png`) });
+  // Relatar bug
+  out.beforeBug = { open: m.open, ubug: m.at && m.at.ubug, afterApply: out.afterApply };
+  await p.screenshot({ path: path.join(SHOT, 'dbg-before-bug.png') });
+  out.elAt = await p.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e && e.tagName; }, [m.at.ubug.x, m.at.ubug.y]);
+  await p.mouse.click(m.at.ubug.x, m.at.ubug.y); await wait(400);
+  m = await dbgOf('__salvaStoriesMenuDebug');
+  out.afterBug = { open: m.open, stack: await p.evaluate(() => window.__ssCloseStack) };
+  if (!m.at) { console.log(JSON.stringify(out, null, 1)); await p.screenshot({ path: path.join(SHOT, 'dbg-bug.png') }); process.exit(0); }
+  await p.mouse.click(m.at.bwhat.x, m.at.bwhat.y); await p.keyboard.type('O botão de baixar sumiu no story (teste dd)'); await wait(300);
+  m = await dbgOf('__salvaStoriesMenuDebug');
+  out.bugUrlLen = m.bugUrl && m.bugUrl.length; out.bugUrlStart = m.bugUrl && decodeURIComponent(m.bugUrl).slice(0, 200);
+  out.bugHasLog = !!(m.bugUrl && decodeURIComponent(m.bugUrl).includes('Log'));
+  await p.screenshot({ path: path.join(SHOT, `bug-card-${mode}.png`) });
+  const [gh] = await Promise.all([ctx.waitForEvent('page', { timeout: 5000 }).catch(() => null), p.mouse.click(m.at.bgh.x, m.at.bgh.y)]);
+  out.bugOpened = gh ? gh.url().slice(0, 90) : null;
+  if (gh) await gh.close();
+  out.downloadsAfterTyping = await sw.evaluate(() => new Promise((r) => chrome.downloads.search({ orderBy: ['-startTime'], limit: 5 }, (d) => r(d.length))));
 }
 
 out.logs = logs.slice(0, 30);

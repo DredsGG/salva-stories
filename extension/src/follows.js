@@ -397,7 +397,7 @@
     const [pk, user, name, fl, pic] = x;
     const ign = data && data.ignore && data.ignore.includes(pk);
     const letter = esc((user[0] || '?').toUpperCase());
-    const av = pic ? `<img class="av" src="${esc(pic)}" alt="" referrerpolicy="no-referrer" loading="lazy" data-l="${letter}" data-c="${COLORS[pk.length % COLORS.length]}">`
+    const av = pic ? `<img class="av" src="${esc(pic)}" alt="" loading="lazy" decoding="async" data-l="${letter}" data-c="${COLORS[pk.length % COLORS.length]}">`
       : `<span class="av" style="background:${COLORS[Number(pk.slice(-2)) % COLORS.length]}">${letter}</span>`;
     const tags = [
       fl & F_VER ? `<span title="${esc(t('verified'))}">${SV.ver}</span>` : '',

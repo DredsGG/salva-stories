@@ -111,9 +111,13 @@
     setTimeout(() => { if (lwait.has(id)) { lwait.delete(id); resolve(undefined); } }, 8000);
   });
 
+  // trabalho longo em andamento (baixar perfil, ações no Direct, seguidores): a atualização automática espera
+  let busyN = 0;
+  const busy = (on) => { busyN = Math.max(0, busyN + (on ? 1 : -1)); document.documentElement.dataset.ssBusy = String(busyN); };
+
   Object.defineProperty(window, KEY, {
     value: Object.freeze({
-      esc, igDark, mode, lang, tr, nf, makeHost, ICON, signature, sleep, jitter,
+      esc, igDark, mode, lang, tr, nf, makeHost, ICON, signature, sleep, jitter, busy,
       version: () => version,
       lget: (key) => local('lget', key), lset: (key, value) => local('lset', key, value),
       myId: () => (document.cookie.match(/(?:^|;\s*)ds_user_id=(\d+)/) || [])[1] || null,

@@ -28,12 +28,13 @@ node cdn.mjs
 Deixe rodando (porta 443, com suporte a Range para o player poder pular). Depois:
 
 - `node e2e.mjs $PWD/ext-test` testa os stories: foto, vídeo em alta (DASH), sem som, salvar todos, 720p, modo fantasma e menu.
-- `node e2e-v15.mjs $PWD/ext-test [menu|profile|player|inbox|follows|all]` testa as novidades da v1.5.0:
+- `node e2e-v15.mjs $PWD/ext-test [menu|profile|player|inbox|follows|upd|all]` testa o resto (v1.5.x):
   - **fantasma**: indicador fora dos stories.
   - **perfil**: baixar perfil com 30 posts e carrossel (34 arquivos em `perfil/fotos` e `perfil/videos`).
-  - **player**: pausar, ±10 s, velocidade 2×, som, volume e baixar.
-  - **direct**: seleção e "Não lida" em 3 conversas; excluir 2 com a confirmação.
+  - **player**: pausar (e continuar pausado quando a página tenta dar play ao rolar), ±10 s, velocidade 2×, som, volume e baixar.
+  - **direct**: "Todas" seleciona as 40 conversas; "Não lida" em 2; excluir 2 com uma confirmação só.
   - **seguidores**: duas análises, com quem deixou de seguir e novos seguidores.
+  - **atualização** (`upd`): aviso de versão nova com o zip do Release simulado e "Relatar bug" abrindo o Issue já preenchido.
 - Use `MODE=light` para o tema claro. As capturas vão para `shots15/`.
 
 ## Chromium

@@ -34,6 +34,15 @@
       profileBtn: 'Botão "baixar perfil"', profileBtnD: 'Na página de um perfil, baixa todos os posts organizados em pastas',
       inboxTools: 'Seleção no direct', inboxToolsD: 'Selecionar várias conversas e agir em todas de uma vez',
       ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', open2: 'Abrir',
+      updCheck: 'Procurar atualização', updChecking: 'Procurando…', updLatest: 'Você está na versão mais nova', updFail: 'Não deu para procurar agora',
+      updAvail: (v) => `v${v} disponível`, updTitle: 'Atualização disponível', updGo: 'Atualizar', updLater: 'Depois', updHow: 'Como atualizar, passo a passo',
+      updDownloaded: 'O zip novo foi para a pasta Downloads. Extraia por cima da pasta da extensão: ela se recarrega sozinha em até 1 minuto.',
+      updDone: (a, b) => `Salva Stories atualizado: v${a} → v${b}`, updHelp: 'Como instalar e atualizar',
+      swOld: 'A parte de fundo da extensão ficou na versão antiga (o Chrome não trocou). Abra chrome://extensions e clique em ↻ no Salva Stories. É só desta vez: daqui para frente ele se atualiza sozinho.',
+      bugBtn: 'Relatar bug', bugTitle: 'Relatar um bug', bugPh: 'O que aconteceu? Ex.: o botão de baixar sumiu, o vídeo saiu sem som, o perfil parou no meio…',
+      bugDiag: 'O que vai junto (nada da sua conta)', bugOpen: 'Abrir no GitHub', bugCopy: 'Copiar relatório', bugCopied: 'Copiado!', bugFail: 'Não deu para copiar',
+      bugNote: 'Abrir no GitHub pede uma conta no GitHub (é grátis). Sem conta? Copie o relatório e mande para quem te passou o Salva Stories.',
+      bugWhatHead: 'O que aconteceu', bugTrimmed: 'cortado para caber; o completo vai no Copiar',
     },
     en: {
       title: 'Salva Stories', close: 'Close', open: 'Salva Stories — settings (Alt+S)',
@@ -52,6 +61,15 @@
       profileBtn: '"Download profile" button', profileBtnD: "On a profile page, downloads every post into tidy folders",
       inboxTools: 'Direct selection', inboxToolsD: 'Select several chats and act on all of them at once',
       ghostOn: 'Ghost mode on', ghostSub: 'Nobody sees that you watched', open2: 'Open',
+      updCheck: 'Check for updates', updChecking: 'Checking…', updLatest: "You're on the latest version", updFail: "Couldn't check right now",
+      updAvail: (v) => `v${v} available`, updTitle: 'Update available', updGo: 'Update', updLater: 'Later', updHow: 'How to update, step by step',
+      updDownloaded: 'The new zip went to your Downloads folder. Unzip it over the extension folder: it reloads itself within 1 minute.',
+      updDone: (a, b) => `Salva Stories updated: v${a} → v${b}`, updHelp: 'How to install and update',
+      swOld: "The extension's background part stayed on the old version (Chrome didn't swap it). Open chrome://extensions and click ↻ on Salva Stories. Only this once: from now on it updates itself.",
+      bugBtn: 'Report a bug', bugTitle: 'Report a bug', bugPh: 'What happened? E.g. the download button disappeared, the video has no sound, the profile stopped halfway…',
+      bugDiag: 'What gets attached (nothing from your account)', bugOpen: 'Open on GitHub', bugCopy: 'Copy report', bugCopied: 'Copied!', bugFail: "Couldn't copy",
+      bugNote: 'Opening on GitHub needs a GitHub account (free). No account? Copy the report and send it to whoever shared Salva Stories with you.',
+      bugWhatHead: 'What happened', bugTrimmed: 'trimmed to fit; the full log is in Copy',
     },
     es: {
       title: 'Salva Stories', close: 'Cerrar', open: 'Salva Stories — ajustes (Alt+S)',
@@ -70,13 +88,25 @@
       profileBtn: 'Botón "descargar perfil"', profileBtnD: 'En un perfil, descarga todas las publicaciones en carpetas ordenadas',
       inboxTools: 'Selección en el direct', inboxToolsD: 'Selecciona varios chats y actúa en todos a la vez',
       ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', open2: 'Abrir',
+      updCheck: 'Buscar actualización', updChecking: 'Buscando…', updLatest: 'Tienes la versión más nueva', updFail: 'No se pudo buscar ahora',
+      updAvail: (v) => `v${v} disponible`, updTitle: 'Actualización disponible', updGo: 'Actualizar', updLater: 'Después', updHow: 'Cómo actualizar, paso a paso',
+      updDownloaded: 'El zip nuevo fue a la carpeta Descargas. Extráelo sobre la carpeta de la extensión: se recarga sola en hasta 1 minuto.',
+      updDone: (a, b) => `Salva Stories actualizado: v${a} → v${b}`, updHelp: 'Cómo instalar y actualizar',
+      swOld: 'La parte de fondo de la extensión quedó en la versión antigua (Chrome no la cambió). Abre chrome://extensions y haz clic en ↻ en Salva Stories. Solo esta vez: desde ahora se actualiza sola.',
+      bugBtn: 'Reportar error', bugTitle: 'Reportar un error', bugPh: '¿Qué pasó? Ej.: desapareció el botón de descargar, el video salió sin sonido, el perfil se detuvo a mitad…',
+      bugDiag: 'Lo que se adjunta (nada de tu cuenta)', bugOpen: 'Abrir en GitHub', bugCopy: 'Copiar informe', bugCopied: '¡Copiado!', bugFail: 'No se pudo copiar',
+      bugNote: 'Abrir en GitHub requiere una cuenta de GitHub (gratis). ¿Sin cuenta? Copia el informe y envíalo a quien te pasó Salva Stories.',
+      bugWhatHead: 'Qué pasó', bugTrimmed: 'recortado para que quepa; el completo va en Copiar',
     },
   };
 
   let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: 'pt', theme: 'auto', player: true, profileBtn: true, inboxTools: true };
   let version = '';
   let stale = false;
-  const tr = (k) => (T[S.lang] || T.pt)[k] ?? T.pt[k];
+  const tr = (k, ...a) => { const v = (T[S.lang] || T.pt)[k] ?? T.pt[k]; return typeof v === 'function' ? v(...a) : v; };
+  // atualização e relato de bug (regra 7 / Relatar bug, igual ao Midas, à Plateia e ao PokeIdle)
+  const REPO = 'DredsGG/salva-stories';
+  let upd = {}, updBusy = null, updDownloaded = false, swOk = true, bugOpen = false, bugText = '', disco = null;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   // ───────────── ícones ─────────────
@@ -95,6 +125,9 @@
   const GHOST = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a7 7 0 0 0-7 7v10.6l2.33-1.75 2.34 1.75L12 18.85l2.33 1.75 2.34-1.75L19 20.6V10a7 7 0 0 0-7-7z"/><circle cx="9.5" cy="10.5" r="1.25" fill="currentColor" stroke="none"/><circle cx="14.5" cy="10.5" r="1.25" fill="currentColor" stroke="none"/></svg>';
   const PEOPLE = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>';
   const CHEVRON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
+  const REFRESH = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/></svg>';
+  const BUG = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="8" width="10" height="12" rx="5"/><path d="M12 12v8M9 5l1.5 2M15 5l-1.5 2M3 13h4M17 13h4M4 19l3-2M20 19l-3-2M4 7l3 2M20 7l-3 2"/></svg>';
+  const GIFT = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>';
   const LANG_NAME = { pt: 'Português', en: 'English', es: 'Español' };
   // bandeira + anel no MESMO svg (concêntricos em vetor; igual à v1.3.2 do popup)
   const flag = (l) => `<button type="button" class="flag" data-lang="${l}" role="radio" title="${LANG_NAME[l]}"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">`
@@ -206,8 +239,42 @@
     display: flex; align-items: center; gap: 10px; }
   .stale button { margin-left: auto; flex: none; height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--grad); color: #fff;
     font: 600 13px var(--font); cursor: pointer; }
-  .foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px 14px; border-top: 1px solid var(--sep);
-    font-size: 12px; color: var(--sub); }
+  .foot { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 10px 16px 14px; border-top: 1px solid var(--sep); font-size: 12px; color: var(--sub); }
+  .foot .r1, .foot .r2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+  .foot .r1 .uchk { flex: 1 1 auto; min-width: 0; justify-content: center; }
+  .foot .r1 .ubug { flex: 1 1 auto; min-width: 0; justify-content: center; }
+  .fbtn { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--card); color: var(--fg);
+    font: 600 12px var(--font); cursor: pointer; white-space: nowrap; transition: background .15s; }
+  .fbtn:hover { background: var(--hover); }
+  .fbtn.spin svg { animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ust { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; text-align: center; }
+  .ust:empty { display: none; }
+  .ust.av { color: #d62976; font-weight: 700; cursor: pointer; }
+  .fi { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 1px solid var(--sep); background: transparent; color: var(--sub); font: 700 11px/1 Georgia, serif; cursor: pointer; display: grid; place-items: center; padding: 0; }
+  .fi:hover { color: var(--fg); background: var(--hover); }
+  /* cartões no topo do painel */
+  .card2 { margin: 12px 16px 4px; padding: 12px 12px 10px; border-radius: 12px; font-size: 13px; color: var(--fg); }
+  .card2 h4 { margin: 0 0 6px; font-size: 13.5px; display: flex; align-items: center; gap: 6px; }
+  .card2 h4 small { font-weight: 600; color: var(--sub); }
+  .card2 ul { margin: 4px 0 8px; padding-left: 18px; color: var(--fg); } .card2 li { margin: 2px 0; }
+  .card2 .acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card2 .b1 { height: 30px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--grad); color: #fff; font: 700 13px var(--font); cursor: pointer; }
+  .card2 .b2 { height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--card); color: var(--fg); font: 600 13px var(--font); cursor: pointer; }
+  .card2 .lk { margin-left: auto; color: #d62976; font-weight: 600; font-size: 12px; cursor: pointer; background: none; border: 0; padding: 0; }
+  .card2.gold { background: linear-gradient(135deg, rgba(250,126,30,.16), rgba(214,41,118,.12)); border: 1px solid rgba(250,126,30,.45); }
+  .card2.ok { background: rgba(0,163,108,.12); border: 1px solid rgba(0,163,108,.4); display: flex; align-items: center; gap: 10px; }
+  .card2.ok .x2 { margin-left: auto; }
+  .card2.warn { background: rgba(250,126,30,.12); border: 1px solid rgba(250,126,30,.45); }
+  .card2.blue { background: rgba(0,149,246,.08); border: 1px solid rgba(0,149,246,.35); }
+  .card2 textarea { width: 100%; min-height: 70px; resize: vertical; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--sep); background: var(--bg); color: var(--fg); font: 13px/1.35 var(--font); outline: none; }
+  .card2 textarea:focus { border-color: #d62976; }
+  .card2 .lbl { margin: 8px 0 4px; font-size: 11.5px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .05em; }
+  .card2 pre { margin: 0 0 8px; max-height: 110px; overflow: auto; padding: 8px; border-radius: 8px; background: var(--card); font: 11px/1.4 ui-monospace, Consolas, monospace; white-space: pre-wrap; word-break: break-word; color: var(--sub); }
+  .card2 .note { font-size: 11.5px; color: var(--sub); margin-bottom: 8px; }
+  .x2 { width: 24px; height: 24px; border-radius: 50%; border: 0; background: transparent; color: var(--fg); cursor: pointer; display: grid; place-items: center; padding: 0; }
+  .x2:hover { background: var(--hover); }
+  .nav.upd::after { content: ""; position: absolute; top: 9px; right: 9px; width: 9px; height: 9px; border-radius: 50%; background: rgb(0,149,246); box-shadow: 0 0 0 2px var(--navbg, #000); }
   .sig { display: inline-flex; align-items: baseline; gap: 6px; letter-spacing: .12em; text-transform: uppercase; font-size: 10.5px; white-space: nowrap; }
   .hint { white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; cursor: help; }
   .sig .star { width: 10px; height: 10px; align-self: center; position: relative; top: 1px; }
@@ -328,6 +395,7 @@
     nav.title = anchorMode === 'fab' ? tr('open') : '';
     nav.setAttribute('aria-label', tr('open'));
     nav.classList.toggle('on', isOpen());
+    nav.classList.toggle('upd', !!(upd.disponivel && upd.ultima) || !swOk);
   }
 
   // ───────────── painel ─────────────
@@ -350,6 +418,7 @@
         <button class="x" type="button" title="${esc(tr('close'))}" aria-label="${esc(tr('close'))}">${X_ICON}</button></div>
       <div class="body">
         ${stale ? `<div class="stale"><span>${esc(tr('stale'))}</span><button type="button" class="reload">${esc(tr('reload'))}</button></div>` : ''}
+        ${cardsHtml()}
         <div class="sec">${esc(tr('secDownloads'))}</div>
         <div class="field"><label for="ss-folder">${esc(tr('folder'))}</label>
           <input id="ss-folder" type="text" spellcheck="false" autocomplete="off" maxlength="120" placeholder="Instagram Stories" value="${esc(S.folder || '')}">
@@ -372,8 +441,13 @@
             <button type="button" data-theme="light">${SUN}${esc(tr('light'))}</button>
             <button type="button" data-theme="dark">${MOON}${esc(tr('dark'))}</button></div></div>
       </div>
-      <div class="foot"><span class="sig">${STAR}<span>${esc(tr('madeBy'))}</span><a href="${GITHUB}" target="_blank" rel="noopener noreferrer">Dreds</a>${version ? `<span class="ver">· v${esc(version)}</span>` : ''}</span>
-        <span class="hint" title="${esc(tr('hintT'))}"><kbd>Alt</kbd>+<kbd>S</kbd></span></div>`;
+      <div class="foot">
+        <div class="r1"><button type="button" class="fbtn uchk${updBusy === 'check' ? ' spin' : ''}" title="${esc(tr('updCheck'))}">${REFRESH}${esc(tr('updCheck'))}</button>
+          <button type="button" class="fbtn ubug" title="${esc(tr('bugTitle'))}">${BUG}${esc(tr('bugBtn'))}</button>
+          <button type="button" class="fi uhelp" title="${esc(tr('updHelp'))}" aria-label="${esc(tr('updHelp'))}">i</button></div>
+        <div class="ust${upd.disponivel ? ' av' : ''}">${esc(updStatus())}</div>
+        <div class="r2"><span class="sig">${STAR}<span>${esc(tr('madeBy'))}</span><a href="${GITHUB}" target="_blank" rel="noopener noreferrer">Dreds</a>${version ? `<span class="ver">· v${esc(version)}</span>` : ''}</span>
+        <span class="hint" title="${esc(tr('hintT'))}"><kbd>Alt</kbd>+<kbd>S</kbd></span></div></div>`;
     panel.querySelector('.body').scrollTop = keepScroll;
     for (const f of panel.querySelectorAll('.flag')) { const on = f.dataset.lang === S.lang; f.classList.toggle('on', on); f.setAttribute('aria-checked', String(on)); }
     for (const b of panel.querySelectorAll('.seg button')) { const on = b.dataset.theme === (S.theme || 'auto'); b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }
@@ -385,6 +459,7 @@
   function wirePanel() {
     panel.querySelector('.x').addEventListener('click', close);
     const rl = panel.querySelector('.reload'); if (rl) rl.addEventListener('click', () => location.reload());
+    wireUpdBug();
     for (const row of panel.querySelectorAll('.row[data-key]')) {
       const flip = () => set({ [row.dataset.key]: !S[row.dataset.key] });
       row.addEventListener('click', flip);
@@ -414,6 +489,104 @@
     });
   }
 
+  // ───────────── atualização e relato de bug ─────────────
+  const updCmd = (cmd, data) => window.postMessage({ __salvaStories: 'page', kind: 'updCmd', cmd, data }, location.origin);
+  function updStatus() {
+    if (updBusy === 'check') return tr('updChecking');
+    if (upd.disponivel && upd.ultima) return tr('updAvail', upd.ultima);
+    if (upd.erro && !upd.ultima) return tr('updFail');
+    return upd.procuradoEm ? tr('updLatest') : '';
+  }
+  // notas do Release (markdown simples) → até 5 itens curtos, sem o bloco "Install" que o workflow põe no topo
+  const noteItems = (md) => String(md || '').replace(/^\s*#+\s*Install[\s\S]*?(\n\s*\n)(?=\S)/i, '').split(/\r?\n/)
+    .map((l) => l.replace(/^\s*(#+|[-*+]|\d+\.)\s*/, '').replace(/[*_`]/g, '').trim())
+    .filter((l) => l && !/^(install|download|open .?chrome|drag the zip)/i.test(l))
+    .flatMap((l) => (l.length > 170 ? l.split(/(?<=[.!?])\s+/) : [l])).filter(Boolean).slice(0, 5);
+  function cardsHtml() {
+    let h = '';
+    if (!swOk) h += `<div class="card2 warn">${esc(tr('swOld'))}</div>`;
+    const j = upd.acabouDeAtualizar;
+    if (j && j.para === version && Date.now() - (j.em || 0) < 30 * 60000) {
+      h += `<div class="card2 ok"><span>${GIFT}</span><b>${esc(tr('updDone', j.de || '?', j.para))}</b><button type="button" class="x2 useen" aria-label="${esc(tr('close'))}">${X_ICON}</button></div>`;
+    }
+    if (upd.disponivel && upd.ultima && upd.dispensada !== upd.ultima) {
+      const items = noteItems(upd.notas);
+      h += `<div class="card2 gold"><h4>${esc(tr('updTitle'))} <small>· v${esc(upd.atual || version)} → v${esc(upd.ultima)}</small></h4>
+        ${items.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+        ${updDownloaded ? `<div class="note">${esc(tr('updDownloaded'))}</div>` : ''}
+        <div class="acts"><button type="button" class="b1 ugo">${esc(updBusy === 'apply' ? '…' : tr('updGo'))}</button><button type="button" class="b2 ulater">${esc(tr('updLater'))}</button>
+          <button type="button" class="lk uhow">${esc(tr('updHow'))}</button></div></div>`;
+    }
+    if (bugOpen) {
+      h += `<div class="card2 blue"><h4>${BUG} ${esc(tr('bugTitle'))}<button type="button" class="x2 bclose" style="margin-left:auto" aria-label="${esc(tr('close'))}">${X_ICON}</button></h4>
+        <textarea class="bwhat" maxlength="2000" placeholder="${esc(tr('bugPh'))}">${esc(bugText)}</textarea>
+        <div class="lbl">${esc(tr('bugDiag'))}</div><pre class="bdiag">${esc(bugReport(bugText).diag)}</pre>
+        <div class="note">${esc(tr('bugNote'))}</div>
+        <div class="acts"><button type="button" class="b1 bgh">${esc(tr('bugOpen'))}</button><button type="button" class="b2 bcopy">${esc(tr('bugCopy'))}</button></div></div>`;
+    }
+    return h;
+  }
+  // relatório: versão, navegador, tipo de página, ajustes e o registro da extensão. Nada da conta.
+  function bugReport(what, maxLog = 60) {
+    const api = window[Symbol.for('salvaStories.api')];
+    const ua = navigator.userAgent;
+    const chrome = (ua.match(/Chrome\/([\d.]+)/) || [])[1] || '?';
+    const os = /Windows NT 10/.test(ua) ? 'Windows 10/11' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'macOS' : /CrOS/.test(ua) ? 'ChromeOS' : /Linux/.test(ua) ? 'Linux' : '?';
+    const p = location.pathname;
+    const page = /^\/stories\//.test(p) ? 'stories' : /^\/direct\//.test(p) ? 'direct' : /^\/(?:[^/]+\/)?reels?\//.test(p) ? 'reel' : /^\/(?:[^/]+\/)?p\//.test(p) ? 'post'
+      : /^\/explore\//.test(p) ? 'explore' : p === '/' ? 'feed' : /^\/[A-Za-z0-9._]{1,30}\/?$/.test(p) ? 'profile' : 'other';
+    const on = (k) => (S[k] ? 'on' : 'off');
+    const meta = [
+      `Salva Stories: v${version || '?'} (${upd.instalacao || '?'}) · background ${swOk ? 'ok' : 'OLD'}`,
+      disco ? `Auto-reload: checked ${Math.round((Date.now() - (disco.em || 0)) / 60000)} min ago · disk v${disco.noDisco || '?'} · running v${disco.rodando || '?'} · ${disco.estado || '?'}` : 'Auto-reload: no check yet',
+      `Browser: Chrome ${chrome} · ${os} · UI ${S.lang} · ${navigator.language}`,
+      `Page: ${page} · theme ${S.theme} (${mode()})`,
+      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
+      api && api.itemCount ? `Cache: ${api.itemCount()} items` : '',
+    ].filter(Boolean).join('\n');
+    const logs = api && api.logs ? api.logs() : [];
+    const log = logs.slice(-maxLog).map((l) => `${new Date(l.t).toLocaleTimeString('pt-BR')} ${l.level === 'info' ? '' : l.level.toUpperCase() + ' '}${l.msg}`);
+    return { what: String(what || '').trim(), meta, log, diag: `${meta}\n\nLog:\n${log.join('\n') || '-'}` };
+  }
+  function bugUrl(what) {
+    const r = bugReport(what);
+    const title = '[Bug] ' + (r.what.split('\n')[0].slice(0, 70) || `v${version || '?'}`);
+    const make = (log, cut) => `https://github.com/${REPO}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(
+      `### ${tr('bugWhatHead')}\n\n${r.what || '-'}\n\n### Diagnostics\n\n\`\`\`text\n${r.meta}\n\nLog${cut ? ' (' + tr('bugTrimmed') + ')' : ''}:\n${log.join('\n') || '-'}\n\`\`\`\n`)}`;
+    let log = r.log, url = make(log, false);
+    while (url.length > 7500 && log.length > 3) { log = log.slice(Math.ceil(log.length / 5)); url = make(log, true); }
+    return url;
+  }
+  function wireUpdBug() {
+    const q = (s) => panel.querySelector(s);
+    const on = (s, fn) => { const el = q(s); if (el) el.addEventListener('click', fn); };
+    on('.uchk', () => { updBusy = 'check'; renderPanel(); updCmd('check'); });
+    on('.ust', () => { if (upd.disponivel) { upd.dispensada = null; updCmd('dismiss', null); renderPanel(); } });
+    on('.uhelp', () => updCmd('guide', '#atualizar'));
+    on('.uhow', () => updCmd('guide', '#atualizar'));
+    on('.ugo', () => { updBusy = 'apply'; renderPanel(); updCmd('apply'); });
+    on('.ulater', () => { upd.dispensada = upd.ultima; updCmd('dismiss', upd.ultima); renderPanel(); });
+    on('.useen', () => { upd.acabouDeAtualizar = null; updCmd('seen'); renderPanel(); });
+    on('.ubug', () => { bugOpen = !bugOpen; renderPanel(); if (bugOpen) { const b = panel.querySelector('.body'); if (b) b.scrollTop = 0; const ta = q('.bwhat'); if (ta) ta.focus(); } });
+    on('.bclose', () => { bugOpen = false; renderPanel(); });
+    const ta = q('.bwhat');
+    if (ta) {
+      ta.addEventListener('input', () => { bugText = ta.value; const d = q('.bdiag'); if (d) d.textContent = bugReport(bugText).diag; });
+      ta.addEventListener('keydown', (e) => e.stopPropagation());
+    }
+    on('.bgh', () => window.open(bugUrl(bugText), '_blank', 'noopener'));
+    on('.bcopy', async (e) => {
+      const b = e.currentTarget, r = bugReport(bugText, 150);
+      const text = `Salva Stories — bug report\n\n${r.what || '-'}\n\n${r.diag}`;
+      let ok = false;
+      try { await navigator.clipboard.writeText(text); ok = true; } catch (_) {
+        const x = document.createElement('textarea'); x.value = text; document.body.appendChild(x); x.select();
+        try { ok = document.execCommand('copy'); } catch (__) {} x.remove();
+      }
+      b.textContent = tr(ok ? 'bugCopied' : 'bugFail'); setTimeout(() => { b.textContent = tr('bugCopy'); }, 1600);
+    });
+  }
+
   function place(x, y) {
     const w = panel.offsetWidth || 360, h = panel.offsetHeight || 500;
     panel.style.left = Math.round(Math.min(Math.max(8, x), innerWidth - w - 8)) + 'px';
@@ -439,6 +612,7 @@
 
   function open(anchor) {
     ensure(); applyMode();
+    if (!upd.procuradoEm || Date.now() - upd.procuradoEm > 3600e3) { updBusy = 'check'; updCmd('check'); }
     lastAnchor = anchor || lastAnchor;
     navTip.classList.remove('show');
     renderPanel();
@@ -471,8 +645,19 @@
       }
     }
     if (d.kind === 'stale') { stale = true; if (isOpen()) renderPanel(); }
+    if (d.kind === 'upd') { upd = d.state || {}; if (updBusy === 'check' && upd.procuradoEm && Date.now() - upd.procuradoEm < 10000) updBusy = null; refreshOpen(); }
+    if (d.kind === 'updRes') { if (d.cmd === 'apply') { updBusy = null; updDownloaded = !!(d.res && d.res.modo === 'download'); } if (d.cmd === 'check') updBusy = null; refreshOpen(); }
+    if (d.kind === 'sw') { swOk = !!d.ok; refreshOpen(); }
+    if (d.kind === 'disco') disco = d.state || null;
     if (d.kind === 'toggleMenu') toggle(nav && !nav.hidden ? nav.getBoundingClientRect() : null);
   });
+  // redesenha o painel aberto sem atrapalhar quem está digitando (pasta ou relato)
+  function refreshOpen() {
+    if (!isOpen()) return;
+    const a = panel.querySelector('#ss-folder'), b = panel.querySelector('.bwhat');
+    if ((a && a.matches(':focus')) || (b && b.matches(':focus'))) { const st = panel.querySelector('.ust'); if (st) st.textContent = updStatus(); return; }
+    renderPanel();
+  }
   // engrenagem do story (page.js) abre o menu ao lado dela
   window.addEventListener('salva-stories:menu', (e) => { const r = e.detail && e.detail.rect; toggle(r || null); });
 
@@ -498,12 +683,13 @@
   // depuração pelo console: __salvaStoriesMenuDebug() — inclui a posição dos controles (o shadow DOM é fechado)
   const box = (el) => { if (!el) return null; const r = el.getBoundingClientRect(); return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) }; };
   window.__salvaStoriesMenuDebug = () => ({
-    anchorMode, open: isOpen(), S, version, stale, slot: sidebarSlot(),
+    anchorMode, open: isOpen(), S, version, stale, slot: sidebarSlot(), upd, swOk, disco, bugUrl: bugOpen ? bugUrl(bugText) : null,
     at: isOpen() ? {
       ghost: box(panel.querySelector('.row[data-key="ghost"] .sw')), es: box(panel.querySelector('.flag[data-lang="es"]')),
       light: box(panel.querySelector('.seg [data-theme="light"]')), folder: box(panel.querySelector('#ss-folder')),
       dreds: box(panel.querySelector('.sig a')), close: box(panel.querySelector('.x')),
       follows: box(panel.querySelector('.tool[data-tool="follows"]')), player: box(panel.querySelector('.row[data-key="player"] .sw')),
+      uchk: box(panel.querySelector('.uchk')), ubug: box(panel.querySelector('.ubug')), ugo: box(panel.querySelector('.ugo')), bgh: box(panel.querySelector('.bgh')), bwhat: box(panel.querySelector('.bwhat')),
     } : null,
     ghostBadge: ghostEl && !ghostEl.hidden ? box(ghostEl) : null,
   });
