@@ -19,7 +19,8 @@
     const th = s && s.theme;
     return th === 'light' ? 'light' : th === 'dark' ? 'dark' : (igDark() ? 'dark' : 'light');
   };
-  const lang = () => (api() ? api().lang() : 'pt');
+  const NAV_LANG = (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
+  const lang = () => (api() ? api().lang() : NAV_LANG);
   const tr = (dict) => (k, ...a) => { const d = dict[lang()] || dict.pt; const v = d[k] ?? dict.pt[k] ?? k; return typeof v === 'function' ? v(...a) : v; };
   const nf = (n) => Number(n || 0).toLocaleString(lang() === 'en' ? 'en-US' : lang() === 'es' ? 'es-ES' : 'pt-BR');
 

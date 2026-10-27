@@ -1,17 +1,21 @@
 // Salva Stories — ponte (mundo ISOLATED). Liga a página (page.js e menu.js) ao service worker e ao storage.
 (() => {
   'use strict';
-  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: 'pt', theme: 'auto', player: true, profileBtn: true, inboxTools: true };
+  // idioma da primeira abertura: o do navegador (pt, en ou es; qualquer outro → en). Regra 13.
+  const NAV_LANG = (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
+  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: NAV_LANG, theme: 'auto', player: true, profileBtn: true, inboxTools: true };
   const RELOAD = { pt: 'extensão atualizada — recarregue a página (F5)', en: 'extension updated — reload the page (F5)', es: 'extensión actualizada — recarga la página (F5)' };
   // só estes ajustes podem ser gravados pelo menu, com o tipo certo
   const BOOL = ['ghost', 'hotkey', 'showAll', 'perUser', 'maxQuality', 'player', 'profileBtn', 'inboxTools'];
-  // dados grandes (varreduras de seguidores) ficam no storage.local, só com este prefixo
-  const LOCAL_PREFIX = 'ss.follows.';
+  // storage.local acessível pela página: varreduras de seguidores e o "já viu" do tutorial/novidades
+  const LOCAL_PREFIXES = ['ss.follows.', 'ss.onboard'];
   const ENUM = { lang: ['pt', 'en', 'es'], theme: ['auto', 'light', 'dark'] };
   const UPD_KEY = 'ss.update';
   // tem de bater com o SW_BUILD do sw.js desta versão: se o Chrome ficou com o service worker antigo, o menu avisa
-  const EXPECT_SW = 'ss-sw-1.5.2';
-  const UPD_CMDS = ['check', 'apply', 'dismiss', 'seen', 'guide'];
+  const EXPECT_SW = 'ss-sw-1.7.1';
+  const UPD_CMDS = ['check', 'apply', 'dismiss', 'seen', 'guide', 'perm'];
+  // Opera: storage.sync pode não existir (tabela do MDN) → ajustes no local
+  const SYNC = () => chrome.storage.sync || chrome.storage.local;
   let lang = 'pt';
   let dead = false;
 
@@ -23,8 +27,8 @@
   function sendSettings() {
     if (!alive()) return markDead();
     try {
-      chrome.storage.sync.get(DEFAULTS, (s) => {
-        lang = s.lang || 'pt';
+      SYNC().get(DEFAULTS, (s) => {
+        lang = s.lang || NAV_LANG;
         let version = '';
         try { version = chrome.runtime.getManifest().version; } catch (_) {}
         post({ kind: 'settings', settings: s, version });
@@ -34,7 +38,7 @@
 
   function sendUpdate() {
     if (!alive()) return;
-    try { chrome.storage.local.get([UPD_KEY, 'ss.disco'], (r) => { post({ kind: 'upd', state: (r && r[UPD_KEY]) || {} }); post({ kind: 'disco', state: (r && r['ss.disco']) || null }); }); } catch (_) {}
+    try { chrome.storage.local.get([UPD_KEY, 'ss.disco', 'ss.perm'], (r) => { post({ kind: 'upd', state: (r && r[UPD_KEY]) || {} }); post({ kind: 'disco', state: (r && r['ss.disco']) || null }); post({ kind: 'perm', state: (r && r['ss.perm']) || null }); }); } catch (_) {}
   }
   // o service worker que está rodando é o desta versão?
   function pingSw() {
@@ -78,14 +82,14 @@
       const patch = clean(d.patch);
       if (!Object.keys(patch).length) return;
       if (!alive()) return markDead();
-      try { chrome.storage.sync.set(patch); } catch (_) { markDead(); }
+      try { SYNC().set(patch); } catch (_) { markDead(); }
     }
     if (d.kind === 'lget' || d.kind === 'lset') {
       const key = String(d.key || '');
-      if (!key.startsWith(LOCAL_PREFIX) || key.length > 80) return;
+      if (!LOCAL_PREFIXES.some((pre) => key.startsWith(pre)) || key.length > 80) return;
       if (!alive()) return markDead();
       try {
-        if (d.kind === 'lget') chrome.storage.local.get(key, (r) => post({ kind: 'lres', id: d.id, value: r ? r[key] : undefined }));
+        if (d.kind === 'lget') chrome.storage.local.get(key, (r) => post({ kind: 'lres', id: d.id, value: r && key in r ? r[key] : null }));
         else chrome.storage.local.set({ [key]: d.value }, () => post({ kind: 'lres', id: d.id, value: !chrome.runtime.lastError }));
       } catch (_) { markDead(); }
       return;
@@ -106,8 +110,9 @@
 
   try {
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'sync') sendSettings();
+      if (area === 'sync' || (area === 'local' && !chrome.storage.sync && Object.keys(changes).some((k) => k in DEFAULTS))) sendSettings();
       if (area === 'local' && changes[UPD_KEY]) post({ kind: 'upd', state: changes[UPD_KEY].newValue || {} });
+      if (area === 'local' && changes['ss.perm']) post({ kind: 'perm', state: changes['ss.perm'].newValue || null });
     });
     chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
       // clique no ícone da extensão na barra do Chrome → abre/fecha o menu

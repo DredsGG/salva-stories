@@ -31,6 +31,12 @@
   footer a{font-weight:800;text-decoration:none;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
   [data-lang]{display:none}
   body.pt [data-lang=pt],body.en [data-lang=en],body.es [data-lang=es]{display:revert}
+  .navs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0 8px}
+  .navs span{color:var(--suave);margin-right:4px}
+  .navs button,.bt{border:2px solid var(--borda);background:var(--cartao);color:var(--texto);border-radius:999px;padding:5px 12px;font:600 14px inherit;cursor:pointer}
+  .navs button.on{border-color:var(--rosa);color:var(--rosa)}
+  .bt{background:var(--grad);color:#fff;border:0;padding:8px 18px}
+  [data-navbox]:not(.navon){display:none!important}
 </style>
 </head>
 <body class="pt">
@@ -50,28 +56,29 @@
 </div>
 <main>
   <section id="instalar">
-    <h2 data-lang="pt">1. Instalar</h2><h2 data-lang="en">1. Install</h2><h2 data-lang="es">1. Instalar</h2>
-    <ol data-lang="pt">
-      <li>Baixe o <code>salva-stories-vX.Y.Z.zip</code> em <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a>.</li>
-      <li>Extraia o zip numa pasta que você não vai apagar (ex.: <code>Documentos\Salva Stories</code>).</li>
-      <li>Abra <code>chrome://extensions</code> e ligue o <b>Modo do desenvolvedor</b> (canto de cima, à direita).</li>
-      <li>Clique em <b>Carregar sem compactação</b> e escolha essa pasta.</li>
-      <li>Abra o <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (ou recarregue a aba dele).</li>
-    </ol>
-    <ol data-lang="en">
-      <li>Download <code>salva-stories-vX.Y.Z.zip</code> from <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a>.</li>
-      <li>Unzip it into a folder you'll keep (e.g. <code>Documents\Salva Stories</code>).</li>
-      <li>Open <code>chrome://extensions</code> and turn on <b>Developer mode</b> (top right).</li>
-      <li>Click <b>Load unpacked</b> and pick that folder.</li>
-      <li>Open <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (or reload its tab).</li>
-    </ol>
-    <ol data-lang="es">
-      <li>Descarga <code>salva-stories-vX.Y.Z.zip</code> en <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a>.</li>
-      <li>Extrae el zip en una carpeta que no vayas a borrar (ej.: <code>Documentos\Salva Stories</code>).</li>
-      <li>Abre <code>chrome://extensions</code> y activa el <b>Modo de desarrollador</b> (arriba a la derecha).</li>
-      <li>Haz clic en <b>Cargar descomprimida</b> y elige esa carpeta.</li>
-      <li>Abre <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (o recarga su pestaña).</li>
-    </ol>
+    <h2 data-lang="pt">1. Instalar</h2>    <h2 data-lang="en">1. Install</h2>    <h2 data-lang="es">1. Instalar</h2>
+    <div class="navs"><span data-lang="pt">Seu navegador:</span><span data-lang="en">Your browser:</span><span data-lang="es">Tu navegador:</span><button type="button" data-nav="chrome">Chrome</button><button type="button" data-nav="edge">Edge</button><button type="button" data-nav="brave">Brave</button><button type="button" data-nav="opera">Opera GX</button><button type="button" data-nav="firefox">Firefox</button></div>
+    <ol data-lang="pt" data-navbox="chrome"><li>Baixe o <code>salva-stories-vX.Y.Z.zip</code> em <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> e extraia numa pasta que você não vai apagar (ex.: <code>Documentos\Salva Stories</code>).</li><li>Abra <code>chrome://extensions</code> e ligue o <b>Modo do desenvolvedor</b>.</li><li>Clique em <b>Carregar sem compactação</b> (Load unpacked) e escolha essa pasta.</li><li>Abra o <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (ou recarregue a aba dele).</li></ol>
+    <ol data-lang="en" data-navbox="chrome"><li>Download <code>salva-stories-vX.Y.Z.zip</code> from <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> and unzip it into a folder you'll keep (e.g. <code>Documents\Salva Stories</code>).</li><li>Open <code>chrome://extensions</code> and turn on <b>Developer mode</b>.</li><li>Click <b>Load unpacked</b> and pick that folder.</li><li>Open <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (or reload its tab).</li></ol>
+    <ol data-lang="es" data-navbox="chrome"><li>Descarga <code>salva-stories-vX.Y.Z.zip</code> en <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> y extráelo en una carpeta que no vayas a borrar (ej.: <code>Documentos\Salva Stories</code>).</li><li>Abre <code>chrome://extensions</code> y activa el <b>Modo de desarrollador</b>.</li><li>Haz clic en <b>Cargar descomprimida</b> (Load unpacked) y elige esa carpeta.</li><li>Abre <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (o recarga su pestaña).</li></ol>
+    <ol data-lang="pt" data-navbox="edge"><li>Baixe o <code>salva-stories-vX.Y.Z.zip</code> em <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> e extraia numa pasta que você não vai apagar (ex.: <code>Documentos\Salva Stories</code>).</li><li>Abra <code>edge://extensions</code> e ligue o <b>Modo do desenvolvedor</b>.</li><li>Clique em <b>Carregar sem compactação</b> (Load unpacked) e escolha essa pasta.</li><li>Abra o <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (ou recarregue a aba dele).</li></ol>
+    <ol data-lang="en" data-navbox="edge"><li>Download <code>salva-stories-vX.Y.Z.zip</code> from <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> and unzip it into a folder you'll keep (e.g. <code>Documents\Salva Stories</code>).</li><li>Open <code>edge://extensions</code> and turn on <b>Developer mode</b>.</li><li>Click <b>Load unpacked</b> and pick that folder.</li><li>Open <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (or reload its tab).</li></ol>
+    <ol data-lang="es" data-navbox="edge"><li>Descarga <code>salva-stories-vX.Y.Z.zip</code> en <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> y extráelo en una carpeta que no vayas a borrar (ej.: <code>Documentos\Salva Stories</code>).</li><li>Abre <code>edge://extensions</code> y activa el <b>Modo de desarrollador</b>.</li><li>Haz clic en <b>Cargar descomprimida</b> (Load unpacked) y elige esa carpeta.</li><li>Abre <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (o recarga su pestaña).</li></ol>
+    <ol data-lang="pt" data-navbox="brave"><li>Baixe o <code>salva-stories-vX.Y.Z.zip</code> em <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> e extraia numa pasta que você não vai apagar (ex.: <code>Documentos\Salva Stories</code>).</li><li>Abra <code>brave://extensions</code> e ligue o <b>Modo do desenvolvedor</b>.</li><li>Clique em <b>Carregar sem compactação</b> (Load unpacked) e escolha essa pasta.</li><li>Abra o <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (ou recarregue a aba dele).</li></ol>
+    <ol data-lang="en" data-navbox="brave"><li>Download <code>salva-stories-vX.Y.Z.zip</code> from <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> and unzip it into a folder you'll keep (e.g. <code>Documents\Salva Stories</code>).</li><li>Open <code>brave://extensions</code> and turn on <b>Developer mode</b>.</li><li>Click <b>Load unpacked</b> and pick that folder.</li><li>Open <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (or reload its tab).</li></ol>
+    <ol data-lang="es" data-navbox="brave"><li>Descarga <code>salva-stories-vX.Y.Z.zip</code> en <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> y extráelo en una carpeta que no vayas a borrar (ej.: <code>Documentos\Salva Stories</code>).</li><li>Abre <code>brave://extensions</code> y activa el <b>Modo de desarrollador</b>.</li><li>Haz clic en <b>Cargar descomprimida</b> (Load unpacked) y elige esa carpeta.</li><li>Abre <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (o recarga su pestaña).</li></ol>
+    <ol data-lang="pt" data-navbox="opera"><li>Baixe o <code>salva-stories-vX.Y.Z.zip</code> em <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> e extraia numa pasta que você não vai apagar (ex.: <code>Documentos\Salva Stories</code>).</li><li>Abra <code>opera://extensions</code> e ligue o <b>Modo do desenvolvedor</b>.</li><li>Clique em <b>Carregar sem compactação</b> (Load unpacked) e escolha essa pasta.</li><li>Abra o <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (ou recarregue a aba dele).</li></ol>
+    <ol data-lang="en" data-navbox="opera"><li>Download <code>salva-stories-vX.Y.Z.zip</code> from <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> and unzip it into a folder you'll keep (e.g. <code>Documents\Salva Stories</code>).</li><li>Open <code>opera://extensions</code> and turn on <b>Developer mode</b>.</li><li>Click <b>Load unpacked</b> and pick that folder.</li><li>Open <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (or reload its tab).</li></ol>
+    <ol data-lang="es" data-navbox="opera"><li>Descarga <code>salva-stories-vX.Y.Z.zip</code> en <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> y extráelo en una carpeta que no vayas a borrar (ej.: <code>Documentos\Salva Stories</code>).</li><li>Abre <code>opera://extensions</code> y activa el <b>Modo de desarrollador</b>.</li><li>Haz clic en <b>Cargar descomprimida</b> (Load unpacked) y elige esa carpeta.</li><li>Abre <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (o recarga su pestaña).</li></ol>
+    <p class="aviso" data-lang="pt" data-navbox="opera">No Opera GX, se a extensão sumir depois de fechar o navegador, é só carregar a pasta de novo (problema conhecido do Opera).</p>
+    <p class="aviso" data-lang="en" data-navbox="opera">On Opera GX, if the extension disappears after closing the browser, just load the folder again (a known Opera issue).</p>
+    <p class="aviso" data-lang="es" data-navbox="opera">En Opera GX, si la extensión desaparece al cerrar el navegador, vuelve a cargar la carpeta (problema conocido de Opera).</p>
+    <ol data-lang="pt" data-navbox="firefox"><li>Baixe o <code>salva-stories-vX.Y.Z.xpi</code> em <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> (é o arquivo assinado pela Mozilla).</li><li>O Firefox pergunta se quer adicionar: confirme. Se ele só baixar o arquivo, abra <code>about:addons</code> → engrenagem → <b>Instalar extensão de um arquivo</b> e escolha o .xpi.</li><li>Abra o <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (ou recarregue a aba dele).</li></ol>
+    <p class="aviso" data-lang="pt" data-navbox="firefox">Precisa do Firefox 140 ou mais novo. Ele se atualiza sozinho daqui para frente. Se o Release ainda não tiver o .xpi: <code>about:debugging</code> → Este Firefox → <b>Carregar extensão temporária</b> → escolha o <code>manifest.json</code> da pasta extraída do zip (some quando o Firefox fecha).</p>
+    <ol data-lang="en" data-navbox="firefox"><li>Download <code>salva-stories-vX.Y.Z.xpi</code> from <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> (the file signed by Mozilla).</li><li>Firefox asks whether to add it: confirm. If it only downloads the file, open <code>about:addons</code> → gear → <b>Install Add-on From File</b> and pick the .xpi.</li><li>Open <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (or reload its tab).</li></ol>
+    <p class="aviso" data-lang="en" data-navbox="firefox">Needs Firefox 140 or newer. From then on it updates itself. If the release has no .xpi yet: <code>about:debugging</code> → This Firefox → <b>Load Temporary Add-on</b> → pick <code>manifest.json</code> in the unzipped folder (gone when Firefox closes).</p>
+    <ol data-lang="es" data-navbox="firefox"><li>Descarga <code>salva-stories-vX.Y.Z.xpi</code> en <a href="https://github.com/DredsGG/salva-stories/releases/latest" target="_blank" rel="noopener noreferrer">github.com/DredsGG/salva-stories/releases</a> (el archivo firmado por Mozilla).</li><li>Firefox pregunta si quieres añadirla: confirma. Si solo descarga el archivo, abre <code>about:addons</code> → engranaje → <b>Instalar complemento desde archivo</b> y elige el .xpi.</li><li>Abre <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a> (o recarga su pestaña).</li></ol>
+    <p class="aviso" data-lang="es" data-navbox="firefox">Necesita Firefox 140 o más nuevo. Desde entonces se actualiza solo. Si el Release aún no tiene el .xpi: <code>about:debugging</code> → Este Firefox → <b>Cargar complemento temporal</b> → elige el <code>manifest.json</code> de la carpeta extraída (desaparece al cerrar Firefox).</p>
   </section>
   <section id="usar">
     <h2 data-lang="pt">2. Usar</h2><h2 data-lang="en">2. Use</h2><h2 data-lang="es">2. Usar</h2>
@@ -81,7 +88,7 @@
       <li><b>Perfil:</b> botão <b>Baixar perfil</b> ao lado de "Seguir"; vai tudo para <code>perfil/fotos</code> e <code>perfil/videos</code>.</li>
       <li><b>Vídeos e reels:</b> passe o mouse no vídeo para ver o player (pausar, ±10 s, velocidade, volume e baixar).</li>
       <li><b>Direct:</b> o botão redondo no pé da lista de conversas seleciona várias (ou todas) e aplica uma ação em todas.</li>
-      <li><b>Seguidores e seguindo:</b> no menu, em Ferramentas. Mostra quem não te segue de volta, quem você não segue, mútuos e quem deixou de te seguir.</li>
+      <li><b>Seguidores e seguindo:</b> no menu, em Ferramentas. Mostra quem não te segue de volta e deixa marcar e deixar de seguir, devagar, para proteger a conta.</li>
     </ul>
     <ul data-lang="en">
       <li><b>Menu:</b> the Salva Stories icon in Instagram's sidebar (or <kbd>Alt</kbd>+<kbd>S</kbd>) opens the settings: folder, ghost mode, language, theme and tools.</li>
@@ -89,7 +96,7 @@
       <li><b>Profile:</b> <b>Download profile</b> button next to "Follow"; everything goes to <code>perfil/fotos</code> and <code>perfil/videos</code>.</li>
       <li><b>Videos and reels:</b> hover a video to see the player (pause, ±10 s, speed, volume and download).</li>
       <li><b>Direct:</b> the round button at the bottom of the chat list selects several (or all) chats and applies an action to all of them.</li>
-      <li><b>Followers &amp; following:</b> in the menu, under Tools. Shows who doesn't follow you back, who you don't follow back, mutuals and who unfollowed you.</li>
+      <li><b>Followers &amp; following:</b> in the menu, under Tools. Shows who doesn't follow you back and lets you select and unfollow, slowly, to protect the account.</li>
     </ul>
     <ul data-lang="es">
       <li><b>Menú:</b> el ícono de Salva Stories en la barra lateral de Instagram (o <kbd>Alt</kbd>+<kbd>S</kbd>) abre los ajustes: carpeta, modo fantasma, idioma, tema y herramientas.</li>
@@ -97,7 +104,7 @@
       <li><b>Perfil:</b> botón <b>Descargar perfil</b> junto a "Seguir"; todo va a <code>perfil/fotos</code> y <code>perfil/videos</code>.</li>
       <li><b>Videos y reels:</b> pasa el mouse sobre el video para ver el reproductor (pausar, ±10 s, velocidad, volumen y descargar).</li>
       <li><b>Direct:</b> el botón redondo al pie de la lista de chats selecciona varios (o todos) y aplica una acción a todos.</li>
-      <li><b>Seguidores y seguidos:</b> en el menú, en Herramientas. Muestra quién no te sigue, a quién no sigues, mutuos y quién dejó de seguirte.</li>
+      <li><b>Seguidores y seguidos:</b> en el menú, en Herramientas. Muestra quién no te sigue y permite marcar y dejar de seguir, despacio, para proteger la cuenta.</li>
     </ul>
   </section>
   <section id="atualizar">
@@ -120,9 +127,21 @@
       <li>Extrae el zip <b>sobre la misma carpeta</b> que cargaste, reemplazando los archivos.</li>
       <li>Listo: en hasta 1 minuto Salva Stories lo nota y se recarga solo, junto con las pestañas de Instagram. Tus ajustes se mantienen. Si está descargando un perfil, espera a que termine.</li>
     </ol>
+    <p data-lang="pt"><b>Firefox:</b> ele se atualiza sozinho (o .xpi assinado avisa o Firefox da versão nova). O botão <b>Atualizar</b> abre o .xpi novo para instalar na hora.</p>
+    <p data-lang="en"><b>Firefox:</b> it updates itself (the signed .xpi tells Firefox about new versions). The <b>Update</b> button opens the new .xpi to install it right away.</p>
+    <p data-lang="es"><b>Firefox:</b> se actualiza solo (el .xpi firmado avisa a Firefox de la versión nueva). El botón <b>Actualizar</b> abre el .xpi nuevo para instalarlo ya.</p>
     <p class="aviso" data-lang="pt">Não mova nem renomeie a pasta: o Chrome perde a extensão e os ajustes.</p>
     <p class="aviso" data-lang="en">Don't move or rename the folder: Chrome loses the extension and its settings.</p>
     <p class="aviso" data-lang="es">No muevas ni renombres la carpeta: Chrome pierde la extensión y sus ajustes.</p>
+  </section>
+  <section id="permissao" hidden>
+    <h2 data-lang="pt">Permissão de acesso</h2>    <h2 data-lang="en">Site access</h2>    <h2 data-lang="es">Permiso de acceso</h2>
+    <p data-lang="pt">O Firefox deixa tirar o acesso da extensão ao Instagram (em <code>about:addons</code> → Salva Stories → Permissões). Sem ele, os botões não aparecem e nada é baixado.</p>
+    <p data-lang="en">Firefox lets you remove the extension's access to Instagram (in <code>about:addons</code> → Salva Stories → Permissions). Without it the buttons don't show up and nothing is saved.</p>
+    <p data-lang="es">Firefox permite quitar el acceso de la extensión a Instagram (en <code>about:addons</code> → Salva Stories → Permisos). Sin él, los botones no aparecen y no se descarga nada.</p>
+    <p class="permst" hidden><span data-lang="pt">Falta acesso a:</span><span data-lang="en">Missing access to:</span><span data-lang="es">Falta acceso a:</span> <code id="permfalta"></code></p>
+    <p class="permok" hidden><span data-lang="pt">Tudo certo: a extensão tem o acesso de que precisa.</span><span data-lang="en">All set: the extension has the access it needs.</span><span data-lang="es">Todo bien: la extensión tiene el acceso que necesita.</span></p>
+    <p><button type="button" class="bt" id="permitir"><span data-lang="pt">Permitir acesso</span><span data-lang="en">Allow access</span><span data-lang="es">Permitir acceso</span></button></p>
   </section>
   <section id="bug">
     <h2 data-lang="pt">4. Achou um erro?</h2><h2 data-lang="en">4. Found a bug?</h2><h2 data-lang="es">4. ¿Encontraste un error?</h2>

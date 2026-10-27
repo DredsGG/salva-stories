@@ -173,7 +173,7 @@
       }
       p.querySelector('.bar i').style.width = '100%';
       p.querySelector('.st').textContent = stop ? t('stopped') + ' ' + t('sel', SEL.size) : t('loaded', SEL.size);
-      API().log('info', `direct: "todas" selecionou ${SEL.size}`);
+      API().log('info', { pt: `direct: "todas" selecionou ${SEL.size}`, en: `direct: "all" selected ${SEL.size}`, es: `direct: "todas" seleccionó ${SEL.size}` });
     } finally {
       K().busy(false);
       busy = false; stop = false;
@@ -395,7 +395,7 @@
       p.querySelector('.bar i').style.width = '100%';
       p.querySelector('.st').textContent = stop ? t('stopped') + ' ' + t('done', done, skipped) : t('done', done, skipped);
       ui.toast(p.querySelector('.st').textContent);
-      API().log(skipped ? 'warn' : 'info', `direct: ação ${action} em ${keys.length}: ` + Object.entries(res).map(([k, v]) => `${k} ${v}`).join(', '));
+      { const r = Object.entries(res).map(([k, v]) => `${k} ${v}`).join(', '); API().log(skipped ? 'warn' : 'info', { pt: `direct: ação ${action} em ${keys.length}: ${r}`, en: `direct: action ${action} on ${keys.length}: ${r}`, es: `direct: acción ${action} en ${keys.length}: ${r}` }); }
     } finally {
       K().busy(false);
       busy = false; stop = false;

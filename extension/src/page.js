@@ -16,7 +16,9 @@
   const settingsReady = new Promise((r) => { settingsResolve = r; });
   setTimeout(() => { if (!settings) applySettings({}); }, 4000);
 
-  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, lang: 'pt' };
+  // idioma da primeira abertura: o do navegador (pt, en ou es; qualquer outro → en). Regra 13.
+  const NAV_LANG = (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
+  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, lang: NAV_LANG };
 
   // ───────────────────────── idiomas (escolhidos pelas bandeiras do menu) ─────────────────────────
   const I18N = {
@@ -49,7 +51,7 @@
     },
   };
   function t(key, ...args) {
-    const d = I18N[(settings && settings.lang) || 'pt'] || I18N.pt;
+    const d = I18N[(settings && settings.lang) || NAV_LANG] || I18N.en;
     const v = d[key] !== undefined ? d[key] : I18N.pt[key];
     return typeof v === 'function' ? v(...args) : v;
   }
@@ -111,18 +113,20 @@
   // ───────────────────────── registro (vai junto no "Relatar bug") ─────────────────────────
   // Só o que a extensão fez: contagens, tipos e erros. Nada da conta (sem usuário, e-mail, token ou cookie).
   const LOG = [];
+  // msg pode ser texto (erro cru do navegador/Instagram) ou { pt, en, es }: o relatório mostra no idioma escolhido (regra 13)
   function log(level, msg) {
-    LOG.push({ t: Date.now(), level: level || 'info', msg: String(msg).slice(0, 240) });
+    const m = msg && typeof msg === 'object' ? { pt: String(msg.pt).slice(0, 240), en: String(msg.en).slice(0, 240), es: String(msg.es).slice(0, 240) } : String(msg).slice(0, 240);
+    LOG.push({ t: Date.now(), level: level || 'info', msg: m });
     if (LOG.length > 150) LOG.splice(0, LOG.length - 150);
   }
   // erros dos nossos scripts (o endereço do arquivo é chrome-extension://…/src/x.js)
   addEventListener('error', (e) => {
     const f = String((e && e.filename) || '');
-    if (/^chrome-extension:\/\//.test(f)) log('error', `${(e.message || 'erro').slice(0, 160)} @ ${f.split('/').slice(-2).join('/')}:${e.lineno || 0}`);
+    if (/^(chrome|moz)-extension:\/\//.test(f)) log('error', `${(e.message || 'error').slice(0, 160)} @ ${f.split('/').slice(-2).join('/')}:${e.lineno || 0}`);
   }, true);
   addEventListener('unhandledrejection', (e) => {
     const st = String((e && e.reason && e.reason.stack) || '');
-    if (st.includes('chrome-extension://')) log('error', 'promise: ' + String((e.reason && e.reason.message) || e.reason).slice(0, 160));
+    if (/(chrome|moz)-extension:\/\//.test(st)) log('error', 'promise: ' + String((e.reason && e.reason.message) || e.reason).slice(0, 160));
   });
 
   const dataListeners = [];
@@ -526,10 +530,10 @@
       const msg = await fn();
       btn.classList.remove('busy'); btn.classList.add('ok'); btn.innerHTML = ICON_OK;
       toast(msg);
-      log('info', 'story salvo: ' + msg);
+      log('info', { pt: 'story salvo: ' + msg, en: 'story saved: ' + msg, es: 'historia guardada: ' + msg });
     } catch (e) {
       console.warn(TAG, e);
-      log('error', 'story não salvo: ' + String((e && e.message) || e).replace(/\d{8,}/g, '#').slice(0, 160));
+      { const em = String((e && e.message) || e).replace(/\d{8,}/g, '#').slice(0, 160); log('error', { pt: 'story não salvo: ' + em, en: 'story not saved: ' + em, es: 'historia no guardada: ' + em }); }
       btn.classList.remove('busy'); btn.classList.add('err'); btn.innerHTML = ICON_ERR;
       toast(t('notSaved') + (e && e.message ? e.message : e));
     }
@@ -582,7 +586,7 @@
       settings: () => settings,
       whenSettings: () => settingsReady,
       appId, csrf, fiberOf, pkFromFiber, log, logs: () => LOG.slice(), itemCount: () => ITEMS.size, ITEMS_HAS: (pk) => ITEMS.has(String(pk)),
-      lang: () => (settings && settings.lang) || 'pt',
+      lang: () => (settings && settings.lang) || NAV_LANG,
     }),
   });
   // depuração pelo console: __salvaStoriesDebug()

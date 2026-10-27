@@ -287,11 +287,11 @@
         const r = await API().askExtension(batch);
         ok += (r && r.count) || 0; fail += batch.length - ((r && r.count) || 0);
       }
-      API().log(fail ? 'warn' : 'info', `baixar perfil: ${posts.length} posts, ${ok} arquivos ok, ${fail} falhas${cancelFlag ? ', cancelado' : ''}`);
+      API().log(fail ? 'warn' : 'info', { pt: `baixar perfil: ${posts.length} posts, ${ok} arquivos ok, ${fail} falhas${cancelFlag ? ', cancelado' : ''}`, en: `download profile: ${posts.length} posts, ${ok} files ok, ${fail} failed${cancelFlag ? ', canceled' : ''}`, es: `descargar perfil: ${posts.length} publicaciones, ${ok} archivos ok, ${fail} fallos${cancelFlag ? ', cancelado' : ''}` });
       if (cancelFlag) setProgress(t('canceled') + ' ' + t('done', K().nf(ok), folderOf(user)), ok / jobs.length);
       else setProgress(t('done', K().nf(ok), folderOf(user)) + (fail ? ' · ' + t('failed', K().nf(fail)) : ''), 1);
     } catch (e) {
-      API().log('error', 'baixar perfil: ' + String((e && e.message) || e).slice(0, 160));
+      { const em = String((e && e.message) || e).slice(0, 160); API().log('error', { pt: 'baixar perfil: ' + em, en: 'download profile: ' + em, es: 'descargar perfil: ' + em }); }
       throw e;
     } finally {
       busy = false;

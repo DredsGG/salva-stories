@@ -1,8 +1,11 @@
 name: Release
 
-# Publish a GitHub Release whose tag is vX.Y.Z (same as "version" in
-# extension/manifest.json). This job builds the ready-to-install zip
-# (manifest.json at the root) and attaches it to that release.
+# Publish a GitHub Release whose tag is vX.Y.Z (same as "version" in extension/manifest.json).
+# This job attaches:
+#   - salva-stories-vX.Y.Z.zip  (Chrome, Edge, Brave, Opera GX: manifest.json at the root)
+#   - salva-stories-vX.Y.Z.xpi  (Firefox, signed by Mozilla as "unlisted"/self-distributed), only when the repo has
+#     the secrets AMO_JWT_ISSUER and AMO_JWT_SECRET (addons.mozilla.org → Developer Hub → Manage API Keys).
+# With the .xpi, it also updates firefox/updates.json on main, the file Firefox reads (update_url) to update itself.
 on:
   release:
     types: [published]
@@ -11,11 +14,13 @@ permissions:
   contents: write
 
 jobs:
-  zip:
+  package:
     runs-on: ubuntu-latest
     env:
       TAG: ${{ github.event.release.tag_name }}
       GH_TOKEN: ${{ github.token }}
+      AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+      AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,11 +40,29 @@ jobs:
         env:
           NOTES: |
             ### Install
-            1. Download **salva-stories-${{ github.event.release.tag_name }}.zip** below.
-            2. Open `chrome://extensions` and turn on **Developer mode**.
-            3. Drag the zip onto the page (or unzip it and use **Load unpacked**).
+            **Chrome, Edge, Brave, Opera GX:** download **salva-stories-${{ github.event.release.tag_name }}.zip**, unzip it to a folder you'll keep, open the extensions page (`chrome://extensions`, `edge://extensions`, `brave://extensions` or `opera://extensions`), turn on **Developer mode**, click **Load unpacked** and pick the folder.
+            **Firefox 140+:** click **salva-stories-${{ github.event.release.tag_name }}.xpi** below and confirm (signed by Mozilla, updates itself). No `.xpi` in this release yet? Use `about:debugging` → *Load Temporary Add-on* with the unzipped folder (gone when Firefox closes).
         run: |
           gh release upload "$TAG" "salva-stories-$TAG.zip" --clobber
           gh release view "$TAG" --json body -q .body > old.md
           { printf '%s\n\n' "$NOTES"; cat old.md; } > notes.md
           gh release edit "$TAG" --notes-file notes.md
+
+      - name: Sign for Firefox (unlisted, self-distributed)
+        if: ${{ env.AMO_JWT_ISSUER != '' && env.AMO_JWT_SECRET != '' }}
+        run: |
+          npx --yes web-ext@8 sign --channel=unlisted --source-dir extension --artifacts-dir xpi \
+            --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" --approval-timeout 900000
+          f="$(ls xpi/*.xpi | head -1)"; cp "$f" "salva-stories-$TAG.xpi"
+          gh release upload "$TAG" "salva-stories-$TAG.xpi" --clobber
+
+      - name: Point Firefox updates at the new .xpi (firefox/updates.json on main)
+        if: ${{ env.AMO_JWT_ISSUER != '' && env.AMO_JWT_SECRET != '' }}
+        run: |
+          git fetch origin main && git checkout -B main origin/main
+          mkdir -p firefox
+          jq -n --arg v "${TAG#v}" --arg u "https://github.com/DredsGG/salva-stories/releases/download/$TAG/salva-stories-$TAG.xpi" \
+            '{addons: {"salva-stories@dredsgg": {updates: [{version: $v, update_link: $u}]}}}' > firefox/updates.json
+          git -c user.name="André Miller Fleck" -c user.email="217871659+DredsGG@users.noreply.github.com" \
+            commit -am "firefox: updates.json → $TAG" || exit 0
+          git push origin main

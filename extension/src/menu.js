@@ -43,6 +43,8 @@
       bugDiag: 'O que vai junto (nada da sua conta)', bugOpen: 'Abrir no GitHub', bugCopy: 'Copiar relatório', bugCopied: 'Copiado!', bugFail: 'Não deu para copiar',
       bugNote: 'Abrir no GitHub pede uma conta no GitHub (é grátis). Sem conta? Copie o relatório e mande para quem te passou o Salva Stories.',
       bugWhatHead: 'O que aconteceu', bugTrimmed: 'cortado para caber; o completo vai no Copiar',
+      help: 'Como usar', updXpi: 'O Firefox vai perguntar se instala a versão nova: confirme. Ele também se atualiza sozinho.',
+      permT: 'Falta permissão de acesso', permD: 'O Firefox tirou o acesso da extensão a uma parte do Instagram. Sem ele, os botões e os downloads podem falhar.', permGo: 'Permitir acesso',
     },
     en: {
       title: 'Salva Stories', close: 'Close', open: 'Salva Stories — settings (Alt+S)',
@@ -70,6 +72,8 @@
       bugDiag: 'What gets attached (nothing from your account)', bugOpen: 'Open on GitHub', bugCopy: 'Copy report', bugCopied: 'Copied!', bugFail: "Couldn't copy",
       bugNote: 'Opening on GitHub needs a GitHub account (free). No account? Copy the report and send it to whoever shared Salva Stories with you.',
       bugWhatHead: 'What happened', bugTrimmed: 'trimmed to fit; the full log is in Copy',
+      help: 'How to use', updXpi: 'Firefox will ask whether to install the new version: confirm. It also updates itself.',
+      permT: 'Missing site access', permD: "Firefox removed the extension's access to part of Instagram. Without it, the buttons and downloads may fail.", permGo: 'Allow access',
     },
     es: {
       title: 'Salva Stories', close: 'Cerrar', open: 'Salva Stories — ajustes (Alt+S)',
@@ -97,16 +101,19 @@
       bugDiag: 'Lo que se adjunta (nada de tu cuenta)', bugOpen: 'Abrir en GitHub', bugCopy: 'Copiar informe', bugCopied: '¡Copiado!', bugFail: 'No se pudo copiar',
       bugNote: 'Abrir en GitHub requiere una cuenta de GitHub (gratis). ¿Sin cuenta? Copia el informe y envíalo a quien te pasó Salva Stories.',
       bugWhatHead: 'Qué pasó', bugTrimmed: 'recortado para que quepa; el completo va en Copiar',
+      help: 'Cómo usar', updXpi: 'Firefox preguntará si instala la versión nueva: confirma. También se actualiza solo.',
+      permT: 'Falta permiso de acceso', permD: 'Firefox quitó el acceso de la extensión a una parte de Instagram. Sin él, los botones y las descargas pueden fallar.', permGo: 'Permitir acceso',
     },
   };
 
-  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: 'pt', theme: 'auto', player: true, profileBtn: true, inboxTools: true };
+  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, profileBtn: true, inboxTools: true };
   let version = '';
   let stale = false;
   const tr = (k, ...a) => { const v = (T[S.lang] || T.pt)[k] ?? T.pt[k]; return typeof v === 'function' ? v(...a) : v; };
   // atualização e relato de bug (regra 7 / Relatar bug, igual ao Midas, à Plateia e ao PokeIdle)
   const REPO = 'DredsGG/salva-stories';
-  let upd = {}, updBusy = null, updDownloaded = false, swOk = true, bugOpen = false, bugText = '', disco = null;
+  let upd = {}, updBusy = null, updDownloaded = false, updXpi = false, swOk = true, bugOpen = false, bugText = '', disco = null, perm = null;
+  const IS_FF = /Firefox\//.test(navigator.userAgent);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   // ───────────── ícones ─────────────
@@ -133,7 +140,7 @@
   const flag = (l) => `<button type="button" class="flag" data-lang="${l}" role="radio" title="${LANG_NAME[l]}"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">`
     + `<defs><clipPath id="sc-${l}"><circle cx="16" cy="16" r="12"/></clipPath><linearGradient id="sr-${l}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#962fbf"/><stop offset=".55" stop-color="#d62976"/><stop offset="1" stop-color="#fa7e1e"/></linearGradient></defs>`
     + `<g class="fl" clip-path="url(#sc-${l})"><g transform="translate(4 4) scale(1.2)">${FLAG_IN[l]}</g></g>`
-    + `<circle class="ring" cx="16" cy="16" r="13.5" fill="none" stroke="url(#sr-${l})" stroke-width="3.4"/></svg></button>`;
+    + `<circle class="ring" cx="16" cy="16" r="13.5" fill="none" stroke="url(#sr-${l})" stroke-width="3.4"/></svg><span class="lc">${l.toUpperCase()}</span></button>`;
   const STAR = '<svg class="star" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="sst" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#962fbf"/><stop offset=".5" stop-color="#d62976"/><stop offset="1" stop-color="#fa7e1e"/></linearGradient></defs><path fill="url(#sst)" d="M12 0c.9 6.3 5.7 11.1 12 12-6.3.9-11.1 5.7-12 12-.9-6.3-5.7-11.1-12-12C6.3 11.1 11.1 6.3 12 0z"/></svg>';
 
   const CSS = `
@@ -200,6 +207,10 @@
   .head .x { margin-left: auto; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; border: 0; padding: 0;
     background: transparent; color: var(--fg); cursor: pointer; }
   .head .x:hover { background: var(--hover); }
+  .head .hb { margin-left: auto; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
+    border: 1.5px solid var(--sep); background: transparent; color: var(--sub); font: 700 14px var(--font, inherit); }
+  .head .hb:hover { color: var(--fg); border-color: var(--sub); }
+  .head .hb + .x { margin-left: 0; }
   .body { overflow: auto; padding: 4px 0 6px; scrollbar-width: thin; }
   .sec { padding: 12px 16px 4px; font-size: 12px; font-weight: 600; color: var(--sub); text-transform: uppercase; letter-spacing: .06em; }
   .row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 16px; cursor: pointer; }
@@ -224,7 +235,9 @@
   .sw.on::after { transform: translateX(18px); }
   .row:focus-visible { outline: 2px solid #d62976; outline-offset: -2px; }
   .flags { display: flex; gap: 2px; }
-  .flag { width: 32px; height: 32px; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 50%; transition: transform .15s; }
+  .flag { width: 34px; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 8px; transition: transform .15s; display: grid; justify-items: center; gap: 1px; }
+  .flag .lc { font: 700 9.5px/1 var(--font, inherit); letter-spacing: .06em; color: var(--sub); }
+  .flag.on .lc { color: var(--fg); }
   .flag svg { display: block; }
   .flag .fl { opacity: .45; filter: saturate(.6); transition: opacity .15s, filter .15s; }
   .flag .ring { opacity: 0; transition: opacity .2s; }
@@ -276,6 +289,11 @@
   .x2:hover { background: var(--hover); }
   .nav.upd::after { content: ""; position: absolute; top: 9px; right: 9px; width: 9px; height: 9px; border-radius: 50%; background: rgb(0,149,246); box-shadow: 0 0 0 2px var(--navbg, #000); }
   .sig { display: inline-flex; align-items: baseline; gap: 6px; letter-spacing: .12em; text-transform: uppercase; font-size: 10.5px; white-space: nowrap; }
+  .flang { display: inline-flex; align-items: center; gap: 1px; font: 700 11px var(--font, inherit); letter-spacing: .05em; color: var(--sub); white-space: nowrap; }
+  .flang button { border: 0; background: none; font: inherit; letter-spacing: inherit; color: inherit; cursor: pointer; padding: 3px 5px; border-radius: 6px; }
+  .flang button:hover { color: var(--fg); }
+  .flang button.on { color: var(--fg); background: var(--card); }
+  .flang i { font-style: normal; opacity: .5; }
   .hint { white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; cursor: help; }
   .sig .star { width: 10px; height: 10px; align-self: center; position: relative; top: 1px; }
   .sig a { text-decoration: none; text-transform: none; letter-spacing: .01em; font-size: 13.5px; font-weight: 800;
@@ -415,6 +433,7 @@
     const keepScroll = panel.querySelector('.body')?.scrollTop || 0;
     panel.innerHTML = `
       <div class="head"><span class="app">${APP_ICON}</span><h1>${esc(tr('title'))}</h1>
+        <button class="hb" type="button" title="${esc(tr('help'))}" aria-label="${esc(tr('help'))}">?</button>
         <button class="x" type="button" title="${esc(tr('close'))}" aria-label="${esc(tr('close'))}">${X_ICON}</button></div>
       <div class="body">
         ${stale ? `<div class="stale"><span>${esc(tr('stale'))}</span><button type="button" class="reload">${esc(tr('reload'))}</button></div>` : ''}
@@ -447,7 +466,7 @@
           <button type="button" class="fi uhelp" title="${esc(tr('updHelp'))}" aria-label="${esc(tr('updHelp'))}">i</button></div>
         <div class="ust${upd.disponivel ? ' av' : ''}">${esc(updStatus())}</div>
         <div class="r2"><span class="sig">${STAR}<span>${esc(tr('madeBy'))}</span><a href="${GITHUB}" target="_blank" rel="noopener noreferrer">Dreds</a>${version ? `<span class="ver">· v${esc(version)}</span>` : ''}</span>
-        <span class="hint" title="${esc(tr('hintT'))}"><kbd>Alt</kbd>+<kbd>S</kbd></span></div></div>`;
+        <span class="flang" role="radiogroup" aria-label="${esc(tr('lang'))}" title="${esc(tr('hintT'))}">${['pt', 'en', 'es'].map((l, i) => `${i ? '<i>·</i>' : ''}<button type="button" data-l="${l}" role="radio" aria-checked="${S.lang === l}" class="${S.lang === l ? 'on' : ''}" title="${LANG_NAME[l]}">${l.toUpperCase()}</button>`).join('')}</span></div></div>`;
     panel.querySelector('.body').scrollTop = keepScroll;
     for (const f of panel.querySelectorAll('.flag')) { const on = f.dataset.lang === S.lang; f.classList.toggle('on', on); f.setAttribute('aria-checked', String(on)); }
     for (const b of panel.querySelectorAll('.seg button')) { const on = b.dataset.theme === (S.theme || 'auto'); b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }
@@ -457,7 +476,9 @@
   }
 
   function wirePanel() {
-    panel.querySelector('.x').addEventListener('click', close);
+    panel.querySelector('.head .x').addEventListener('click', close);
+    // "?" = Como usar: reabre o tutorial (regra 12)
+    panel.querySelector('.hb').addEventListener('click', () => { const ob = window[Symbol.for('salvaStories.onboard')]; close(); if (ob) ob.tutorial(); });
     const rl = panel.querySelector('.reload'); if (rl) rl.addEventListener('click', () => location.reload());
     wireUpdBug();
     for (const row of panel.querySelectorAll('.row[data-key]')) {
@@ -466,6 +487,8 @@
       row.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } });
     }
     for (const f of panel.querySelectorAll('.flag')) f.addEventListener('click', () => set({ lang: f.dataset.lang }));
+    // PT · EN · ES no rodapé, sempre à vista (regra 13)
+    for (const b of panel.querySelectorAll('.flang button')) b.addEventListener('click', () => set({ lang: b.dataset.l }));
     for (const tl of panel.querySelectorAll('.tool')) {
       const go = () => { close(); window.dispatchEvent(new CustomEvent('salva-stories:' + tl.dataset.tool)); };
       tl.addEventListener('click', go);
@@ -479,7 +502,7 @@
     // arrastar pelo cabeçalho
     const head = panel.querySelector('.head');
     head.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || e.target.closest('.x')) return;
+      if (e.button !== 0 || e.target.closest('.x, .hb')) return;
       const r = panel.getBoundingClientRect(); const ox = e.clientX - r.left, oy = e.clientY - r.top;
       head.classList.add('dragging'); head.setPointerCapture(e.pointerId);
       const mv = (ev) => { place(ev.clientX - ox, ev.clientY - oy); };
@@ -504,7 +527,8 @@
     .flatMap((l) => (l.length > 170 ? l.split(/(?<=[.!?])\s+/) : [l])).filter(Boolean).slice(0, 5);
   function cardsHtml() {
     let h = '';
-    if (!swOk) h += `<div class="card2 warn">${esc(tr('swOld'))}</div>`;
+    if (perm && perm.ok === false) h += `<div class="card2 warn"><b>${esc(tr('permT'))}</b><div>${esc(tr('permD'))}</div><div class="acts"><button type="button" class="b1 upermgo">${esc(tr('permGo'))}</button></div></div>`;
+    if (!swOk && !IS_FF) h += `<div class="card2 warn">${esc(tr('swOld'))}</div>`;
     const j = upd.acabouDeAtualizar;
     if (j && j.para === version && Date.now() - (j.em || 0) < 30 * 60000) {
       h += `<div class="card2 ok"><span>${GIFT}</span><b>${esc(tr('updDone', j.de || '?', j.para))}</b><button type="button" class="x2 useen" aria-label="${esc(tr('close'))}">${X_ICON}</button></div>`;
@@ -513,7 +537,7 @@
       const items = noteItems(upd.notas);
       h += `<div class="card2 gold"><h4>${esc(tr('updTitle'))} <small>· v${esc(upd.atual || version)} → v${esc(upd.ultima)}</small></h4>
         ${items.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
-        ${updDownloaded ? `<div class="note">${esc(tr('updDownloaded'))}</div>` : ''}
+        ${updDownloaded ? `<div class="note">${esc(tr('updDownloaded'))}</div>` : ''}${updXpi || IS_FF ? `<div class="note">${esc(tr('updXpi'))}</div>` : ''}
         <div class="acts"><button type="button" class="b1 ugo">${esc(updBusy === 'apply' ? '…' : tr('updGo'))}</button><button type="button" class="b2 ulater">${esc(tr('updLater'))}</button>
           <button type="button" class="lk uhow">${esc(tr('updHow'))}</button></div></div>`;
     }
@@ -530,7 +554,9 @@
   function bugReport(what, maxLog = 60) {
     const api = window[Symbol.for('salvaStories.api')];
     const ua = navigator.userAgent;
-    const chrome = (ua.match(/Chrome\/([\d.]+)/) || [])[1] || '?';
+    const fx = (ua.match(/Firefox\/([\d.]+)/) || [])[1];
+    const brow = fx ? `Firefox ${fx}` : /Edg\//.test(ua) ? `Edge ${(ua.match(/Edg\/([\d.]+)/) || [])[1] || '?'}` : /OPR\//.test(ua) ? `Opera ${(ua.match(/OPR\/([\d.]+)/) || [])[1] || '?'}`
+      : `${navigator.brave ? 'Brave' : 'Chrome'} ${(ua.match(/Chrome\/([\d.]+)/) || [])[1] || '?'}`;
     const os = /Windows NT 10/.test(ua) ? 'Windows 10/11' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'macOS' : /CrOS/.test(ua) ? 'ChromeOS' : /Linux/.test(ua) ? 'Linux' : '?';
     const p = location.pathname;
     const page = /^\/stories\//.test(p) ? 'stories' : /^\/direct\//.test(p) ? 'direct' : /^\/(?:[^/]+\/)?reels?\//.test(p) ? 'reel' : /^\/(?:[^/]+\/)?p\//.test(p) ? 'post'
@@ -539,13 +565,15 @@
     const meta = [
       `Salva Stories: v${version || '?'} (${upd.instalacao || '?'}) · background ${swOk ? 'ok' : 'OLD'}`,
       disco ? `Auto-reload: checked ${Math.round((Date.now() - (disco.em || 0)) / 60000)} min ago · disk v${disco.noDisco || '?'} · running v${disco.rodando || '?'} · ${disco.estado || '?'}` : 'Auto-reload: no check yet',
-      `Browser: Chrome ${chrome} · ${os} · UI ${S.lang} · ${navigator.language}`,
+      `Browser: ${brow} · ${os} · UI ${S.lang} · ${navigator.language}${perm && perm.ok === false ? ' · site access MISSING' : ''}`,
       `Page: ${page} · theme ${S.theme} (${mode()})`,
       `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
       api && api.itemCount ? `Cache: ${api.itemCount()} items` : '',
     ].filter(Boolean).join('\n');
     const logs = api && api.logs ? api.logs() : [];
-    const log = logs.slice(-maxLog).map((l) => `${new Date(l.t).toLocaleTimeString('pt-BR')} ${l.level === 'info' ? '' : l.level.toUpperCase() + ' '}${l.msg}`);
+    const locale = S.lang === 'en' ? 'en-US' : S.lang === 'es' ? 'es-ES' : 'pt-BR';
+    const msgOf = (m) => (m && typeof m === 'object' ? (m[S.lang] || m.en || m.pt) : m);
+    const log = logs.slice(-maxLog).map((l) => `${new Date(l.t).toLocaleTimeString(locale)} ${l.level === 'info' ? '' : l.level.toUpperCase() + ' '}${msgOf(l.msg)}`);
     return { what: String(what || '').trim(), meta, log, diag: `${meta}\n\nLog:\n${log.join('\n') || '-'}` };
   }
   function bugUrl(what) {
@@ -563,6 +591,7 @@
     on('.uchk', () => { updBusy = 'check'; renderPanel(); updCmd('check'); });
     on('.ust', () => { if (upd.disponivel) { upd.dispensada = null; updCmd('dismiss', null); renderPanel(); } });
     on('.uhelp', () => updCmd('guide', '#atualizar'));
+    on('.upermgo', () => updCmd('guide', '#permissao'));
     on('.uhow', () => updCmd('guide', '#atualizar'));
     on('.ugo', () => { updBusy = 'apply'; renderPanel(); updCmd('apply'); });
     on('.ulater', () => { upd.dispensada = upd.ultima; updCmd('dismiss', upd.ultima); renderPanel(); });
@@ -646,7 +675,8 @@
     }
     if (d.kind === 'stale') { stale = true; if (isOpen()) renderPanel(); }
     if (d.kind === 'upd') { upd = d.state || {}; if (updBusy === 'check' && upd.procuradoEm && Date.now() - upd.procuradoEm < 10000) updBusy = null; refreshOpen(); }
-    if (d.kind === 'updRes') { if (d.cmd === 'apply') { updBusy = null; updDownloaded = !!(d.res && d.res.modo === 'download'); } if (d.cmd === 'check') updBusy = null; refreshOpen(); }
+    if (d.kind === 'updRes') { if (d.cmd === 'apply') { updBusy = null; updDownloaded = !!(d.res && d.res.modo === 'download'); updXpi = !!(d.res && d.res.modo === 'xpi'); } if (d.cmd === 'check') updBusy = null; refreshOpen(); }
+    if (d.kind === 'perm') { perm = d.state || null; refreshOpen(); }
     if (d.kind === 'sw') { swOk = !!d.ok; refreshOpen(); }
     if (d.kind === 'disco') disco = d.state || null;
     if (d.kind === 'toggleMenu') toggle(nav && !nav.hidden ? nav.getBoundingClientRect() : null);
@@ -685,9 +715,9 @@
   window.__salvaStoriesMenuDebug = () => ({
     anchorMode, open: isOpen(), S, version, stale, slot: sidebarSlot(), upd, swOk, disco, bugUrl: bugOpen ? bugUrl(bugText) : null,
     at: isOpen() ? {
-      ghost: box(panel.querySelector('.row[data-key="ghost"] .sw')), es: box(panel.querySelector('.flag[data-lang="es"]')),
+      ghost: box(panel.querySelector('.row[data-key="ghost"] .sw')), es: box(panel.querySelector('.flag[data-lang="es"]')), langFoot: Object.fromEntries([...panel.querySelectorAll('.flang button')].map((b) => [b.dataset.l, box(b)])),
       light: box(panel.querySelector('.seg [data-theme="light"]')), folder: box(panel.querySelector('#ss-folder')),
-      dreds: box(panel.querySelector('.sig a')), close: box(panel.querySelector('.x')),
+      dreds: box(panel.querySelector('.sig a')), close: box(panel.querySelector('.head .x')), help: box(panel.querySelector('.hb')),
       follows: box(panel.querySelector('.tool[data-tool="follows"]')), player: box(panel.querySelector('.row[data-key="player"] .sw')),
       uchk: box(panel.querySelector('.uchk')), ubug: box(panel.querySelector('.ubug')), ugo: box(panel.querySelector('.ugo')), bgh: box(panel.querySelector('.bgh')), bwhat: box(panel.querySelector('.bwhat')),
     } : null,

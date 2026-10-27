@@ -28,16 +28,29 @@ node cdn.mjs
 Deixe rodando (porta 443, com suporte a Range para o player poder pular). Depois:
 
 - `node e2e.mjs $PWD/ext-test` testa os stories: foto, vídeo em alta (DASH), sem som, salvar todos, 720p, modo fantasma e menu.
-- `node e2e-v15.mjs $PWD/ext-test [menu|profile|player|inbox|follows|upd|all]` testa o resto (v1.5.x):
+- `node e2e-v15.mjs $PWD/ext-test [menu|profile|player|inbox|follows|all]` testa as novidades da v1.5.0:
   - **fantasma**: indicador fora dos stories.
   - **perfil**: baixar perfil com 30 posts e carrossel (34 arquivos em `perfil/fotos` e `perfil/videos`).
-  - **player**: pausar (e continuar pausado quando a página tenta dar play ao rolar), ±10 s, velocidade 2×, som, volume e baixar.
-  - **direct**: "Todas" seleciona as 40 conversas; "Não lida" em 2; excluir 2 com uma confirmação só.
+  - **player**: pausar, ±10 s, velocidade 2×, som, volume e baixar.
+  - **direct**: seleção e "Não lida" em 3 conversas; excluir 2 com a confirmação.
   - **seguidores**: duas análises, com quem deixou de seguir e novos seguidores.
-  - **atualização** (`upd`): aviso de versão nova com o zip do Release simulado e "Relatar bug" abrindo o Issue já preenchido.
 - Use `MODE=light` para o tema claro. As capturas vão para `shots15/`.
 
 ## Chromium
 
 - Use `CHROME_PATH=...` para escolher o Chromium.
 - No Chromium 141+, são necessárias as flags `--ignore-certificate-errors` e `--disable-features=LocalNetworkAccessChecks,...`. Sem elas, o pedido para 127.0.0.1 fica parado no prompt de rede local.
+
+## Novidades da v1.6.0
+
+- Na cópia de teste, acelere o "deixar de seguir":
+  ```
+  sed -i 's/GAP = \[8000, 16000\], EVERY = 10, PAUSE = \[180, 300\]/GAP = [150, 300], EVERY = 10, PAUSE = [1, 2]/' ext-test/src/follows.js
+  ```
+  O ritmo real é 8–16 s por conta, com pausa de 3–5 min a cada 10.
+- O `e2e-v15.mjs` cobre também a v1.6.0:
+  - `follows`: fotos carregando, seleção manual e "Selecionar todas", uma confirmação e a função `PolarisSharedAPI.unfollowUser` simulada;
+  - `upd`: aviso de atualização, "Atualizar" baixando o zip e "Relatar bug" com o endereço preenchido.
+- `node reload.mjs $PWD/ext-test` grava uma versão nova no manifest da cópia com uma aba "ocupada" por 70 s e mede quando o service worker se recarrega (deve ser só depois dos 70 s).
+  - No modo `--load-extension` o Chrome desativa a extensão depois do `runtime.reload()`. É normal desse modo; carregada pela tela do Chrome, ela volta na versão nova.
+- O GitHub simulado não intercepta o `fetch` do service worker. Por isso o teste `upd` grava o estado da atualização direto no `chrome.storage`, e a procura real no GitHub também roda.

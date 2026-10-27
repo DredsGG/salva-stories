@@ -1,0 +1,10 @@
+{
+  "appDesc": {
+    "message": "Salva stories, posts e vídeos do Instagram, player com velocidade, seleção no Direct e análise de seguidores. Feito por Dreds.",
+    "description": "Extension description"
+  },
+  "actionTitle": {
+    "message": "Salva Stories — ajustes no Instagram (Alt+S)",
+    "description": "Toolbar button tooltip"
+  }
+}

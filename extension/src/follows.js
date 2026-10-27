@@ -27,6 +27,18 @@
       empty: 'Ninguém aqui.', emptySearch: 'Nada encontrado para essa busca.',
       partial: 'O Instagram parou de responder no meio da análise, então ela não foi salva (números pela metade enganam). Tente de novo mais tarde.',
       canceled: 'Análise parada. Nada foi salvo.', login: 'Entre na sua conta do Instagram para analisar.', err: (m) => `Não deu certo: ${m}`,
+      sel: (n) => n === 1 ? '1 selecionada' : `${n} selecionadas`, selAll: (n) => `Selecionar todas (${n})`, selNone: 'Limpar seleção',
+      unf: (n) => `Deixar de seguir (${n})`, unfT: (n) => n === 1 ? 'Deixar de seguir 1 conta?' : `Deixar de seguir ${n} contas?`,
+      unfB: (min) => `Vai uma por vez, devagar como uma pessoa, para o Instagram não bloquear sua conta: leva cerca de ${min} min. Pode fechar esta janela, mas deixe a aba do Instagram aberta.`,
+      unfCap: (n, m) => `Hoje ainda dá para ${n} (limite de ${m} por dia para proteger a conta). As outras continuam selecionadas para amanhã.`,
+      unfCapZero: (m) => `Você já chegou ao limite de hoje (${m} por dia, para proteger a conta). Tente amanhã.`,
+      unfGo: 'Deixar de seguir', back: 'Voltar', unfStop: 'Parar',
+      unfDoing: (a, b) => `Deixando de seguir ${a} de ${b}`, unfNext: (s) => `próxima em ${s} s`, unfPause: (s) => `pausa para não chamar atenção: ${s} s`,
+      unfDone: (n, f) => `Pronto: deixou de seguir ${n}` + (f ? ` · ${f} não deram certo` : ''), unfStopped: (n) => `Parado. Deixou de seguir ${n}.`,
+      unfBlocked: 'O Instagram pediu para esperar (bloqueio de ação). Parei para proteger a conta; tente de novo daqui a algumas horas.',
+      unfNoApi: 'Não achei a função de deixar de seguir do Instagram nesta página. Recarregue a página e tente de novo.',
+      unfDid: 'Deixou de seguir', notOnList: 'Selecione contas na lista primeiro.',
+      ignN: (n) => `Ignorar (${n})`, unignN: (n) => `Voltar a mostrar (${n})`, ignDone: (n) => n === 1 ? '1 conta foi para Ignorados.' : `${n} contas foram para Ignorados.`, unignDone: (n) => n === 1 ? '1 conta voltou para a lista.' : `${n} contas voltaram para a lista.`,
       saved: 'Análise salva.', blocked: 'O Instagram pediu verificação ou bloqueou a ação. Parei para proteger a conta; espere algumas horas antes de tentar de novo.', tooBig: 'Lista grande demais para analisar com segurança (mais de 12.500 contas).', count: (n) => n === 1 ? '1 conta' : `${n} contas`,
     },
     en: {
@@ -45,6 +57,18 @@
       empty: 'Nobody here.', emptySearch: 'Nothing found for that search.',
       partial: 'Instagram stopped answering halfway, so the scan was not saved (half numbers mislead). Try again later.',
       canceled: 'Scan stopped. Nothing was saved.', login: 'Log in to Instagram to scan.', err: (m) => `Something went wrong: ${m}`,
+      sel: (n) => `${n} selected`, selAll: (n) => `Select all (${n})`, selNone: 'Clear selection',
+      unf: (n) => `Unfollow (${n})`, unfT: (n) => n === 1 ? 'Unfollow 1 account?' : `Unfollow ${n} accounts?`,
+      unfB: (min) => `It goes one at a time, slowly like a person, so Instagram doesn't block your account: about ${min} min. You can close this window, but keep the Instagram tab open.`,
+      unfCap: (n, m) => `Today you can still do ${n} (limit of ${m} a day to protect the account). The rest stay selected for tomorrow.`,
+      unfCapZero: (m) => `You already reached today's limit (${m} a day, to protect the account). Try tomorrow.`,
+      unfGo: 'Unfollow', back: 'Back', unfStop: 'Stop',
+      unfDoing: (a, b) => `Unfollowing ${a} of ${b}`, unfNext: (s) => `next in ${s} s`, unfPause: (s) => `break so it isn't flagged: ${s} s`,
+      unfDone: (n, f) => `Done: unfollowed ${n}` + (f ? ` · ${f} failed` : ''), unfStopped: (n) => `Stopped. Unfollowed ${n}.`,
+      unfBlocked: 'Instagram asked to wait (action block). I stopped to protect the account; try again in a few hours.',
+      unfNoApi: "Couldn't find Instagram's unfollow function on this page. Reload the page and try again.",
+      unfDid: 'Unfollowed', notOnList: 'Select accounts on the list first.',
+      ignN: (n) => `Ignore (${n})`, unignN: (n) => `Show again (${n})`, ignDone: (n) => n === 1 ? '1 account moved to Ignored.' : `${n} accounts moved to Ignored.`, unignDone: (n) => n === 1 ? '1 account is back on the list.' : `${n} accounts are back on the list.`,
       saved: 'Scan saved.', blocked: 'Instagram asked for a check or blocked the action. I stopped to protect the account; wait a few hours before trying again.', tooBig: 'List too large to scan safely (over 12,500 accounts).', count: (n) => n === 1 ? '1 account' : `${n} accounts`,
     },
     es: {
@@ -63,6 +87,18 @@
       empty: 'Nadie aquí.', emptySearch: 'Nada encontrado con esa búsqueda.',
       partial: 'Instagram dejó de responder a mitad, así que el análisis no se guardó (números a medias engañan). Inténtalo más tarde.',
       canceled: 'Análisis detenido. No se guardó nada.', login: 'Inicia sesión en Instagram para analizar.', err: (m) => `Algo salió mal: ${m}`,
+      sel: (n) => n === 1 ? '1 seleccionada' : `${n} seleccionadas`, selAll: (n) => `Seleccionar todas (${n})`, selNone: 'Limpiar selección',
+      unf: (n) => `Dejar de seguir (${n})`, unfT: (n) => n === 1 ? '¿Dejar de seguir 1 cuenta?' : `¿Dejar de seguir ${n} cuentas?`,
+      unfB: (min) => `Va una por vez, despacio como una persona, para que Instagram no bloquee tu cuenta: tarda unos ${min} min. Puedes cerrar esta ventana, pero deja la pestaña de Instagram abierta.`,
+      unfCap: (n, m) => `Hoy todavía puedes ${n} (límite de ${m} por día para proteger la cuenta). Las demás quedan seleccionadas para mañana.`,
+      unfCapZero: (m) => `Ya llegaste al límite de hoy (${m} por día, para proteger la cuenta). Inténtalo mañana.`,
+      unfGo: 'Dejar de seguir', back: 'Volver', unfStop: 'Detener',
+      unfDoing: (a, b) => `Dejando de seguir ${a} de ${b}`, unfNext: (s) => `siguiente en ${s} s`, unfPause: (s) => `pausa para que no lo marquen: ${s} s`,
+      unfDone: (n, f) => `Listo: dejaste de seguir a ${n}` + (f ? ` · ${f} fallaron` : ''), unfStopped: (n) => `Detenido. Dejaste de seguir a ${n}.`,
+      unfBlocked: 'Instagram pidió esperar (bloqueo de acción). Me detuve para proteger la cuenta; inténtalo en unas horas.',
+      unfNoApi: 'No encontré la función de dejar de seguir de Instagram en esta página. Recarga la página e inténtalo de nuevo.',
+      unfDid: 'Dejaste de seguir', notOnList: 'Selecciona cuentas en la lista primero.',
+      ignN: (n) => `Ignorar (${n})`, unignN: (n) => `Volver a mostrar (${n})`, ignDone: (n) => n === 1 ? '1 cuenta pasó a Ignorados.' : `${n} cuentas pasaron a Ignorados.`, unignDone: (n) => n === 1 ? '1 cuenta volvió a la lista.' : `${n} cuentas volvieron a la lista.`,
       saved: 'Análisis guardado.', blocked: 'Instagram pidió una verificación o bloqueó la acción. Me detuve para proteger la cuenta; espera unas horas antes de intentarlo de nuevo.', tooBig: 'Lista demasiado grande para analizar con seguridad (más de 12.500 cuentas).', count: (n) => n === 1 ? '1 cuenta' : `${n} cuentas`,
     },
   };
@@ -92,7 +128,7 @@
   .ht { flex: 1; min-width: 0; }
   .ht h2 { margin: 0; font-size: 18px; font-weight: 800; }
   .ht .sub { color: var(--sub); font-size: 13px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .bd { min-height: 0; display: grid; grid-template-rows: auto auto 1fr; }
+  .bd { min-height: 0; display: grid; grid-template-rows: auto auto 1fr auto; }
   .ft { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 22px 12px; border-top: 1px solid var(--sep); color: var(--sub); font-size: 12.5px; }
   /* início / progresso */
   .intro { grid-row: 1 / 4; display: grid; place-items: center; padding: 30px; text-align: center; }
@@ -143,6 +179,27 @@
   .tag { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 99px; background: var(--card); color: var(--sub); display: inline-flex; align-items: center; gap: 3px; flex: none; }
   .ib { width: 36px; height: 36px; border-radius: 10px; border: 0; display: grid; place-items: center; background: transparent; color: var(--sub); cursor: pointer; flex: none; text-decoration: none; }
   .ib:hover { background: var(--card); color: var(--fg); }
+  .ck { width: 22px; height: 22px; flex: none; border-radius: 6px; border: 2px solid var(--track); display: grid; place-items: center; color: transparent; background: transparent; cursor: pointer; padding: 0; transition: all .12s; }
+  .ck svg { display: block; }
+  .ck.on { border-color: transparent; background: var(--grad); color: #fff; }
+  .r.on { background: rgba(214,41,118,.08); }
+  .r.gone { opacity: .45; }
+  .r.gone .who .u { text-decoration: line-through; }
+  .done-tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; color: rgb(0,163,108); background: rgba(0,163,108,.12); flex: none; }
+  .selbar { display: flex; align-items: center; gap: 10px; padding: 8px 18px 10px 22px; border-top: 1px solid var(--sep); }
+  .selbar .lnk { border: 0; background: transparent; color: var(--accent); font: 700 13px var(--font); cursor: pointer; padding: 4px 6px; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px; }
+  .selbar .lnk:hover { background: var(--hover); }
+  .selbar .cnt { color: var(--sub); font-size: 13px; }
+  .selbar .sp2 { flex: 1; }
+  .selbar .btn.danger[disabled] { opacity: .45; }
+  .unfp { flex: 1; display: grid; gap: 6px; min-width: 0; }
+  .unfp .st { font-size: 13px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .unfp .st small { color: var(--sub); font-size: 12.5px; }
+  .dlg2 { position: fixed; inset: 0; display: grid; place-items: center; background: var(--scrim); z-index: 3; }
+  .dlg2 .bx { width: min(420px, calc(100vw - 32px)); background: var(--bg); border: 1px solid var(--sep); border-radius: 16px; box-shadow: var(--shadow); padding: 22px 22px 16px; text-align: center; }
+  .dlg2 .ic { width: 52px; height: 52px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; color: rgb(237,73,86); background: rgba(237,73,86,.12); }
+  .dlg2 h3 { margin: 0 0 8px; font-size: 18px; } .dlg2 p { margin: 0 0 12px; color: var(--sub); font-size: 13.5px; }
+  .dlg2 .bt { display: grid; gap: 8px; margin-top: 6px; } .dlg2 .btn { height: 42px; }
   .nobody { display: grid; place-items: center; height: 100%; min-height: 160px; color: var(--sub); }
   @media (max-width: 720px) { .cards { grid-template-columns: repeat(3, minmax(0,1fr)); } }
   `;
@@ -237,6 +294,7 @@
     if (!me) { toast(t('login')); return; }
     scan = { state: 'run', followers: [], following: [], tot: {}, wait: 0, stop: false, msg: '' };
     paint();
+    K().busy(true);
     try {
       // sem chamar users/{id}/info (devolve 429 desde out/2026): o nome vem da própria página
       scan.meInfo = myName() ? { username: myName() } : null;
@@ -256,7 +314,12 @@
     } catch (e) {
       if (e.message === 'stop') { scan = null; toast(t('canceled')); }
       else { scan.state = 'error'; scan.msg = e instanceof Throttled ? t('partial') : e instanceof Blocked ? e.message : t('err', e.message); }
+      { const st = e.message === 'stop', kind = e instanceof Throttled ? 'throttle ' : e instanceof Blocked ? 'block ' : '', em = String(e.message).slice(0, 120);
+        API().log(st ? 'info' : 'warn', { pt: 'seguidores: análise ' + (st ? 'parada' : 'falhou: ' + kind + em), en: 'followers: scan ' + (st ? 'stopped' : 'failed: ' + kind + em), es: 'seguidores: análisis ' + (st ? 'detenido' : 'falló: ' + kind + em) }); }
+    } finally {
+      K().busy(false);
     }
+    if (data && !scan) API().log('info', { pt: `seguidores: análise ok (${data.followers.length} seguidores, ${data.following.length} seguindo)`, en: `followers: scan ok (${data.followers.length} followers, ${data.following.length} following)`, es: `seguidores: análisis ok (${data.followers.length} seguidores, ${data.following.length} seguidos)` });
     paint();
   }
 
@@ -381,9 +444,11 @@
         <button class="chip csv" type="button">${SV.csv}${esc(t('csv'))}</button>
       </div>
       <div class="list"><div class="sp"></div></div>
+      ${canUnf() || (unf && unf.state === 'run') ? `<div class="selbar">${selbarHtml()}</div>` : ''}
     </div>` + footer();
     wire(S);
     drawRows(true);
+    refreshSelbar();
     if (!fresh) { const inp = ui.$('.srch input'); if (document.activeElement === ui.host && inp && view.q) { inp.focus(); inp.setSelectionRange(view.q.length, view.q.length); } }
   }
 
@@ -407,9 +472,12 @@
       (view.tab === 'mutual' || view.tab === 'notBack' || view.tab === 'ignored') ? '' : S && S.folIds.has(pk) && view.tab !== 'fans' && view.tab !== 'gained' ? `<span class="tag">${esc(t('followsYou'))}</span>` : '',
     ].join('');
     const canIgnore = view.tab === 'notBack' || view.tab === 'ignored';
-    return `<div class="r" style="top:${i * H}px">${av}
+    const gone = UNF_DONE.has(pk), on = SELU.has(pk);
+    const ck = canUnf() && !gone ? `<button class="ck${on ? ' on' : ''}" type="button" data-sel="${esc(pk)}" aria-pressed="${on}">${CK}</button>` : canUnf() ? '<span class="ck" style="visibility:hidden"></span>' : '';
+    return `<div class="r${on ? ' on' : ''}${gone ? ' gone' : ''}" style="top:${i * H}px">${ck}${av}
       <div class="who"><a class="u" href="https://www.instagram.com/${encodeURIComponent(user)}/" target="_blank" rel="noopener noreferrer">${esc(user)}${tags}</a>
       <div class="f">${extra}<span>${esc(name)}</span></div></div>
+      ${gone ? `<span class="done-tag">${esc(t('unfDid'))}</span>` : ''}
       ${canIgnore ? `<button class="ib tg" type="button" data-pk="${esc(pk)}" title="${esc(ign ? t('unignore') : t('ignore'))}">${ign ? SV.eye : SV.eyeOff}</button>` : ''}
       <a class="ib" href="https://www.instagram.com/${encodeURIComponent(user)}/" target="_blank" rel="noopener noreferrer" title="${esc(t('open'))}">${SV.ext}</a></div>`;
   }
@@ -440,9 +508,9 @@
     const go = $('.go'); if (go) go.addEventListener('click', runScan);
     const stop = $('.stop'); if (stop) stop.addEventListener('click', () => { if (scan) scan.stop = true; });
     if (!S) return;
-    for (const c of ui.$$('.card')) c.addEventListener('click', () => { if (c.disabled) return; view.tab = c.dataset.tab; saveView(); ui.$('.list').scrollTop = 0; paint(); });
+    for (const c of ui.$$('.card')) c.addEventListener('click', () => { if (c.disabled) return; if (!(unf && unf.state === 'run') && view.tab !== c.dataset.tab) SELU.clear(); view.tab = c.dataset.tab; saveView(); ui.$('.list').scrollTop = 0; paint(); });
     const inp = $('.srch input');
-    inp.addEventListener('input', () => { view.q = inp.value; const S2 = cachedSets; rowsNow = filtered(S2[view.tab] || []); ui.$('.list').scrollTop = 0; drawRows(true); updateCount(); });
+    inp.addEventListener('input', () => { view.q = inp.value; const S2 = cachedSets; rowsNow = filtered(S2[view.tab] || []); ui.$('.list').scrollTop = 0; drawRows(true); updateCount(); refreshSelbar(); });
     $('.hv').addEventListener('click', () => { view.hideVer = !view.hideVer; saveView(); paint(); });
     $('.so').addEventListener('change', (e) => { view.sort = e.target.value; saveView(); paint(); });
     $('.ig').addEventListener('click', () => { view.tab = view.tab === 'ignored' ? 'notBack' : 'ignored'; saveView(); paint(); });
@@ -450,6 +518,8 @@
     const list = $('.list');
     list.addEventListener('scroll', () => requestAnimationFrame(() => drawRows(false)), { passive: true });
     list.addEventListener('click', async (e) => {
+      const c = e.target.closest && e.target.closest('.ck[data-sel]');
+      if (c) { if (unf && unf.state === 'run') return; const pk = c.dataset.sel; SELU.has(pk) ? SELU.delete(pk) : SELU.add(pk); drawRows(true); refreshSelbar(); return; }
       const b = e.target.closest && e.target.closest('.tg');
       if (!b || !data) return;
       const pk = b.dataset.pk;
@@ -462,6 +532,131 @@
       ui.$('.list').scrollTop = top; drawRows(true);
     });
   }
+  // ───────── deixar de seguir (pedido do André, 2026-10-26) ─────────
+  // Usa a mesma função do botão "Seguindo → Deixar de seguir" do Instagram (PolarisSharedAPI.unfollowUser),
+  // uma conta por vez, devagar, com pausa a cada 10, limite por dia e parada na hora em bloqueio de ação.
+  const CK = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+  const UNF_TABS = ['notBack', 'mutual', 'ignored'];
+  const DAY_CAP = 150, GAP = [8000, 16000], EVERY = 10, PAUSE = [180, 300];
+  const SELU = new Set(), UNF_DONE = new Set();
+  let unf = null; // { state, total, done, fail, wait, pausing, stop, msg }
+  const canUnf = () => UNF_TABS.includes(view.tab);
+  const dayKey = () => storeKey() + '.day';
+  const today = () => new Date().toISOString().slice(0, 10);
+  async function usedToday() { const v = await K().lget(dayKey()); return v && v.d === today() ? v.n || 0 : 0; }
+  async function addToday(n) { const v = await K().lget(dayKey()); const cur = v && v.d === today() ? v.n || 0 : 0; await K().lset(dayKey(), { d: today(), n: cur + n }); }
+  const igUnfollow = () => { try { const A = window.require && window.require('PolarisSharedAPI'); return A && typeof A.unfollowUser === 'function' ? A.unfollowUser : null; } catch (_) { return null; } };
+
+  function selbarHtml() {
+    if (unf && unf.state === 'run') {
+      const sub = unf.pausing ? t('unfPause', unf.wait) : unf.wait ? t('unfNext', unf.wait) : '';
+      return `<div class="unfp"><div class="st">${esc(t('unfDoing', nf(Math.min(unf.done + unf.fail + 1, unf.total)), nf(unf.total)))}${sub ? ` · <small>${esc(sub)}</small>` : ''}</div><div class="bar"><i style="width:${Math.round(((unf.done + unf.fail) / unf.total) * 100)}%"></i></div></div>
+        <button class="btn sec ustop" type="button">${esc(t('unfStop'))}</button>`;
+    }
+    const vis = rowsNow.filter((x) => !UNF_DONE.has(x[0]));
+    const allOn = vis.length > 0 && vis.every((x) => SELU.has(x[0]));
+    return `<button class="lnk uall" type="button"><span class="ck${allOn ? ' on' : ''}">${CK}</span>${esc(allOn ? t('selNone') : t('selAll', nf(vis.length)))}</button>
+      <span class="cnt">${SELU.size ? esc(t('sel', nf(SELU.size))) : ''}</span>${unf && unf.msg ? `<span class="cnt">· ${esc(unf.msg)}</span>` : ''}<span class="sp2"></span>
+      <button class="btn sec uign" type="button"${SELU.size ? '' : ' disabled'}>${SV[view.tab === 'ignored' ? 'eye' : 'eyeOff']}${esc(t(view.tab === 'ignored' ? 'unignN' : 'ignN', nf(SELU.size)))}</button>
+      <button class="btn danger ugo" type="button"${SELU.size ? '' : ' disabled'}>${esc(t('unf', nf(SELU.size)))}</button>`;
+  }
+  function refreshSelbar() {
+    const bar = ui && ui.$('.selbar'); if (!bar) return;
+    bar.innerHTML = selbarHtml();
+    const all = bar.querySelector('.uall');
+    if (all) all.addEventListener('click', () => {
+      const vis = rowsNow.filter((x) => !UNF_DONE.has(x[0]));
+      const allOn = vis.length > 0 && vis.every((x) => SELU.has(x[0]));
+      for (const x of vis) allOn ? SELU.delete(x[0]) : SELU.add(x[0]);
+      drawRows(true); refreshSelbar();
+    });
+    const go = bar.querySelector('.ugo'); if (go) go.addEventListener('click', askUnfollow);
+    const ig = bar.querySelector('.uign'); if (ig) ig.addEventListener('click', bulkIgnore);
+    const st = bar.querySelector('.ustop'); if (st) st.addEventListener('click', () => { if (unf) unf.stop = true; });
+  }
+
+  // ignorar em lote (ou, na aba Ignorados, voltar a mostrar): só muda a lista local, na hora
+  async function bulkIgnore() {
+    if (!SELU.size || !data) { toast(t('notOnList')); return; }
+    const ig = new Set(data.ignore || []), n = SELU.size, back = view.tab === 'ignored';
+    for (const pk of SELU) back ? ig.delete(pk) : ig.add(pk);
+    data.ignore = [...ig];
+    SELU.clear();
+    await K().lset(storeKey(), data);
+    API().log && API().log('info', { pt: `seguidores: ${back ? 'voltaram a mostrar' : 'ignoradas'} ${n}`, en: `followers: ${back ? 'shown again' : 'ignored'} ${n}`, es: `seguidores: ${back ? 'se muestran de nuevo' : 'ignoradas'} ${n}` });
+    toast(t(back ? 'unignDone' : 'ignDone', nf(n)));
+    paint();
+  }
+
+  async function askUnfollow() {
+    if (!SELU.size) { toast(t('notOnList')); return; }
+    const left = Math.max(0, DAY_CAP - (await usedToday()));
+    const n = Math.min(SELU.size, left);
+    const min = Math.max(1, Math.round((n * ((GAP[0] + GAP[1]) / 2000) + Math.floor((n - 1) / EVERY) * ((PAUSE[0] + PAUSE[1]) / 2)) / 60));
+    const box = document.createElement('div');
+    box.className = 'dlg2';
+    box.innerHTML = `<div class="bx" role="alertdialog"><div class="ic">${SV.people}</div>
+      <h3>${esc(n ? t('unfT', nf(n)) : t('unfGo'))}</h3>
+      <p>${esc(n ? t('unfB', nf(min)) : t('unfCapZero', DAY_CAP))}</p>
+      ${n && n < SELU.size ? `<p>${esc(t('unfCap', nf(n), DAY_CAP))}</p>` : ''}
+      <div class="bt">${n ? `<button class="btn danger ok" type="button">${esc(t('unfGo'))}</button>` : ''}<button class="btn sec no" type="button">${esc(t('back'))}</button></div></div>`;
+    ui.$('.win').appendChild(box);
+    const end = (go) => { box.remove(); if (go) runUnfollow(n); };
+    const ok = box.querySelector('.ok'); if (ok) ok.addEventListener('click', () => end(true));
+    box.querySelector('.no').addEventListener('click', () => end(false));
+    box.addEventListener('pointerdown', (e) => { if (e.target === box) end(false); });
+  }
+
+  const sleepStop = async (ms, tick) => { const end = Date.now() + ms; while (Date.now() < end) { if (unf.stop) return; tick && tick(Math.ceil((end - Date.now()) / 1000)); await K().sleep(Math.min(1000, end - Date.now())); } };
+  const isBlock = (e) => { const m = String((e && (e.message || e.errorMessage || e.error_type)) || e || '') + ' ' + (() => { try { return JSON.stringify(e && (e.responseObject || e.data || e.json || {})); } catch (_) { return ''; } })();
+    return /feedback_required|checkpoint|challenge|429|try again later|tente novamente|please wait|rate limit|spam/i.test(m); };
+
+  async function runUnfollow(limit) {
+    const fn = igUnfollow();
+    if (!fn) { unf = { state: 'idle', msg: t('unfNoApi') }; refreshSelbar(); toast(t('unfNoApi')); API().log && API().log('error', { pt: 'deixar de seguir: função do Instagram não encontrada', en: "unfollow: Instagram's function not found", es: 'dejar de seguir: función de Instagram no encontrada' }); return; }
+    const order = rowsNow.map((x) => x[0]).filter((pk) => SELU.has(pk)).concat([...SELU].filter((pk) => !rowsNow.some((x) => x[0] === pk)));
+    const queue = order.slice(0, limit);
+    unf = { state: 'run', total: queue.length, done: 0, fail: 0, wait: 0, pausing: false, stop: false, msg: '' };
+    K().busy(true);
+    refreshSelbar(); drawRows(true);
+    let streakFail = 0, blocked = false;
+    try {
+      for (let i = 0; i < queue.length; i++) {
+        if (unf.stop) break;
+        const pk = queue[i];
+        try {
+          const r = await fn(pk);
+          const fs = r && (r.friendship_status || r.data && r.data.friendship_status);
+          if ((r && r.status === 'fail') || (fs && fs.following === true)) throw Object.assign(new Error((r && r.message) || 'fail'), { data: r });
+          unf.done++; streakFail = 0;
+          UNF_DONE.add(pk); SELU.delete(pk);
+          if (data && data.following) data.following = data.following.filter((x) => x[0] !== pk);
+          await addToday(1);
+          if (unf.done % 5 === 0) await K().lset(storeKey(), data);
+        } catch (e) {
+          if (isBlock(e)) { blocked = true; API().log && API().log('warn', { pt: 'deixar de seguir: bloqueio de ação do Instagram', en: 'unfollow: Instagram action block', es: 'dejar de seguir: bloqueo de acción de Instagram' }); break; }
+          unf.fail++; streakFail++;
+          { const em = String((e && e.message) || e).slice(0, 120); API().log && API().log('warn', { pt: 'deixar de seguir falhou: ' + em, en: 'unfollow failed: ' + em, es: 'dejar de seguir falló: ' + em }); }
+          if (streakFail >= 3) break;
+        }
+        if (open) { drawRows(true); refreshSelbar(); }
+        if (i + 1 < queue.length && !unf.stop) {
+          if ((i + 1) % EVERY === 0) { unf.pausing = true; await sleepStop(K().jitter(PAUSE[0], PAUSE[1]) * 1000, (s) => { unf.wait = s; if (open) refreshSelbar(); }); unf.pausing = false; }
+          else await sleepStop(K().jitter(GAP[0], GAP[1]), (s) => { unf.wait = s; if (open) refreshSelbar(); });
+          unf.wait = 0;
+        }
+      }
+    } finally {
+      K().busy(false);
+      if (data) await K().lset(storeKey(), data);
+      const msg = blocked ? t('unfBlocked') : unf.stop ? t('unfStopped', nf(unf.done)) : t('unfDone', nf(unf.done), unf.fail);
+      API().log && API().log('info', { pt: `deixar de seguir: ${unf.done} ok, ${unf.fail} falhas${blocked ? ', bloqueio' : ''}${unf.stop ? ', parado' : ''}`, en: `unfollow: ${unf.done} ok, ${unf.fail} failed${blocked ? ', block' : ''}${unf.stop ? ', stopped' : ''}`, es: `dejar de seguir: ${unf.done} ok, ${unf.fail} fallos${blocked ? ', bloqueo' : ''}${unf.stop ? ', detenido' : ''}` });
+      unf = { state: 'idle', msg };
+      toast(msg);
+      if (open) paint();
+    }
+  }
+
   function updateCount() {
     const h = ui.$('.tools .h:last-of-type b'); if (h) h.textContent = t('count', nf(rowsNow.length));
   }
@@ -506,5 +701,5 @@
 
   window.addEventListener('salva-stories:follows', () => { if (API() && K()) show(); });
   const __box = (el) => { if (!el || el.hidden) return null; const r = el.getBoundingClientRect(); return r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } : null; };
-  window.__salvaStoriesFollowsDebug = () => ({ open, at: ui ? { go: __box(ui.$('.go')), again: __box(ui.$('.again')), stop: __box(ui.$('.stop')), close: __box(ui.$('.cl')), cards: Object.fromEntries(ui.$$('.card').map((c) => [c.dataset.tab, __box(c)])), search: __box(ui.$('.srch input')), hideVer: __box(ui.$('.hv')) } : null, me: !!me, hasData: !!data, savedAt: data && data.at, nFol: data && data.followers && data.followers.length, nFing: data && data.following && data.following.length, scan: scan && { state: scan.state, fol: scan.followers.length, fing: scan.following.length, wait: scan.wait } });
+  window.__salvaStoriesFollowsDebug = () => ({ open, avatars: ui ? { img: ui.$$('.list img.av').length, loaded: ui.$$('.list img.av').filter((i) => i.complete && i.naturalWidth > 0).length, letter: ui.$$('.list span.av').length } : null, unf: unf && { state: unf.state, done: unf.done, fail: unf.fail, msg: unf.msg }, selected: SELU.size, unfollowed: UNF_DONE.size, busyFlag: document.documentElement.dataset.ssBusy || '0', at: ui ? { uall: __box(ui.$('.selbar .uall')), ugo: __box(ui.$('.selbar .ugo')), uign: __box(ui.$('.selbar .uign')), ustop: __box(ui.$('.selbar .ustop')), dlgOk: __box(ui.$('.dlg2 .ok')), ck: ui.$$('.list .ck[data-sel]').slice(0, 5).map(__box), go: __box(ui.$('.go')), again: __box(ui.$('.again')), stop: __box(ui.$('.stop')), close: __box(ui.$('.cl')), cards: Object.fromEntries(ui.$$('.card').map((c) => [c.dataset.tab, __box(c)])), search: __box(ui.$('.srch input')), hideVer: __box(ui.$('.hv')), ig: __box(ui.$('.ig')) } : null, me: !!me, hasData: !!data, savedAt: data && data.at, nFol: data && data.followers && data.followers.length, nFing: data && data.following && data.following.length, scan: scan && { state: scan.state, fol: scan.followers.length, fing: scan.following.length, wait: scan.wait } });
 })();

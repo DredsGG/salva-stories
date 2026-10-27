@@ -1,0 +1,67 @@
+name: Test
+
+# Firefox de verdade: instala a extensão como temporária (Selenium + geckodriver do runner) e roda o fluxo principal
+# num Instagram e numa CDN simulados (www.instagram.com e 127.0.0.1 apontam para tests/firefox/server.mjs).
+# Também roda o web-ext lint (validador da Mozilla). Os prints ficam no artefato "firefox".
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  firefox:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Browser and tools
+        run: |
+          firefox --version
+          geckodriver --version | head -1
+          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          pip install -q selenium
+
+      - name: web-ext lint
+        run: |
+          npx --yes web-ext@8 lint --source-dir extension --self-hosted --output json > lint.json || true
+          jq '.summary' lint.json
+          jq -r '.errors[] | "ERROR \(.code) \(.file // "") \(.message)"' lint.json
+          test "$(jq '.summary.errors' lint.json)" = "0"
+
+      - name: Test media, certificate and hosts
+        run: |
+          mkdir -p media && cd media
+          ffmpeg -v error -f lavfi -i "gradients=s=1320x2346:c0=0x962fbf:c1=0xfa7e1e" -frames:v 1 big.jpg
+          ffmpeg -v error -f lavfi -i "gradients=s=720x1280:c0=0x962fbf:c1=0xfa7e1e" -frames:v 1 small.jpg
+          ffmpeg -v error -f lavfi -i testsrc2=size=720x1280:rate=24 -f lavfi -i sine=frequency=440 -t 3 -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest prog.mp4
+          ffmpeg -v error -f lavfi -i testsrc2=size=1080x1920:rate=24 -f lavfi -i sine=frequency=440 -t 3 -map 0:v -map 1:a -c:v libx264 -pix_fmt yuv420p -c:a aac -f dash -single_file 1 -dash_segment_type mp4 hq.mpd
+          ls -la
+          cd ..
+          openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem -days 2 -subj "/CN=www.instagram.com" \
+            -addext "subjectAltName=DNS:www.instagram.com,IP:127.0.0.1"
+          echo "127.0.0.1 www.instagram.com" | sudo tee -a /etc/hosts
+          # só na cópia de teste: a CDN simulada fica em 127.0.0.1
+          cp -r extension ext-test
+          sed -i 's#const CDN = /(^|\\.)(cdninstagram\\.com|fbcdn\\.net)$/i;#const CDN = /(^|\\.)(cdninstagram\\.com|fbcdn\\.net)$|^127\\.0\\.0\\.1$/i;#' ext-test/src/sw.js
+          grep -c 127 ext-test/src/sw.js
+
+      - name: Firefox end-to-end
+        run: |
+          sudo node tests/firefox/server.mjs "$PWD/media" "$PWD/cert.pem" "$PWD/key.pem" > server.log 2>&1 &
+          sleep 2
+          mkdir -p out
+          python tests/firefox/run_firefox.py "$PWD/ext-test" "$PWD/out" 2>&1 | tee out/log.txt
+
+      - name: Summary
+        if: always()
+        run: |
+          { echo '### Firefox'; echo '```json'; cat out/resultado.json 2>/dev/null || tail -40 out/log.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: firefox
+          path: |
+            out/*.png
+            out/resultado.json
+            out/log.txt
+            server.log

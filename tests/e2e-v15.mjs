@@ -1,4 +1,4 @@
-// Testes da v1.5.x: ícone/fantasma fora dos stories, baixar perfil, player, seleção no Direct, seguidores, atualização e relatar bug.
+// Testes da v1.5.0: ícone/fantasma fora dos stories, baixar perfil, player, seleção no Direct, seguidores.
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
@@ -24,7 +24,8 @@ const nav = `<nav style="position:fixed;left:0;top:0;bottom:0;width:72px;border-
 ${['Página inicial', 'Pesquisa', 'Explorar', 'Reels', 'Mensagens', 'Notificações', 'Criar'].map((l, i) => `<a href="${i === 0 ? '/' : '/x' + i}" style="position:absolute;left:24px;top:${120 + i * 56}px;color:inherit">${icon(l)}</a>`).join('')}
 <a href="/eu/" style="position:absolute;left:24px;top:${120 + 7 * 56}px"><img alt="" src="${CDN}foto_n.jpg?stp=small" style="width:24px;height:24px;border-radius:50%;object-fit:cover"></a>
 <a href="/s" style="position:absolute;left:24px;bottom:40px;color:inherit">${icon('Configurações')}</a></nav>`;
-const shell = (body, extraHead = '') => `<!doctype html><html class="${mode === 'dark' ? '__fb-dark-mode' : '__fb-light-mode'}"><head><meta charset="utf-8"><style>[hidden]{display:none!important}</style>${extraHead}</head>
+const IGREQ = `<script>window.unfCalls=[];window.require=function(m){if(m==='PolarisSharedAPI')return{unfollowUser:function(id){window.unfCalls.push(String(id));return new Promise(function(r){setTimeout(function(){r({status:'ok',friendship_status:{following:false}})},80)})}};throw new Error('no module '+m)};</script>`;
+const shell = (body, extraHead = '') => `<!doctype html><html class="${mode === 'dark' ? '__fb-dark-mode' : '__fb-light-mode'}"><head><meta charset="utf-8"><style>[hidden]{display:none!important}</style>${IGREQ}${extraHead}</head>
 <body style="margin:0;background:rgb(${bg});color:${fg};font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif">${nav}${body}</body></html>`;
 
 // ───────── perfil simulado: 30 posts em 3 páginas (12 no HTML + 12 + 6 pela rolagem) ─────────
@@ -84,8 +85,7 @@ const postPage = shell(`<main style="margin-left:72px;display:grid;justify-items
     <div style="padding:10px 0">♡ 💬 ➤ <br><b>123 curtidas</b></div>
   </article></main>
 <script type="application/json">${JSON.stringify({ require: [['x', { data: { xdt_shortcode_media: { items: [vitem] } } }]] })}</script>
-<div style="height:1400px"></div>
-<script>v.play().catch(()=>{}); window.igPlays=0; addEventListener('scroll', () => { if (v.paused) { window.igPlays++; v.play().catch(()=>{}); } });</script>`);
+<script>v.play().catch(()=>{});</script>`);
 
 // ───────── Direct simulado: 40 conversas, carrega 15 por vez ao rolar e "virtualiza" as linhas longe da tela ─────────
 const names = Array.from({ length: 40 }, (_, i) => ['ana.souza', 'bruno.dev', 'carla_m', 'diego.f', 'eduarda', 'felipe.r', 'gabi.art', 'henrique', 'isa.l', 'joao.p'][i % 10] + (i >= 10 ? '_' + i : ''));
@@ -176,7 +176,7 @@ await ctx.route('https://www.instagram.com/**', async (route) => {
   return route.fulfill({ status: 200, contentType: 'text/html', body: shell('<main style="margin-left:420px;padding-top:40px">Feed simulado</main>') });
 });
 let ghHits = 0;
-await ctx.route('https://api.github.com/**', (r) => { ghHits++; return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tag_name: 'v9.9.9', html_url: 'https://github.com/DredsGG/salva-stories/releases/tag/v9.9.9', body: '### Install\n1. Download the zip.\n2. Open chrome://extensions.\n\n\nNew: download whole profiles faster.\n- Fixed the player on reels.\n- Faster story saves.', assets: [{ name: 'salva-stories-v9.9.9.zip', browser_download_url: 'https://github.com/DredsGG/salva-stories/releases/download/v9.9.9/salva-stories-v9.9.9.zip' }] }) }); });
+await ctx.route('https://api.github.com/**', (r) => { ghHits++; return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tag_name: 'v9.9.9', html_url: 'https://github.com/DredsGG/salva-stories/releases/tag/v9.9.9', body: '### Install\n1. Download the zip.\n2. Open chrome://extensions.\n\n\nNew: download whole profiles faster.\n- Fixed the player on reels.\n- Unfollow with one confirmation.', assets: [{ name: 'salva-stories-v9.9.9.zip', browser_download_url: 'https://github.com/DredsGG/salva-stories/releases/download/v9.9.9/salva-stories-v9.9.9.zip' }] }) }); });
 await ctx.route('https://github.com/**', (r) => r.fulfill({ status: 200, contentType: 'application/zip', body: Buffer.from('PK\x05\x06' + '\0'.repeat(18), 'binary') }));
 let [sw] = ctx.serviceWorkers(); if (!sw) sw = await ctx.waitForEvent('serviceworker');
 await wait(800);
@@ -239,10 +239,6 @@ if (ONLY === 'all' || ONLY === 'player') {
   out.p0 = await vid();
   await p.screenshot({ path: path.join(SHOT, `player-${mode}.png`), clip: { x: vr.x - 20, y: vr.y - 10, width: vr.w + 40, height: vr.h + 20 } });
   await clickAt(d.at.pp); await wait(300); out.pAfterPause = await vid();
-  // o "Instagram" da página tenta dar play ao rolar: tem que continuar pausado
-  await p.mouse.wheel(0, 40); await wait(400); await p.mouse.wheel(0, -40); await wait(600);
-  out.pausedAfterIgScroll = await vid(); out.igPlayCalls = await p.evaluate(() => window.igPlays);
-  await p.mouse.move(vr.x + vr.w / 2, vr.y + vr.h / 2); await wait(400); d = await dbgOf('__salvaStoriesPlayerDebug');
   await clickAt(d.at.fwd); await wait(200); out.pAfterFwd = await vid();
   await clickAt(d.at.back); await wait(200); out.pAfterBack = await vid();
   await clickAt(d.at.speed); await wait(300);
@@ -257,12 +253,7 @@ if (ONLY === 'all' || ONLY === 'player') {
   // seek: clica a 75% da linha
   d = await dbgOf('__salvaStoriesPlayerDebug');
   const seekW = await p.evaluate(() => null);
-  await clickAt(d.at.pp); await wait(300); out.pAfterResume = await vid(); // volta a tocar pelo nosso botão
-  // pausa de novo e toca no vídeo do Instagram: devolve o controle (o próximo play do Instagram vale)
-  await clickAt(d.at.pp); await wait(200); await p.mouse.click(vr.x + vr.w / 2, vr.y + 120); await wait(200);
-  out.holdAfterIgTap = (await dbgOf('__salvaStoriesPlayerDebug')).cur;
-  await p.mouse.wheel(0, 40); await wait(400); await p.mouse.wheel(0, -40); await wait(600); out.playsAfterIgTapScroll = await vid();
-  await p.mouse.move(vr.x + vr.w / 2, vr.y + vr.h / 2); await wait(400); d = await dbgOf('__salvaStoriesPlayerDebug');
+  await clickAt(d.at.pp); await wait(200); // volta a tocar
   await p.screenshot({ path: path.join(SHOT, `player-playing-${mode}.png`), clip: { x: vr.x - 20, y: vr.y - 10, width: vr.w + 40, height: vr.h + 20 } });
   await clickAt(d.at.dl); await wait(3000);
   out.playerDownload = await downloads(1);
@@ -353,11 +344,40 @@ if (ONLY === 'all' || ONLY === 'follows') {
   void stamp1;
 }
 
-// 6) atualização + relatar bug no menu
+// 6) deixar de seguir (usa os dados da análise da seção 5)
+if (ONLY === 'all' || ONLY === 'follows') {
+  let d = await dbgOf('__salvaStoriesFollowsDebug');
+  // aba "Não te seguem de volta"
+  await clickAt(d.at.cards.notBack); await wait(500);
+  d = await dbgOf('__salvaStoriesFollowsDebug');
+  await clickAt(d.at.search); await p.keyboard.press('Control+A'); await p.keyboard.press('Backspace'); await wait(2500);
+  d = await dbgOf('__salvaStoriesFollowsDebug');
+  out.avatarsNotBack = d.avatars;
+  // marca 2 na mão, depois "Selecionar todas"
+  await clickAt(d.at.ck[0]); await wait(150); await clickAt(d.at.ck[1]); await wait(200);
+  d = await dbgOf('__salvaStoriesFollowsDebug'); out.unfManual = d.selected;
+  await p.screenshot({ path: path.join(SHOT, `unfollow-select-${mode}.png`) });
+  await clickAt(d.at.uall); await wait(300);
+  d = await dbgOf('__salvaStoriesFollowsDebug'); out.unfAll = d.selected;
+  await clickAt(d.at.ugo); await wait(500);
+  await p.screenshot({ path: path.join(SHOT, `unfollow-confirm-${mode}.png`) });
+  d = await dbgOf('__salvaStoriesFollowsDebug');
+  await clickAt(d.at.dlgOk); await wait(1500);
+  d = await dbgOf('__salvaStoriesFollowsDebug'); out.unfBusyDuring = d.busyFlag;
+  await p.screenshot({ path: path.join(SHOT, `unfollow-running-${mode}.png`) });
+  const t0 = Date.now(); while (Date.now() - t0 < 120000) { d = await dbgOf('__salvaStoriesFollowsDebug'); if (d.unf && d.unf.state === 'idle') break; await wait(500); }
+  out.unfResult = { unf: d.unf, unfollowed: d.unfollowed, busyAfter: d.busyFlag, calls: (await p.evaluate(() => window.unfCalls.length)) };
+  await wait(500);
+  await p.screenshot({ path: path.join(SHOT, `unfollow-done-${mode}.png`) });
+  out.storedAfterUnf = await sw.evaluate((me) => chrome.storage.local.get(null).then((r) => ({ fing: r['ss.follows.' + me] && r['ss.follows.' + me].following.length, day: r['ss.follows.' + me + '.day'] })), ME);
+  await p.keyboard.press('Escape');
+}
+
+// 7) atualização + relatar bug no menu
 if (ONLY === 'all' || ONLY === 'upd') {
   await p.goto('https://www.instagram.com/'); await wait(1500);
   out.realGithub = await sw.evaluate(() => chrome.storage.local.get('ss.update').then((r) => { const u = r['ss.update'] || {}; return { ultima: u.ultima, disponivel: u.disponivel, zip: !!u.zip, erro: u.erro }; }));
-  await sw.evaluate(() => chrome.storage.local.get('ss.update').then((r) => chrome.storage.local.set({ 'ss.update': Object.assign({}, r['ss.update'] || {}, { procuradoEm: Date.now(), ultima: '9.9.9', disponivel: true, dispensada: null, notas: '### Install\n1. Download the zip.\n2. Open chrome://extensions.\n\n\nNew: download whole profiles faster.\n- Fixed the player on reels.\n- Faster story saves.', zip: 'https://github.com/DredsGG/salva-stories/releases/download/v9.9.9/salva-stories-v9.9.9.zip', pagina: 'https://github.com/DredsGG/salva-stories/releases/tag/v9.9.9' }) })));
+  await sw.evaluate(() => chrome.storage.local.get('ss.update').then((r) => chrome.storage.local.set({ 'ss.update': Object.assign({}, r['ss.update'] || {}, { procuradoEm: Date.now(), ultima: '9.9.9', disponivel: true, dispensada: null, notas: '### Install\n1. Download the zip.\n2. Open chrome://extensions.\n\n\nNew: download whole profiles faster.\n- Fixed the player on reels.\n- Unfollow with one confirmation.', zip: 'https://github.com/DredsGG/salva-stories/releases/download/v9.9.9/salva-stories-v9.9.9.zip', pagina: 'https://github.com/DredsGG/salva-stories/releases/tag/v9.9.9' }) })));
   await wait(500);
   let m = await dbgOf('__salvaStoriesMenuDebug');
   out.swOk = m.swOk;

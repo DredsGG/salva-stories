@@ -1,16 +1,27 @@
-// Salva Stories — service worker: valida e faz os downloads, procura atualização e se recarrega quando a pasta muda.
+// Salva Stories — fundo da extensão: valida e faz os downloads, procura atualização e se recarrega quando a pasta muda.
+// O mesmo arquivo roda como service worker nos Chromium (Chrome, Edge, Brave, Opera GX) e como event page no Firefox
+// (manifest com "service_worker" e "scripts"). Por isso nada de window/DOM aqui.
 import { muxDash } from './remux.js';
 
-// muda a cada versão do service worker: a página confere e avisa se o Chrome ficou com o código antigo
-const SW_BUILD = 'ss-sw-1.5.2';
+// browser.* (Firefox e Chrome 148+) sempre devolve promessa; no Chrome antigo, ext.* do MV3 também.
+// Aqui só se usa o estilo de promessa (sem callback), que vale nos dois.
+const ext = (globalThis.browser && globalThis.browser.runtime) ? globalThis.browser : globalThis.chrome;
+const IS_FF = !!(ext.runtime && ext.runtime.getBrowserInfo); // só o Firefox tem
+// Opera: storage.sync pode não existir (tabela do MDN) → guarda no local
+const SYNC = ext.storage.sync || ext.storage.local;
 
-const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: 'pt', theme: 'auto', player: true, profileBtn: true, inboxTools: true };
+// muda a cada versão do service worker: a página confere e avisa se o Chrome ficou com o código antigo
+const SW_BUILD = 'ss-sw-1.7.1';
+
+// idioma da primeira abertura: o da interface do navegador (pt, en ou es; qualquer outro → en). Regra 13.
+const UI_LANG = (() => { const l = String((ext.i18n && ext.i18n.getUILanguage && ext.i18n.getUILanguage()) || navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
+const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: UI_LANG, theme: 'auto', player: true, profileBtn: true, inboxTools: true };
 const ERR = {
   pt: { video: 'trilha de vídeo inválida', audio: 'trilha de áudio inválida', host: 'endereço de mídia fora do Instagram', refused: 'download recusado', none: 'nada baixado' },
   en: { video: 'invalid video track', audio: 'invalid audio track', host: 'media address outside Instagram', refused: 'download refused', none: 'nothing downloaded' },
   es: { video: 'pista de video inválida', audio: 'pista de audio inválida', host: 'dirección de medios fuera de Instagram', refused: 'descarga rechazada', none: 'nada descargado' },
 };
-let lang = 'pt';
+let lang = UI_LANG;
 const tr = (k) => (ERR[lang] || ERR.pt)[k];
 const CDN = /(^|\.)(cdninstagram\.com|fbcdn\.net)$/i;
 
@@ -51,14 +62,11 @@ function filenameFor(job, s) {
   return parts.join('/');
 }
 
-function download(opts) {
-  return new Promise((resolve, reject) => {
-    chrome.downloads.download(Object.assign({ conflictAction: 'uniquify', saveAs: false }, opts), (id) => {
-      const err = chrome.runtime.lastError;
-      if (err || id === undefined) reject(new Error(err ? err.message : tr('refused')));
-      else resolve(id);
-    });
-  });
+async function download(opts) {
+  let id;
+  try { id = await ext.downloads.download(Object.assign({ conflictAction: 'uniquify', saveAs: false }, opts)); } catch (e) { throw new Error((e && e.message) || tr('refused')); }
+  if (id === undefined) throw new Error(tr('refused'));
+  return id;
 }
 
 async function fetchBytes(url) {
@@ -67,6 +75,15 @@ async function fetchBytes(url) {
   return new Uint8Array(await res.arrayBuffer());
 }
 
+// vídeo juntado (DASH): no Firefox (event page) sai por blob:, nos Chromium (service worker, sem createObjectURL) por data:
+function toDownloadUrl(bytes, mime) {
+  if (typeof URL.createObjectURL === 'function') {
+    const u = URL.createObjectURL(new Blob([bytes], { type: mime }));
+    setTimeout(() => URL.revokeObjectURL(u), 120000);
+    return u;
+  }
+  return toDataUrl(bytes, mime);
+}
 function toDataUrl(bytes, mime) {
   let bin = '';
   const CH = 0x8000;
@@ -82,7 +99,7 @@ async function downloadDash(videoUrl, audioUrl, filename) {
   const a = safeUrl(audioUrl);
   if (!a) throw new Error(tr('audio'));
   const [vb, ab] = await Promise.all([fetchBytes(v), fetchBytes(a)]);
-  return download({ url: toDataUrl(muxDash(vb, ab), 'video/mp4'), filename });
+  return download({ url: toDownloadUrl(muxDash(vb, ab), 'video/mp4'), filename });
 }
 
 async function runJob(job, s) {
@@ -100,10 +117,10 @@ async function runJob(job, s) {
   return download({ url, filename });
 }
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg && msg.type === 'salva-stories:ping') { sendResponse({ build: SW_BUILD, version: chrome.runtime.getManifest().version }); return; }
+ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg && msg.type === 'salva-stories:ping') { sendResponse({ build: SW_BUILD, version: ext.runtime.getManifest().version, firefox: IS_FF }); return; }
   if (msg && msg.type === 'salva-stories:update') {
-    const run = msg.cmd === 'check' ? procurar() : msg.cmd === 'apply' ? aplicar() : msg.cmd === 'guide' ? abrirGuia(msg.data)
+    const run = msg.cmd === 'check' ? procurar() : msg.cmd === 'apply' ? aplicar() : msg.cmd === 'guide' ? abrirGuia(msg.data) : msg.cmd === 'perm' ? conferirPermissao()
       : msg.cmd === 'dismiss' ? salvarUpd({ dispensada: msg.data || null }) : msg.cmd === 'seen' ? salvarUpd({ acabouDeAtualizar: null }) : Promise.resolve(null);
     run.then((r) => sendResponse(r || {}), (e) => sendResponse({ erro: String((e && e.message) || e) }));
     return true;
@@ -111,8 +128,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || msg.type !== 'salva-stories:download') return;
   if (!sender.tab || !/^https:\/\/(www\.)?instagram\.com\//.test(sender.url || sender.tab.url || '')) return;
   (async () => {
-    const s = await chrome.storage.sync.get(DEFAULTS);
-    lang = s.lang || 'pt';
+    const s = await SYNC.get(DEFAULTS);
+    lang = s.lang || UI_LANG;
     const jobs = Array.isArray(msg.jobs) ? msg.jobs.slice(0, 60) : []; // o perfil manda em lotes
     let count = 0;
     const errors = [];
@@ -130,22 +147,44 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true;
 });
 
-chrome.runtime.onInstalled.addListener(async () => {
-  const cur = await chrome.storage.sync.get(null);
+ext.runtime.onInstalled.addListener(async () => {
+  const cur = await SYNC.get(null);
   const missing = {};
-  for (const k of Object.keys(DEFAULTS)) if (!(k in cur)) missing[k] = DEFAULTS[k];
-  if (Object.keys(missing).length) await chrome.storage.sync.set(missing);
+  // o idioma não é gravado: enquanto a pessoa não escolher, segue o do navegador (regra 13)
+  for (const k of Object.keys(DEFAULTS)) if (k !== 'lang' && !(k in cur)) missing[k] = DEFAULTS[k];
+  if (Object.keys(missing).length) await SYNC.set(missing);
 });
 
 // Sem popup desde a v1.4.0: o clique no ícone abre o menu dentro do Instagram.
 // Fora do Instagram (ou com a aba sem a extensão carregada), abre o Instagram.
-chrome.action.onClicked.addListener(async (tab) => {
+// Sem permissão de site (o Firefox deixa o usuário tirar), abre o guia na parte que devolve a permissão.
+ext.action.onClicked.addListener(async (tab) => {
+  const perm = await conferirPermissao();
+  if (!perm.ok) { abrirGuia('#permissao'); return; }
   try {
-    await chrome.tabs.sendMessage(tab.id, { type: 'salva-stories:toggle-menu' });
+    await ext.tabs.sendMessage(tab.id, { type: 'salva-stories:toggle-menu' });
   } catch (_) {
-    chrome.tabs.create({ url: 'https://www.instagram.com/' });
+    ext.tabs.create({ url: 'https://www.instagram.com/' });
   }
 });
+
+// ───────────────────────── permissão de site (Firefox: o usuário pode tirar em about:addons) ─────────────────────────
+const ORIGENS = (ext.runtime.getManifest().host_permissions || []).slice();
+async function conferirPermissao() {
+  let falta = [];
+  try {
+    for (const o of ORIGENS) if (!(await ext.permissions.contains({ origins: [o] }))) falta.push(o);
+  } catch (_) { falta = []; }
+  const st = { ok: !falta.length, falta, em: Date.now() };
+  try { await ext.storage.local.set({ 'ss.perm': st }); } catch (_) {}
+  try {
+    await ext.action.setBadgeText({ text: st.ok ? '' : '!' });
+    if (!st.ok) await ext.action.setBadgeBackgroundColor({ color: '#d62976' });
+  } catch (_) {}
+  return st;
+}
+if (ext.permissions && ext.permissions.onRemoved) ext.permissions.onRemoved.addListener(() => conferirPermissao());
+if (ext.permissions && ext.permissions.onAdded) ext.permissions.onAdded.addListener(() => conferirPermissao());
 
 // ───────────────────────── atualização (regra 7, igual ao Midas e à Plateia) ─────────────────────────
 // - Procura versão nova nos Releases do GitHub (DredsGG/salva-stories): ao abrir o Chrome, na instalação,
@@ -171,12 +210,12 @@ const cmpVer = (a, b) => {
   }
   return 0;
 };
-const versaoAtual = () => chrome.runtime.getManifest().version;
-const tipoInstalacao = async () => { try { return (await chrome.management.getSelf()).installType; } catch (_) { return 'development'; } };
+const versaoAtual = () => ext.runtime.getManifest().version;
+const tipoInstalacao = async () => { try { return (await ext.management.getSelf()).installType; } catch (_) { return 'development'; } };
 async function salvarUpd(patch) {
-  const cur = (await chrome.storage.local.get(UPD_KEY))[UPD_KEY] || {};
+  const cur = (await ext.storage.local.get(UPD_KEY))[UPD_KEY] || {};
   const novo = Object.assign({}, cur, patch);
-  await chrome.storage.local.set({ [UPD_KEY]: novo });
+  await ext.storage.local.set({ [UPD_KEY]: novo });
   return novo;
 }
 
@@ -189,25 +228,33 @@ async function procurar() {
     const j = await r.json();
     const ultima = String(j.tag_name || '').replace(/^v/i, '');
     const zip = ((j.assets || []).find((a) => /\.zip$/i.test(a.name)) || {}).browser_download_url || null;
-    return salvarUpd(Object.assign(base, { ultima, notas: String(j.body || '').slice(0, 4000), pagina: j.html_url || null, zip, disponivel: !!ultima && cmpVer(ultima, cur) > 0, erro: null }));
+    const xpi = ((j.assets || []).find((a) => /\.xpi$/i.test(a.name)) || {}).browser_download_url || null;
+    return salvarUpd(Object.assign(base, { ultima, notas: String(j.body || '').slice(0, 4000), pagina: j.html_url || null, zip, xpi, firefox: IS_FF, disponivel: !!ultima && cmpVer(ultima, cur) > 0, erro: null }));
   } catch (e) {
     return salvarUpd(Object.assign(base, { erro: String((e && e.message) || e) }));
   }
 }
 
 async function aplicar() {
-  const st = (await chrome.storage.local.get(UPD_KEY))[UPD_KEY] || {};
-  if (await tipoInstalacao() === 'normal') {
-    const res = await new Promise((ok) => chrome.runtime.requestUpdateCheck((status) => ok(status)));
-    if (res === 'update_available') { setTimeout(() => chrome.runtime.reload(), 1500); return { modo: 'loja', status: 'aplicando' }; }
+  const st = (await ext.storage.local.get(UPD_KEY))[UPD_KEY] || {};
+  // Firefox: abrir o .xpi assinado faz o Firefox perguntar se instala (ele também se atualiza sozinho pelo update_url)
+  if (IS_FF) {
+    const u = st.xpi && /^https:\/\/github\.com\//.test(st.xpi) ? st.xpi : (st.pagina || `https://github.com/${REPO}/releases/latest`);
+    await ext.tabs.create({ url: u, active: true });
+    await salvarUpd({ baixadoEm: Date.now() });
+    return { modo: st.xpi ? 'xpi' : 'pagina', status: 'aberto' };
+  }
+  if (await tipoInstalacao() === 'normal' && ext.runtime.requestUpdateCheck) {
+    const res = await ext.runtime.requestUpdateCheck().then((r) => (r && r.status) || r).catch(() => 'no_update');
+    if (res === 'update_available') { setTimeout(() => ext.runtime.reload(), 1500); return { modo: 'loja', status: 'aplicando' }; }
     return { modo: 'loja', status: res };
   }
   // por pasta: baixa o zip do Release para a pasta Downloads (o guia ensina a extrair por cima)
   const url = st.zip;
   if (url && /^https:\/\/github\.com\//.test(url)) {
-    await new Promise((ok) => chrome.downloads.download({ url, conflictAction: 'uniquify', saveAs: false }, () => ok()));
+    try { await ext.downloads.download({ url, conflictAction: 'uniquify', saveAs: false }); } catch (_) {}
   } else {
-    await chrome.tabs.create({ url: st.pagina || `https://github.com/${REPO}/releases/latest`, active: true });
+    await ext.tabs.create({ url: st.pagina || `https://github.com/${REPO}/releases/latest`, active: true });
   }
   await salvarUpd({ baixadoEm: Date.now() });
   return { modo: 'download', status: 'baixado' };
@@ -215,7 +262,7 @@ async function aplicar() {
 
 function abrirGuia(ancora) {
   const a = /^#[a-z]+$/.test(ancora || '') ? ancora : '';
-  return chrome.tabs.create({ url: chrome.runtime.getURL('COMO-INSTALAR.html') + a }).then(() => ({ ok: true }));
+  return ext.tabs.create({ url: ext.runtime.getURL('COMO-INSTALAR.html') + a }).then(() => ({ ok: true }));
 }
 
 // alguma aba do Instagram no meio de um trabalho longo? (a ponte responde; aba sem resposta = livre)
@@ -224,11 +271,11 @@ function abrirGuia(ancora) {
 const comPrazo = (p, ms) => Promise.race([p, new Promise((ok) => setTimeout(() => ok(null), ms))]);
 async function abasOcupadas() {
   let tabs = [];
-  try { tabs = await comPrazo(chrome.tabs.query({ url: IG_TABS }), 3000) || []; } catch (_) { return false; }
+  try { tabs = await comPrazo(ext.tabs.query({ url: IG_TABS }), 3000) || []; } catch (_) { return false; }
   for (const t of tabs) {
     if (t.discarded || t.frozen || t.status === 'unloaded') continue;
     try {
-      const r = await comPrazo(chrome.tabs.sendMessage(t.id, { type: 'salva-stories:busy?' }), 1500);
+      const r = await comPrazo(ext.tabs.sendMessage(t.id, { type: 'salva-stories:busy?' }), 1500);
       if (r && r.busy) return true;
     } catch (_) { /* aba sem a extensão carregada */ }
   }
@@ -243,38 +290,45 @@ async function vigiarDisco() {
   try { await comPrazo(conferirDisco(), 20000); } finally { vigiando = false; }
 }
 // registro da última conferência (vai no "Relatar bug" e ajuda a ver se a recarga sozinha está andando)
-const anotarDisco = (o) => chrome.storage.local.set({ 'ss.disco': Object.assign({ em: Date.now(), rodando: versaoAtual() }, o) }).catch(() => {});
+const anotarDisco = (o) => ext.storage.local.set({ 'ss.disco': Object.assign({ em: Date.now(), rodando: versaoAtual() }, o) }).catch(() => {});
 async function conferirDisco() {
   if (await tipoInstalacao() !== 'development') return;
   try {
-    const r = await fetch(chrome.runtime.getURL('manifest.json') + '?t=' + Date.now(), { cache: 'no-store' });
+    const r = await fetch(ext.runtime.getURL('manifest.json') + '?t=' + Date.now(), { cache: 'no-store' });
     const noDisco = (await r.json()).version;
     if (!noDisco || noDisco === versaoAtual() || recargaPendente === noDisco) { anotarDisco({ noDisco, estado: recargaPendente === noDisco ? 'recarregando' : 'igual' }); return; }
     if (await abasOcupadas()) { anotarDisco({ noDisco, estado: 'esperando aba ocupada' }); return; } // tenta de novo no próximo minuto
     anotarDisco({ noDisco, estado: 'recarregando' });
     recargaPendente = noDisco;
-    setTimeout(async () => { if (await abasOcupadas()) { recargaPendente = null; return; } chrome.runtime.reload(); }, 15000);
+    setTimeout(async () => { if (await abasOcupadas()) { recargaPendente = null; return; } ext.runtime.reload(); }, 15000);
   } catch (_) { /* manifest no meio da gravação: tenta no próximo minuto */ }
 }
 
 const agendar = () => {
-  chrome.alarms.create('ss-procura', { delayInMinutes: 1, periodInMinutes: PROCURA_MIN });
-  chrome.alarms.create('ss-disco', { delayInMinutes: DISCO_MIN, periodInMinutes: DISCO_MIN });
+  ext.alarms.create('ss-procura', { delayInMinutes: 1, periodInMinutes: PROCURA_MIN });
+  ext.alarms.create('ss-disco', { delayInMinutes: DISCO_MIN, periodInMinutes: DISCO_MIN });
 };
-chrome.alarms.onAlarm.addListener((a) => {
+ext.alarms.onAlarm.addListener((a) => {
   if (a.name === 'ss-procura') procurar();
   if (a.name === 'ss-disco') vigiarDisco();
 });
-chrome.runtime.onStartup.addListener(() => { agendar(); procurar(); });
-chrome.runtime.onInstalled.addListener(async (d) => {
+ext.runtime.onStartup.addListener(() => { agendar(); procurar(); conferirPermissao(); });
+ext.runtime.onInstalled.addListener(async (d) => {
   agendar();
-  if (d.reason === 'install') chrome.tabs.create({ url: chrome.runtime.getURL('COMO-INSTALAR.html#usar') });
+  conferirPermissao();
+  // regra 12: instalação nova → tutorial na primeira abertura do Instagram; atualização → quadro de novidades
+  try {
+    const ob = (await ext.storage.local.get('ss.onboard'))['ss.onboard'];
+    if (d.reason === 'install' && !ob) await ext.storage.local.set({ 'ss.onboard': { tutorial: 'pendente', visto: versaoAtual() } });
+    if (d.reason === 'update' && !ob) await ext.storage.local.set({ 'ss.onboard': { tutorial: 'pulado', visto: d.previousVersion || '' } });
+  } catch (_) {}
+  if (d.reason === 'install') ext.tabs.create({ url: ext.runtime.getURL('COMO-INSTALAR.html#usar') });
   if (d.reason === 'update') {
     await salvarUpd({ acabouDeAtualizar: { de: d.previousVersion || null, para: versaoAtual(), em: Date.now() }, disponivel: false, atual: versaoAtual() });
     // as abas abertas ainda rodam a versão antiga (os scripts ficaram órfãos): recarregar põe a nova
-    try { for (const t of await chrome.tabs.query({ url: IG_TABS })) chrome.tabs.reload(t.id); } catch (_) {}
+    try { for (const t of await ext.tabs.query({ url: IG_TABS })) ext.tabs.reload(t.id); } catch (_) {}
   }
   procurar();
 });
 // o service worker pode dormir: garante os alarmes sempre que acordar
-chrome.alarms.get('ss-disco', (a) => { if (!a) agendar(); });
+ext.alarms.get('ss-disco').then((a) => { if (!a) agendar(); }, () => agendar());

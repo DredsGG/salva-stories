@@ -1,0 +1,10 @@
+{
+  "appDesc": {
+    "message": "Guarda historias, publicaciones y videos de Instagram, reproductor con velocidad, selección en Direct y análisis de seguidores. Hecho por Dreds.",
+    "description": "Extension description"
+  },
+  "actionTitle": {
+    "message": "Salva Stories — ajustes en Instagram (Alt+S)",
+    "description": "Toolbar button tooltip"
+  }
+}

@@ -7,9 +7,12 @@
 **Save what's on your Instagram screen, the way it was posted.**
 Stories, posts and whole profiles at original resolution, videos with sound, plus a video player, Direct multi-select and a followers check, all inside Instagram.
 
-![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.5.2-d62976)
+![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
+![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
+![Version](https://img.shields.io/badge/version-1.7.1-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
+
+**Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
 
 <img src="docs/salva-stories-story-buttons.png" width="400" alt="An open Instagram story with the two Salva Stories buttons on its right side: save this story and save all stories from this profile, plus a gear that opens the settings">&nbsp;&nbsp;<img src="docs/salva-stories-menu.png" width="266" alt="Salva Stories settings menu inside Instagram: download folder, subfolder per profile, maximum video resolution, save-all button, keyboard shortcut, ghost mode, followers tool and video player">
 
@@ -49,28 +52,43 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 **Followers and following**
 
-<img src="docs/salva-stories-followers.png" width="720" alt="Followers tool with five counters (don't follow you back, you don't follow back, mutuals, unfollowed you, new followers), search, hide verified, sort, ignored list, CSV export and a list of placeholder accounts">
+<img src="docs/salva-stories-followers.png" width="720" alt="Followers tool with five counters (don't follow you back, you don't follow back, mutuals, unfollowed you, new followers), search, filters, CSV export and a list of placeholder accounts with three of them checked and the Ignore and Unfollow buttons at the bottom">
 
 - Who doesn't follow you back, who you don't follow back, mutuals, and, from the second check on, **who unfollowed you** and **new followers**. Search, hide verified, sort, ignore list and CSV export.
-- Safe by design: only Instagram's `friendships` lists, 1.5–3 s per page with a pause every 15 pages, a full stop on any block or checkpoint, and an incomplete list is never saved. There's **no mass unfollow**, because that's what gets accounts action-blocked. Results stay on your computer.
+- **Unfollow or ignore in bulk:** check accounts one by one or *Select all*, then **Unfollow (N)** or **Ignore (N)**, with a single confirmation. Unfollowing goes through Instagram's own function, slowly on purpose: 8–16 s between accounts, a 3–5 min pause every 10 and at most 150 a day. It stops on any block or after 3 failures in a row.
+- Safe scanning: only Instagram's `friendships` lists, 1.5–3 s per page with a pause every 15 pages, a full stop on any block or checkpoint, and an incomplete list is never saved. Results stay on your computer.
 
 **Everywhere**
 
 - **Settings inside Instagram**, not in a popup: a story-ring icon in Instagram's left sidebar (or a gear in the story viewer, or `Alt+S`, or the extension icon) opens the menu.
 - **Tidy file names:** `Downloads/Instagram Stories/{user}/stories/{user}_{YYYY-MM-DD_HH-MM-SS}_{id}.jpg|mp4`, using the date it was posted. Folder and per-profile subfolder are configurable.
-- **Report a bug** and **Check for updates** in the menu footer. *Report a bug* opens a GitHub issue already filled with the version and a short diagnostic (no username, no content). *Check for updates* reads this repo's latest release (also every 6 hours) and shows what changed, with a button that downloads the new zip.
+- **Report a bug** and **Check for updates** in the menu footer. *Report a bug* opens a GitHub issue already filled with the version and a short diagnostic (no username, no content). *Check for updates* reads this repo's latest release (also when the browser opens and every 6 hours).
+- **Update notice on the page itself:** when a new version is out, a small *New version vX.Y.Z* card shows up by itself on Instagram (no need to open the menu), with what changed and an **Update** button that does the right thing for your browser (downloads the zip on Chromium, opens the signed `.xpi` on Firefox). It comes back on every visit until you update; ✕ hides it until an even newer version.
+- **First-run tutorial and what's new:** a short tutorial the first time (Skip / Got it; reopen it with **?** in the menu), and after each update a *What's new* card, once per version. Both sit in a corner, never block anything and close with ✕ or `Esc`.
 - **Auto / light / dark** theme (auto follows Instagram).
+
+<img src="docs/salva-stories-update-notice.png" width="300" alt="New version card on the Instagram page with the version jump, what changed, PT EN ES switch, How to update and Update buttons">&nbsp;&nbsp;<img src="docs/salva-stories-tutorial.png" width="320" alt="First-run tutorial card, step 1 of 5: Stories, explaining the round buttons and the D and Shift+D shortcuts, with Skip and Next">&nbsp;&nbsp;<img src="docs/salva-stories-whats-new.png" width="320" alt="What's new in v1.7.0 card listing the new browsers, the tutorial, bulk unfollow and ignore, with a Got it button">
 
 ## Install
 
-1. Download **salva-stories-vX.Y.Z.zip** from the [latest release](https://github.com/DredsGG/salva-stories/releases/latest).
-2. Open `chrome://extensions` and turn on **Developer mode**.
-3. Drag the zip onto the page (or unzip it and use **Load unpacked**). From a clone of this repo, load the `extension/` folder.
-4. Reload instagram.com (already open tabs don't get the script until you reload).
+Download the files from the [latest release](https://github.com/DredsGG/salva-stories/releases/latest), then follow the steps for your browser. After installing, reload instagram.com (tabs that were already open don't get the script until you reload). If you have other story downloaders installed, turn them off: their buttons sit on top of these.
 
-If you have other story downloaders installed, turn them off: their buttons sit on top of these.
+### Chrome, Edge, Brave and Opera GX
 
-**Updating:** when a new version is out, the menu shows what changed and an **Update** button that downloads the zip. Extract it over the old folder: the extension notices the new files within a minute and reloads itself and the Instagram tabs. If you installed by dragging the zip, drag the new one instead. A guide page (PT / EN / ES) opens on first install with these steps.
+1. Download **salva-stories-vX.Y.Z.zip** and extract it into a folder you'll keep (for example `Documents\Salva Stories`).
+2. Open the extensions page: `chrome://extensions`, `edge://extensions`, `brave://extensions` or `opera://extensions`.
+3. Turn on **Developer mode**, click **Load unpacked** and pick the folder.
+4. **To update:** extract the new version over the same folder, or use the extension's **Update** button (menu footer), which downloads the zip for you. The extension notices the new files within a minute and reloads itself and the Instagram tabs.
+
+> **Opera GX:** if the extension disappears after you close the browser, just load the folder again (a known Opera issue with unpacked extensions).
+
+### Firefox (140 or newer)
+
+1. Download **salva-stories-vX.Y.Z.xpi** (signed by Mozilla) and confirm the installation. If Firefox only saves the file, open `about:addons` → gear → **Install Add-on From File** and pick it.
+2. That's it: Firefox **updates it by itself**.
+3. Firefox lets you remove an extension's site access in `about:addons` → Salva Stories → **Permissions**. If access to Instagram is missing, the toolbar icon shows **!** and the menu shows an **Allow access** button.
+
+> No `.xpi` in the release yet? Use `about:debugging` → **This Firefox** → **Load Temporary Add-on** and pick `manifest.json` in the unzipped folder (it's removed when Firefox closes).
 
 ## Usage
 
@@ -81,17 +99,18 @@ If you have other story downloaders installed, turn them off: their buttons sit 
 | Post or reel with video | Hover the video to show the player; the last button downloads it. |
 | Direct | Click the select button, check conversations (or **All**) and pick an action in the bottom bar. |
 | Followers | Open the menu → **Tools** → **Followers & following** → scan. Run it again later to see who unfollowed you. |
-| Settings | The story-ring icon in Instagram's sidebar, the gear in stories, `Alt+S` or the extension icon. |
+| Settings | The story-ring icon in Instagram's sidebar, the gear in stories, `Alt+S` or the extension icon. **?** reopens the tutorial. |
 
 ## Languages
 
-The interface comes in **Portuguese, English and Spanish**, switched with the flag buttons in the menu.
+Everything comes in **Portuguese, English and Spanish**: menu, footer, tutorial, *What's new*, notices, the install guide and the log that goes with *Report a bug*. The first time, it follows your browser's language (any other language falls back to English). Switch any time with **PT · EN · ES** in the menu footer (also on the tutorial and notice cards, and the flags under Appearance); the choice is saved.
 
 ## Known limitations
 
-- **Chrome (or another Chromium browser) on desktop, on instagram.com only.** No mobile app, no Firefox.
+- **Desktop browsers on instagram.com only** (Chrome, Edge, Brave, Opera GX, Firefox 140+). No mobile app.
 - **It depends on how Instagram's web app works today.** When Instagram changes its responses or layout, a feature can stop until the extension is updated (see [When Instagram changes something](#when-instagram-changes-something)).
-- **Updates need one manual step.** Chrome doesn't let an extension installed from a folder replace its own files, so you extract the new zip yourself; only the Chrome Web Store can update fully on its own.
+- **On Chromium browsers, updates need one manual step.** An extension loaded from a folder can't replace its own files, so you extract the new zip yourself. Firefox updates the signed `.xpi` by itself.
+- **Bulk unfollow is slow by design** (at most 150 a day). Instagram may still action-block an account that unfollows a lot; use it at your own risk.
 - **"Save all" only covers the stories the viewer already loaded** for that profile.
 - **Private profiles** can only be downloaded or checked if you follow them.
 - **Big accounts are slow on purpose:** profile downloads and followers checks keep a human-like pace, and the followers check stops on the first block or checkpoint.
@@ -104,11 +123,11 @@ The interface comes in **Portuguese, English and Spanish**, switched with the fl
 flowchart LR
   subgraph Page["instagram.com · MAIN world"]
     P["page.js<br/>fetch/XHR hook · story on screen · buttons in closed shadow DOM · ghost mode"]
-    M["menu.js · profile.js · player.js · inbox.js · follows.js<br/>settings menu · profile download · player · Direct · followers (kit.js: shared UI)"]
+    M["menu.js · profile.js · player.js · inbox.js · follows.js · onboard.js<br/>settings menu · profile download · player · Direct · followers · tutorial (kit.js: shared UI)"]
   end
   subgraph Ext["Extension"]
     B["bridge.js<br/>ISOLATED world"]
-    SW["sw.js<br/>service worker"]
+    SW["sw.js<br/>service worker (Chromium) · event page (Firefox)"]
     R["remux.js<br/>DASH video + audio → one MP4"]
   end
   P & M -- postMessage --> B -- runtime message --> SW
@@ -119,7 +138,8 @@ flowchart LR
 - **No extra traffic in the normal case.** `page.js` listens to the responses Instagram itself already downloads (the reels media GraphQL payload and inline JSON) and keeps the story items in memory. Only when an item isn't cached does it make a single `media/{id}/info` call.
 - **Finding the story on screen:** the biggest `<video>`/`<img>` in the center of the viewer, matched to its media id through React fiber. When the URL already has an id, that one wins, which covers the slide animation between stories.
 - **"Save all" uses only the reel the viewer already loaded.** It doesn't do batch API calls, since that's what triggers Instagram's automation checks.
-- **Minimal permissions:** `downloads`, `storage` and `alarms`; host access to Instagram's CDN (`*.cdninstagram.com`, `*.fbcdn.net`, needed to fetch DASH tracks), to `www.instagram.com` (to reload its tabs after an update) and to `api.github.com` (to read the latest release). The service worker refuses any download URL that isn't HTTPS on the CDN hosts. No `cookies`, `tabs` or `webRequest`, and nothing about you is sent anywhere: the only outside request is that read-only release check.
+- **Minimal permissions:** `downloads`, `storage` and `alarms` (and `permissions.contains` to warn when Firefox site access was removed); host access to Instagram's CDN (`*.cdninstagram.com`, `*.fbcdn.net`, needed to fetch DASH tracks), to `www.instagram.com` (to reload its tabs after an update) and to `api.github.com` (to read the latest release). The service worker refuses any download URL that isn't HTTPS on the CDN hosts. No `cookies`, `tabs` or `webRequest`, and nothing about you is sent anywhere: the only outside request is that read-only release check.
+- **One package for every browser:** the manifest declares the background as both `service_worker` (Chromium) and `scripts` (Firefox), pointing to the same ES module, so `sw.js` uses no `window`/DOM and only promise-style `browser.*`/`chrome.*` calls. On Firefox the muxed DASH video is saved through a `blob:` URL; on Chromium through a `data:` URL. `browser_specific_settings.gecko` sets the add-on id `salva-stories@dredsgg`, Firefox 140+, no data collection, and the `update_url` (`firefox/updates.json`).
 - **`remux.js`** is a small dependency-free fMP4 muxer: it copies the `moov`/`trak` boxes, renumbers `track_ID` and interleaves `moof`/`mdat` fragments by their decode time.
 
 ### When Instagram changes something
@@ -129,16 +149,19 @@ Open the console on instagram.com and run `__salvaStoriesDebug()`. It shows how 
 - `items: 0` → the response format changed: look at `harvest()` and `WATCH` in `page.js`.
 - `current: null` → the viewer layout or fiber changed: look at `pkFromFiber()` and `centerMedia()`.
 
-*Report a bug* in the menu attaches the same information plus a short log. Each module also has its own helper with its state and the on-screen position of its controls: `__salvaStoriesMenuDebug()`, `__salvaStoriesProfileDebug()`, `__salvaStoriesPlayerDebug()`, `__salvaStoriesInboxDebug()` and `__salvaStoriesFollowsDebug()`.
+*Report a bug* in the menu attaches the same information plus a short log. Each module also has its own helper with its state and the on-screen position of its controls: `__salvaStoriesMenuDebug()`, `__salvaStoriesProfileDebug()`, `__salvaStoriesPlayerDebug()`, `__salvaStoriesInboxDebug()`, `__salvaStoriesFollowsDebug()` and `__salvaStoriesOnboardDebug()`.
 
 ## Tests
 
-End-to-end in Chromium with the real extension loaded, against a simulated instagram.com and CDN. Setup is in [`tests/README.md`](tests/README.md).
+End-to-end with the real extension loaded, against a simulated instagram.com and CDN. Setup is in [`tests/README.md`](tests/README.md).
 
 - `e2e.mjs`, stories: photo at the largest candidate with the right name, 1080p DASH video muxed with audio (checked with `ffprobe`), video without sound, `Shift+D` saving three, max-resolution off, ghost mode blocking only when on, and the settings menu.
-- `e2e-v15.mjs`, everything else, in light and dark: ghost badge outside stories, a 30-post profile with carousels saved as 34 files in the right folders, the player (pause that survives the page trying to resume it, ±10 s, 2×, sound, volume, download), Direct (all 40 chats selected, 2 marked unread, 2 deleted after one confirmation), two followers checks with unfollowers and new followers, and the update notice and bug report.
+- `e2e-v15.mjs`, everything else, in light and dark: ghost badge outside stories, a 30-post profile with carousels saved as 34 files in the right folders, the player (pause that survives the page trying to resume it, ±10 s, 2×, sound, volume, download), Direct (all 40 chats selected, 2 marked unread, 2 deleted after one confirmation), two followers checks with unfollowers and new followers, bulk ignore and unfollow, and the update notice and bug report.
+- `e2e-onboard.mjs` (in PT, EN and ES): the tutorial on a fresh install, the **?** button, `Esc`, *What's new* once after a simulated update, and a newer simulated release: the notice shows up by itself on the page, comes back after a reload, **Update** downloads the zip, ✕ hides it until a newer version, and it waits for the tutorial to close.
+- `e2e-lang.mjs`: first run with the browser in pt-BR, pt-PT, en-US, es-ES, es-419 and de-DE (falls back to English), then switching PT · EN · ES in the footer, tutorial, menu, *What's new* and the bug report log.
+- **Firefox** (GitHub Actions, `Test` workflow): `web-ext lint` with no errors, then real Firefox with the extension installed as temporary: tutorial, menu and footer, update check, story photo with `D`, DASH video muxed through `blob:` (checked with `ffprobe`) and *What's new*.
 
-The screenshots on this page are the real extension (v1.5.2) running on that simulated Instagram, with placeholder accounts and generated images.
+The screenshots on this page are the real extension (v1.7.1) running on that simulated Instagram, with placeholder accounts and generated images.
 
 ## Disclaimer
 

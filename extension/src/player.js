@@ -142,7 +142,7 @@
   function guard(v) {
     if (v.__ssGuard) return;
     v.__ssGuard = true;
-    v.play = function () { if (v.__ssHold) { API() && API().log('info', 'player: play() do Instagram ignorado (pausado pelo usuário)'); return Promise.resolve(); } return NATIVE_PLAY.call(v); };
+    v.play = function () { if (v.__ssHold) { API() && API().log('info', { pt: 'player: play() do Instagram ignorado (pausado pelo usuário)', en: "player: Instagram's play() ignored (paused by the user)", es: 'player: play() de Instagram ignorado (pausado por el usuario)' }); return Promise.resolve(); } return NATIVE_PLAY.call(v); };
     // reserva: se algo tocar mesmo assim, pausa de novo
     v.addEventListener('play', () => { if (v.__ssHold) v.pause(); });
     v.addEventListener('loadstart', () => { if (v.__ssHold && v.__ssHoldSrc && v.currentSrc && v.currentSrc !== v.__ssHoldSrc) v.__ssHold = false; });
@@ -333,9 +333,9 @@
       if (!r || !r.ok) throw new Error((r && r.error) || '?');
       const s = API().settings() || {};
       ui.toast(`${t('saved')} Downloads/${s.folder || 'Instagram Stories'}/${s.perUser === false ? '' : job.user + '/'}videos`);
-      API().log('info', 'player: vídeo baixado');
+      API().log('info', { pt: 'player: vídeo baixado', en: 'player: video saved', es: 'player: video descargado' });
     } catch (e) {
-      API().log('error', 'player: ' + (e.message === t('noId') ? 'vídeo não achado nos dados' : String(e.message).slice(0, 160)));
+      { const em = String(e.message).slice(0, 160), nf = e.message === t('noId'); API().log('error', { pt: 'player: ' + (nf ? 'vídeo não achado nos dados' : em), en: 'player: ' + (nf ? 'video not found in the data' : em), es: 'player: ' + (nf ? 'video no encontrado en los datos' : em) }); }
       ui.toast(e.message === t('noId') ? e.message : `${t('fail')} ${e.message}`);
     } finally {
       btn.classList.remove('busy');
