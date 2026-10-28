@@ -31,11 +31,12 @@
       stale: 'A extensão foi atualizada. Recarregue a página para usar a versão nova.', reload: 'Recarregar',
       secTools: 'Ferramentas', follows: 'Seguidores e seguindo', followsD: 'Quem não te segue de volta, quem você não segue, mútuos e quem deixou de seguir',
       player: 'Player nos vídeos', playerD: 'Pausar, voltar, avançar, velocidade, volume e baixar nos vídeos e reels',
+      postBtn: 'Botões no post', postBtnD: 'No post aberto, salva a foto da tela ou todas do carrossel',
       profileBtn: 'Botão "baixar perfil"', profileBtnD: 'Na página de um perfil, baixa todos os posts organizados em pastas',
       inboxTools: 'Seleção no direct', inboxToolsD: 'Selecionar várias conversas e agir em todas de uma vez',
       ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', open2: 'Abrir',
       updCheck: 'Procurar atualização', updChecking: 'Procurando…', updLatest: 'Você está na versão mais nova', updFail: 'Não deu para procurar agora',
-      updAvail: (v) => `v${v} disponível`, updTitle: 'Atualização disponível', updGo: 'Atualizar', updLater: 'Depois', updHow: 'Como atualizar, passo a passo',
+      updAvail: (v) => `v${v} disponível`, updTitle: 'Atualização disponível', updUrgTitle: 'Atualização urgente: a extensão está pausada até atualizar', updGo: 'Atualizar', updLater: 'Depois', updHow: 'Como atualizar, passo a passo',
       updDownloaded: 'O zip novo foi para a pasta Downloads. Extraia por cima da pasta da extensão: ela se recarrega sozinha em até 1 minuto.',
       updDone: (a, b) => `Salva Stories atualizado: v${a} → v${b}`, updHelp: 'Como instalar e atualizar',
       swOld: 'A parte de fundo da extensão ficou na versão antiga (o Chrome não trocou). Abra chrome://extensions e clique em ↻ no Salva Stories. É só desta vez: daqui para frente ele se atualiza sozinho.',
@@ -60,11 +61,12 @@
       stale: 'The extension was updated. Reload the page to use the new version.', reload: 'Reload',
       secTools: 'Tools', follows: 'Followers & following', followsD: "Who doesn't follow you back, who you don't follow back, mutuals and who unfollowed",
       player: 'Video player', playerD: 'Pause, rewind, forward, speed, volume and download on videos and reels',
+      postBtn: 'Post buttons', postBtnD: 'On an open post, saves the photo on screen or the whole carousel',
       profileBtn: '"Download profile" button', profileBtnD: "On a profile page, downloads every post into tidy folders",
       inboxTools: 'Direct selection', inboxToolsD: 'Select several chats and act on all of them at once',
       ghostOn: 'Ghost mode on', ghostSub: 'Nobody sees that you watched', open2: 'Open',
       updCheck: 'Check for updates', updChecking: 'Checking…', updLatest: "You're on the latest version", updFail: "Couldn't check right now",
-      updAvail: (v) => `v${v} available`, updTitle: 'Update available', updGo: 'Update', updLater: 'Later', updHow: 'How to update, step by step',
+      updAvail: (v) => `v${v} available`, updTitle: 'Update available', updUrgTitle: 'Urgent update: the extension is paused until you update', updGo: 'Update', updLater: 'Later', updHow: 'How to update, step by step',
       updDownloaded: 'The new zip went to your Downloads folder. Unzip it over the extension folder: it reloads itself within 1 minute.',
       updDone: (a, b) => `Salva Stories updated: v${a} → v${b}`, updHelp: 'How to install and update',
       swOld: "The extension's background part stayed on the old version (Chrome didn't swap it). Open chrome://extensions and click ↻ on Salva Stories. Only this once: from now on it updates itself.",
@@ -89,11 +91,12 @@
       stale: 'La extensión se actualizó. Recarga la página para usar la versión nueva.', reload: 'Recargar',
       secTools: 'Herramientas', follows: 'Seguidores y seguidos', followsD: 'Quién no te sigue, a quién no sigues, mutuos y quién dejó de seguirte',
       player: 'Reproductor en los videos', playerD: 'Pausar, retroceder, avanzar, velocidad, volumen y descargar en videos y reels',
+      postBtn: 'Botones en la publicación', postBtnD: 'En una publicación abierta, guarda la foto en pantalla o todo el carrusel',
       profileBtn: 'Botón "descargar perfil"', profileBtnD: 'En un perfil, descarga todas las publicaciones en carpetas ordenadas',
       inboxTools: 'Selección en el direct', inboxToolsD: 'Selecciona varios chats y actúa en todos a la vez',
       ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', open2: 'Abrir',
       updCheck: 'Buscar actualización', updChecking: 'Buscando…', updLatest: 'Tienes la versión más nueva', updFail: 'No se pudo buscar ahora',
-      updAvail: (v) => `v${v} disponible`, updTitle: 'Actualización disponible', updGo: 'Actualizar', updLater: 'Después', updHow: 'Cómo actualizar, paso a paso',
+      updAvail: (v) => `v${v} disponible`, updTitle: 'Actualización disponible', updUrgTitle: 'Actualización urgente: la extensión está en pausa hasta actualizar', updGo: 'Actualizar', updLater: 'Después', updHow: 'Cómo actualizar, paso a paso',
       updDownloaded: 'El zip nuevo fue a la carpeta Descargas. Extráelo sobre la carpeta de la extensión: se recarga sola en hasta 1 minuto.',
       updDone: (a, b) => `Salva Stories actualizado: v${a} → v${b}`, updHelp: 'Cómo instalar y actualizar',
       swOld: 'La parte de fondo de la extensión quedó en la versión antigua (Chrome no la cambió). Abre chrome://extensions y haz clic en ↻ en Salva Stories. Solo esta vez: desde ahora se actualiza sola.',
@@ -106,7 +109,7 @@
     },
   };
 
-  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, profileBtn: true, inboxTools: true };
+  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, postBtn: true, profileBtn: true, inboxTools: true };
   let version = '';
   let stale = false;
   const tr = (k, ...a) => { const v = (T[S.lang] || T.pt)[k] ?? T.pt[k]; return typeof v === 'function' ? v(...a) : v; };
@@ -420,7 +423,7 @@
   const isOpen = () => panel && !panel.hidden;
   let lastAnchor = null;
 
-  const LABEL = { perUser: 'perUser', maxQuality: 'maxQ', showAll: 'all', hotkey: 'hotkey', ghost: 'ghost', player: 'player', profileBtn: 'profileBtn', inboxTools: 'inboxTools' };
+  const LABEL = { perUser: 'perUser', maxQuality: 'maxQ', showAll: 'all', hotkey: 'hotkey', ghost: 'ghost', player: 'player', postBtn: 'postBtn', profileBtn: 'profileBtn', inboxTools: 'inboxTools' };
   // linha com chave liga/desliga (a descrição pode ter <kbd>, por isso não passa por esc)
   function sw(key) {
     const k = LABEL[key];
@@ -450,7 +453,7 @@
         <div class="sec">${esc(tr('secTools'))}</div>
         <div class="tool" role="button" tabindex="0" data-tool="follows"><span class="ti">${PEOPLE}</span>
           <span class="txt"><span class="t">${esc(tr('follows'))}</span><span class="d">${esc(tr('followsD'))}</span></span><span class="go">${CHEVRON}</span></div>
-        ${sw('player')}${sw('profileBtn')}${sw('inboxTools')}
+        ${sw('player')}${sw('postBtn')}${sw('profileBtn')}${sw('inboxTools')}
         <div class="sec">${esc(tr('secLook'))}</div>
         <div class="row static"><span class="txt"><span class="t">${esc(tr('lang'))}</span></span>
           <div class="flags" role="radiogroup" aria-label="${esc(tr('lang'))}">${['pt', 'en', 'es'].map(flag).join('')}</div></div>
@@ -533,12 +536,13 @@
     if (j && j.para === version && Date.now() - (j.em || 0) < 30 * 60000) {
       h += `<div class="card2 ok"><span>${GIFT}</span><b>${esc(tr('updDone', j.de || '?', j.para))}</b><button type="button" class="x2 useen" aria-label="${esc(tr('close'))}">${X_ICON}</button></div>`;
     }
-    if (upd.disponivel && upd.ultima && upd.dispensada !== upd.ultima) {
+    const urg = !!(upd.urgente && upd.disponivel);
+    if (upd.disponivel && upd.ultima && (urg || upd.dispensada !== upd.ultima)) {
       const items = noteItems(upd.notas);
-      h += `<div class="card2 gold"><h4>${esc(tr('updTitle'))} <small>· v${esc(upd.atual || version)} → v${esc(upd.ultima)}</small></h4>
+      h += `<div class="card2 ${urg ? 'warn' : 'gold'}"><h4>${esc(tr(urg ? 'updUrgTitle' : 'updTitle'))} <small>· v${esc(upd.atual || version)} → v${esc(upd.ultima)}</small></h4>
         ${items.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
         ${updDownloaded ? `<div class="note">${esc(tr('updDownloaded'))}</div>` : ''}${updXpi || IS_FF ? `<div class="note">${esc(tr('updXpi'))}</div>` : ''}
-        <div class="acts"><button type="button" class="b1 ugo">${esc(updBusy === 'apply' ? '…' : tr('updGo'))}</button><button type="button" class="b2 ulater">${esc(tr('updLater'))}</button>
+        <div class="acts"><button type="button" class="b1 ugo">${esc(updBusy === 'apply' ? '…' : tr('updGo'))}</button>${urg ? '' : `<button type="button" class="b2 ulater">${esc(tr('updLater'))}</button>`}
           <button type="button" class="lk uhow">${esc(tr('updHow'))}</button></div></div>`;
     }
     if (bugOpen) {
@@ -567,7 +571,7 @@
       disco ? `Auto-reload: checked ${Math.round((Date.now() - (disco.em || 0)) / 60000)} min ago · disk v${disco.noDisco || '?'} · running v${disco.rodando || '?'} · ${disco.estado || '?'}` : 'Auto-reload: no check yet',
       `Browser: ${brow} · ${os} · UI ${S.lang} · ${navigator.language}${perm && perm.ok === false ? ' · site access MISSING' : ''}`,
       `Page: ${page} · theme ${S.theme} (${mode()})`,
-      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
+      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, postBtn ${on('postBtn')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
       api && api.itemCount ? `Cache: ${api.itemCount()} items` : '',
     ].filter(Boolean).join('\n');
     const logs = api && api.logs ? api.logs() : [];

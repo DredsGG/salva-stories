@@ -11,6 +11,8 @@
   const TAG = '[Salva Stories]';
   const ITEMS = new Map(); // pk -> item enxuto
   const REELS = new Map(); // pk -> lista ordenada de pks do mesmo reel (story de uma pessoa ou destaque)
+  const POSTS = new Map(); // código do post (/p/{code}/) -> { code, pk, user, taken_at, parts: [itens enxutos, na ordem do carrossel] }
+  const POST_PK = new Map(); // pk do post -> código
   let settings = null; // chega do bridge
   let settingsResolve;
   const settingsReady = new Promise((r) => { settingsResolve = r; });
@@ -18,7 +20,7 @@
 
   // idioma da primeira abertura: o do navegador (pt, en ou es; qualquer outro → en). Regra 13.
   const NAV_LANG = (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
-  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, lang: NAV_LANG };
+  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, postBtn: true, lang: NAV_LANG };
 
   // ───────────────────────── idiomas (escolhidos pelas bandeiras do menu) ─────────────────────────
   const I18N = {
@@ -30,6 +32,9 @@
       noReply: 'a extensão não respondeu (recarregue a página)', failed: 'falhou', notSaved: 'Não salvou: ',
       video: 'vídeo salvo', videoMute: 'vídeo salvo (sem som no original)', photo: 'foto salva',
       onlyOne: 'só este story estava carregado — salvo', many: (a, b) => `${a} de ${b} stories salvos`,
+      savePhoto: 'Salvar esta foto (D)', savePhotoA: 'Salvar esta foto', saveVideo: 'Salvar este vídeo (D)', saveVideoA: 'Salvar este vídeo',
+      savePost: 'Salvar todas do carrossel (Shift+D)', savePostA: 'Salvar todas do carrossel',
+      noPost: 'não achei os dados do post (recarregue a página)', urgent: 'atualização urgente pendente: atualize a extensão para voltar a baixar', postMany: (a, b) => `${a} de ${b} do carrossel salvos`,
     },
     en: {
       saveOne: 'Save this story (D)', saveOneA: 'Save this story',
@@ -39,6 +44,9 @@
       noReply: "the extension didn't respond (reload the page)", failed: 'failed', notSaved: 'Not saved: ',
       video: 'video saved', videoMute: 'video saved (original has no sound)', photo: 'photo saved',
       onlyOne: 'only this story was loaded — saved', many: (a, b) => `${a} of ${b} stories saved`,
+      savePhoto: 'Save this photo (D)', savePhotoA: 'Save this photo', saveVideo: 'Save this video (D)', saveVideoA: 'Save this video',
+      savePost: 'Save the whole carousel (Shift+D)', savePostA: 'Save the whole carousel',
+      noPost: "couldn't find the post data (reload the page)", urgent: 'urgent update pending: update the extension to download again', postMany: (a, b) => `${a} of ${b} carousel items saved`,
     },
     es: {
       saveOne: 'Guardar esta historia (D)', saveOneA: 'Guardar esta historia',
@@ -48,6 +56,9 @@
       noReply: 'la extensión no respondió (recarga la página)', failed: 'falló', notSaved: 'No se guardó: ',
       video: 'video guardado', videoMute: 'video guardado (el original no tiene sonido)', photo: 'foto guardada',
       onlyOne: 'solo esta historia estaba cargada — guardada', many: (a, b) => `${a} de ${b} historias guardadas`,
+      savePhoto: 'Guardar esta foto (D)', savePhotoA: 'Guardar esta foto', saveVideo: 'Guardar este video (D)', saveVideoA: 'Guardar este video',
+      savePost: 'Guardar todo el carrusel (Shift+D)', savePostA: 'Guardar todo el carrusel',
+      noPost: 'no encontré los datos de la publicación (recarga la página)', urgent: 'actualización urgente pendiente: actualiza la extensión para volver a descargar', postMany: (a, b) => `${a} de ${b} del carrusel guardados`,
     },
   };
   function t(key, ...args) {
@@ -80,6 +91,24 @@
     return o && (o.pk || o.id) && (o.image_versions2 || o.video_versions) && typeof o.media_type === 'number';
   }
 
+  // post do feed/perfil (foto, vídeo ou carrossel): guarda pelo código da URL, com as partes na ordem do carrossel
+  function notePost(o, user) {
+    if (typeof o.code !== 'string' || !o.code || !(o.pk || o.id)) return;
+    const car = Array.isArray(o.carousel_media) && o.carousel_media.length ? o.carousel_media : null;
+    if (!car && !isMedia(o)) return;
+    const old = POSTS.get(o.code);
+    if (old && old.parts.length >= (car ? car.length : 1)) return;
+    const owner = (o.user && o.user.username) || (o.owner && o.owner.username) || user || '';
+    const parts = (car || [o]).map((m, i) => {
+      const s = slim(Object.assign({}, m, { taken_at: m.taken_at || o.taken_at, user: m.user || o.user }), owner);
+      if (!s.pk || s.pk === 'undefined') s.pk = String(o.pk || o.id) + '_' + i;
+      return s;
+    });
+    const pk = String(o.pk || o.id).split('_')[0];
+    POSTS.set(o.code, { code: o.code, pk, user: owner, taken_at: o.taken_at, parts });
+    POST_PK.set(pk, o.code);
+  }
+
   function harvest(root) {
     const seen = new Set();
     let found = 0;
@@ -88,6 +117,7 @@
       seen.add(o);
       if (Array.isArray(o)) { for (const v of o) walk(v, depth + 1, ctxUser); return; }
       const user = (o.user && o.user.username) || ctxUser;
+      notePost(o, user);
       if (Array.isArray(o.items) && o.items.length && o.items.every(isMedia)) {
         const pks = [];
         for (const it of o.items) {
@@ -292,6 +322,100 @@
     return pks.find(Boolean) || urlPk;
   }
 
+  // ───────────────────────── post aberto (/p/{code}/, no modal ou na página) ─────────────────────────
+  const POST_RE = /^\/(?:[A-Za-z0-9._]{1,30}\/)?p\/([A-Za-z0-9_-]{5,})/;
+  const postCode = () => { const m = location.pathname.match(POST_RE); return m ? m[1] : null; };
+  const ALPH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  // os 11 primeiros caracteres do código são o id da mídia (o código longo de conta privada traz mais coisa depois)
+  function codeToPk(code) {
+    let id = 0n;
+    for (const c of String(code).slice(0, 11)) { const i = ALPH.indexOf(c); if (i < 0) return null; id = id * 64n + BigInt(i); }
+    return id ? id.toString() : null;
+  }
+  const rectOf = (el) => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height }; };
+  // maior ancestral com o mesmo retângulo da mídia (o "slide": imagem + camadas do Instagram por cima)
+  function slideOf(el) {
+    const r = el.getBoundingClientRect();
+    let box = el;
+    for (let a = el.parentElement, d = 0; a && d < 14; a = a.parentElement, d++) {
+      const q = a.getBoundingClientRect();
+      if (Math.abs(q.left - r.left) > 4 || Math.abs(q.top - r.top) > 4 || Math.abs(q.width - r.width) > 4 || Math.abs(q.height - r.height) > 4) break;
+      box = a;
+    }
+    return box;
+  }
+  // janela da mídia: no carrossel, o ancestral que recorta os slides (não se mexe quando a foto passa); fora dele, o próprio slide
+  function viewportOf(box) {
+    const w = box.getBoundingClientRect().width;
+    for (let a = box.parentElement, d = 0; a && d < 6; a = a.parentElement, d++) {
+      const q = a.getBoundingClientRect();
+      if (q.width < 50) continue; // a <ul> do carrossel tem 1 px de largura
+      const ov = getComputedStyle(a).overflowX;
+      if (ov !== 'visible' && q.width >= 200 && q.width <= w * 1.2) return a;
+      if (q.width > w * 1.2) break;
+    }
+    return box;
+  }
+  // mídia do post na tela: { vp (janela), right (borda direita do cartão, com o painel de comentários), carousel }
+  function postView() {
+    const scope = document.querySelector('div[role="dialog"]') || document.querySelector('main') || document.body;
+    let best = null;
+    for (const el of scope.querySelectorAll('img, video')) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 200 || r.height < 150 || r.bottom < 60 || r.top > innerHeight - 60 || r.right < 0 || r.left > innerWidth) continue;
+      if (el.closest('a[href*="/p/"], a[href*="/reel/"]')) continue; // miniaturas da grade ("Mais posts de…")
+      const box = slideOf(el);
+      const vpEl = viewportOf(box);
+      const v = rectOf(vpEl);
+      const cx = v.left + v.width / 2, cy = Math.min(Math.max(v.top + v.height / 2, 2), innerHeight - 2);
+      const hit = document.elementFromPoint(cx, cy);
+      if (!hit || !vpEl.contains(hit)) continue; // coberta por outra coisa (modal por cima, etc.)
+      const vis = (Math.min(v.bottom, innerHeight) - Math.max(v.top, 0)) * v.width;
+      if (!best || vis > best.vis) best = { vpEl, v, vis };
+    }
+    if (!best) return null;
+    const v = best.v;
+    // painel ao lado (comentários): o que está logo à direita da mídia, na mesma altura
+    let right = v.right;
+    const hy = Math.min(Math.max(v.top + Math.min(v.height / 2, 200), 2), innerHeight - 2);
+    const hx = v.right + 24;
+    const hit = hx < innerWidth - 2 ? document.elementFromPoint(hx, hy) : null;
+    if (hit && scope.contains(hit) && !best.vpEl.contains(hit) && !(host && host.contains(hit)) && hit !== host) {
+      let p = hit;
+      while (p.parentElement && p.parentElement !== scope && p.parentElement.getBoundingClientRect().left >= v.right - 2) p = p.parentElement;
+      const q = p.getBoundingClientRect();
+      if (q.left >= v.right - 2 && q.left <= v.right + 40 && q.width < innerWidth * 0.6) right = Math.max(right, q.right);
+    }
+    const carousel = best.vpEl.querySelectorAll('li').length > 1;
+    return { vpEl: best.vpEl, v, right, carousel };
+  }
+  // qual parte do carrossel está na tela: a mídia mais dentro da janela, pelo nome do arquivo (foto) ou pelo fiber (vídeo); senão img_index
+  function postIndex(post, vpEl) {
+    if (post.parts.length < 2) return 0;
+    if (vpEl) {
+      const v = vpEl.getBoundingClientRect();
+      let el = null, ov = 0;
+      for (const m of vpEl.querySelectorAll('img, video')) {
+        const r = m.getBoundingClientRect();
+        if (r.width < 100) continue;
+        const o = Math.min(r.right, v.right) - Math.max(r.left, v.left);
+        if (o > ov) { ov = o; el = m; }
+      }
+      if (el && ov > v.width * 0.6) {
+        if (el.tagName === 'IMG') {
+          const b = base(el.currentSrc || el.src);
+          const i = b ? post.parts.findIndex((p) => p.images.some((c) => base(c.url) === b)) : -1;
+          if (i >= 0) return i;
+        }
+        const pk = pkFromFiber(el);
+        const i = pk ? post.parts.findIndex((p) => p.pk === pk) : -1;
+        if (i >= 0) return i;
+      }
+    }
+    const n = parseInt(new URLSearchParams(location.search).get('img_index') || '', 10);
+    return n >= 1 && n <= post.parts.length ? n - 1 : 0;
+  }
+
   // ───────────────────────── API (plano B) ─────────────────────────
   function appId() {
     const m = document.documentElement.innerHTML.match(/"(?:X-IG-App-ID|appId|APP_ID)"\s*:\s*"(\d{10,})"/);
@@ -379,6 +503,9 @@
     if (d.kind === 'result' && pending.has(d.id)) { pending.get(d.id)(d.result); pending.delete(d.id); }
   });
   function askExtension(jobs) {
+    // regra 14 d: versão urgente pendente → nada é baixado até atualizar
+    const kit = window[Symbol.for('salvaStories.kit')];
+    if (kit && kit.urgent && kit.urgent()) return Promise.resolve({ ok: false, count: 0, error: t('urgent') });
     return new Promise((resolve) => {
       const id = ++reqId;
       pending.set(id, resolve);
@@ -422,14 +549,57 @@
     return t('many', r.count, jobs.length);
   }
 
+  // dados do post: o que o Instagram já carregou (modal, grade, HTML); só se faltar, o mesmo plano B dos stories (1 pedido)
+  async function postData(code) {
+    harvestInline();
+    const pk = codeToPk(code);
+    const find = () => POSTS.get(code) || (pk && POST_PK.has(pk) ? POSTS.get(POST_PK.get(pk)) : null);
+    if (find()) return find();
+    if (pk) { try { await fetchItem(pk); } catch (_) {} }
+    return find();
+  }
+  // mesmo lugar e nome do "Baixar perfil" (perfil/fotos|videos/AAAA-MM-DD_{code}_NN), para não duplicar
+  function postJob(post, i) {
+    const job = buildJob(post.parts[i], i + 1);
+    if (!job) return null;
+    job.user = post.user || post.parts[i].user || 'instagram';
+    job.name = `${stamp(post.taken_at).slice(0, 10)}_${post.code}${post.parts.length > 1 ? '_' + pad(i + 1) : ''}`;
+    job.sub = 'perfil/' + (job.type === 'video' ? 'videos' : 'fotos');
+    return job;
+  }
+  async function downloadPostCurrent() {
+    const code = postCode();
+    const post = code && (await postData(code));
+    if (!post) throw new Error(t('noPost'));
+    const pv = postView();
+    const job = postJob(post, postIndex(post, pv && pv.vpEl));
+    if (!job) throw new Error(t('noMedia'));
+    const r = await askExtension([job]);
+    if (!r.ok) throw new Error(r.error || t('failed'));
+    return job.type === 'video' ? (job.audio ? t('video') : t('videoMute')) : t('photo');
+  }
+  async function downloadPostAll() {
+    const code = postCode();
+    const post = code && (await postData(code));
+    if (!post) throw new Error(t('noPost'));
+    const jobs = post.parts.map((_, i) => postJob(post, i)).filter(Boolean);
+    if (!jobs.length) throw new Error(t('nothing'));
+    const r = await askExtension(jobs);
+    if (!r.ok) throw new Error(r.error || t('failed'));
+    return t('postMany', r.count, jobs.length);
+  }
+
   // ───────────────────────── interface ─────────────────────────
+  let mode = 'story'; // 'story' | 'photo' | 'video' (post aberto)
   let host, shadow, wrap, btnOne, btnAll, btnMenu, ghostEl, toastEl, labelsLang = null;
   function applyLabels() {
-    const lang = (settings && settings.lang) || 'pt';
+    const lang = ((settings && settings.lang) || 'pt') + ':' + mode;
     if (lang === labelsLang) return;
     labelsLang = lang;
-    btnOne.title = t('saveOne'); btnOne.setAttribute('aria-label', t('saveOneA'));
-    btnAll.title = t('saveAll'); btnAll.setAttribute('aria-label', t('saveAllA'));
+    const one = mode === 'photo' ? 'savePhoto' : mode === 'video' ? 'saveVideo' : 'saveOne';
+    const all = mode === 'story' ? 'saveAll' : 'savePost';
+    btnOne.title = t(one); btnOne.setAttribute('aria-label', t(one + 'A'));
+    btnAll.title = t(all); btnAll.setAttribute('aria-label', t(all + 'A'));
     btnMenu.title = t('menu'); btnMenu.setAttribute('aria-label', t('menu'));
     ghostEl.setAttribute('aria-label', t('ghostOn'));
     ghostEl.querySelector('.tip b').textContent = t('ghostOn');
@@ -503,8 +673,8 @@
     for (const ev of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend', 'keydown']) {
       host.addEventListener(ev, (e) => e.stopPropagation());
     }
-    btnOne.addEventListener('click', () => run(btnOne, ICON_DL, downloadCurrent));
-    btnAll.addEventListener('click', () => run(btnAll, ICON_ALL, downloadAll));
+    btnOne.addEventListener('click', () => run(btnOne, ICON_DL, mode === 'story' ? downloadCurrent : downloadPostCurrent));
+    btnAll.addEventListener('click', () => run(btnAll, ICON_ALL, mode === 'story' ? downloadAll : downloadPostAll));
     // o menu (menu.js) abre ao lado da engrenagem
     btnMenu.addEventListener('click', () => {
       const r = btnMenu.getBoundingClientRect();
@@ -530,38 +700,138 @@
       const msg = await fn();
       btn.classList.remove('busy'); btn.classList.add('ok'); btn.innerHTML = ICON_OK;
       toast(msg);
-      log('info', { pt: 'story salvo: ' + msg, en: 'story saved: ' + msg, es: 'historia guardada: ' + msg });
+      if (mode === 'story') log('info', { pt: 'story salvo: ' + msg, en: 'story saved: ' + msg, es: 'historia guardada: ' + msg });
+      else log('info', { pt: 'post salvo: ' + msg, en: 'post saved: ' + msg, es: 'publicación guardada: ' + msg });
     } catch (e) {
       console.warn(TAG, e);
-      { const em = String((e && e.message) || e).replace(/\d{8,}/g, '#').slice(0, 160); log('error', { pt: 'story não salvo: ' + em, en: 'story not saved: ' + em, es: 'historia no guardada: ' + em }); }
+      { const em = String((e && e.message) || e).replace(/\d{8,}/g, '#').slice(0, 160); const w = mode === 'story' ? ['story não salvo: ', 'story not saved: ', 'historia no guardada: '] : ['post não salvo: ', 'post not saved: ', 'publicación no guardada: ']; log('error', { pt: w[0] + em, en: w[1] + em, es: w[2] + em }); }
       btn.classList.remove('busy'); btn.classList.add('err'); btn.innerHTML = ICON_ERR;
       toast(t('notSaved') + (e && e.message ? e.message : e));
     }
     setTimeout(() => { btn.classList.remove('ok', 'err'); btn.innerHTML = icon; }, 1600);
   }
 
+  // Posição dos botões. O Instagram anima a troca de pessoa nos stories (o card novo vem deslizando e crescendo
+  // de um lado, o antigo encolhe para o outro, ~0,5 s). Medir no meio da animação fazia os botões pularem para
+  // o meio e voltarem (medido ao vivo em 27/10/2026). Agora: enquanto o card se mexe, os botões somem num fade
+  // curto e ficam parados; quando o card para (~120 ms sem mudar), vão para o lugar certo e voltam a aparecer.
+  let lastRect = null, stableSince = 0, placed = null, visible = false, lastSeen = 0, rest = null;
+  const near = (a, b, d) => Math.abs(a - b) <= d;
+  function setVisible(on) {
+    if (!host || (visible === on && host.style.opacity === (on ? '1' : '0'))) return;
+    visible = on;
+    host.style.opacity = on ? '1' : '0';
+    host.style.pointerEvents = on ? 'auto' : 'none';
+  }
+  // post aberto: os botões ficam fora do cartão (mídia + comentários), à direita, alinhados ao topo; sem espaço, dentro da
+  // foto no canto de cima. A janela do carrossel não se mexe quando a foto passa, então os botões ficam parados.
+  let postSeen = 0, postCodeShown = null;
+  function hideAll() { if (host) { setVisible(false); host.style.display = 'none'; } placed = null; lastRect = null; }
+  function renderPost(code) {
+    const now = performance.now();
+    const pv = postView();
+    if (!pv) {
+      // carregando ou trocando: segura um instante no lugar antes de sumir
+      if (!(host && postCodeShown === code && now - postSeen < 1200)) { hideAll(); postCodeShown = null; }
+      else setVisible(false);
+      return;
+    }
+    ensureUI();
+    if (!host.style.transition) host.style.transition = 'opacity .1s ease';
+    postSeen = now; postCodeShown = code;
+    // foto ou vídeo na tela (para o texto do botão)
+    const v = pv.v;
+    let cur = null, ov = 0;
+    for (const m of pv.vpEl.querySelectorAll('img, video')) {
+      const r = m.getBoundingClientRect();
+      if (r.width < 100) continue;
+      const o = Math.min(r.right, v.right) - Math.max(r.left, v.left);
+      if (o > ov) { ov = o; cur = m; }
+    }
+    const post = POSTS.get(code);
+    mode = cur && cur.tagName === 'VIDEO' ? 'video' : 'photo';
+    btnAll.style.display = pv.carousel || (post && post.parts.length > 1) ? '' : 'none';
+    ghostEl.style.display = 'none';
+    applyLabels();
+    const box = { left: v.left, top: v.top, width: pv.right - v.left, height: v.height };
+    const moved = !lastRect || !near(box.left, lastRect.left, 1) || !near(box.top, lastRect.top, 1) || !near(box.width, lastRect.width, 1) || !near(box.height, lastRect.height, 1);
+    lastRect = box;
+    if (moved) stableSince = now;
+    const w = 44;
+    let left = pv.right + 14, top = v.top + 16;
+    if (left + w > innerWidth - 8) { left = v.right - w - 12; top = v.top + 12; }
+    top = Math.max(8, Math.min(top, v.bottom - 120));
+    if (v.bottom < 130 || v.top > innerHeight - 130) { setVisible(false); return; }
+    // modal abrindo ou página rolando: espera parar (45 ms) para não arrastar os botões junto
+    if (now - stableSince < 45) { setVisible(false); return; }
+    if (!placed || !near(placed.left, left, 2) || !near(placed.top, top, 2)) {
+      host.style.left = Math.round(left) + 'px';
+      host.style.top = Math.round(top) + 'px';
+    }
+    placed = { left, top, code };
+    host.style.display = 'block';
+    setVisible(true);
+  }
+
   function render() {
     const onStories = location.pathname.startsWith('/stories/');
+    const code = !onStories && settings && settings.postBtn !== false ? postCode() : null;
+    if (code) return renderPost(code);
+    if (mode !== 'story') { mode = 'story'; hideAll(); rest = null; postCodeShown = null; }
     const el = onStories ? activeMedia() : null;
-    if (!el) { if (host) host.style.display = 'none'; return; }
+    const now = performance.now();
+    if (!el) {
+      // sem mídia por um instante (troca de story, carregando): só esconde; some de vez fora dos stories
+      if (host) { setVisible(false); if (!onStories || now - lastSeen > 1500) { host.style.display = 'none'; placed = null; lastRect = null; } }
+      return;
+    }
     ensureUI();
+    if (!host.style.transition) host.style.transition = 'opacity .1s ease';
+    lastSeen = now;
     btnAll.style.display = settings && settings.showAll === false ? 'none' : '';
     ghostEl.style.display = settings && settings.ghost ? '' : 'none';
     applyLabels();
     const r = el.getBoundingClientRect();
+    const moved = !lastRect || !near(r.left, lastRect.left, 1) || !near(r.top, lastRect.top, 1) || !near(r.width, lastRect.width, 1) || !near(r.height, lastRect.height, 1);
+    lastRect = { left: r.left, top: r.top, width: r.width, height: r.height };
+    if (moved) stableSince = now;
     const w = 44;
     // fora do card, à direita; se não couber, dentro do card
-    let left = r.right + 14;
-    if (left + w > innerWidth - 8) left = r.right - w - 12;
-    const top = Math.max(8, r.top + 72);
-    host.style.left = Math.round(left) + 'px';
-    host.style.top = Math.round(top) + 'px';
+    const posOf = (q) => {
+      let x = q.left + q.width + 14;
+      if (x + w > innerWidth - 8) x = q.left + q.width - w - 12;
+      return { left: x, top: Math.max(8, q.top + 72) };
+    };
+    if (r.height < innerHeight * 0.45) { setVisible(false); return; }
+    // O card de story sempre para no mesmo lugar (para o mesmo tamanho de janela). Guardado esse lugar, o card que
+    // chega deslizando já mostra os botões no ponto final quando está perto (≤ 48 px e tamanho ±7%), sem esperar o
+    // fim da desaceleração do Instagram (que se arrasta ~0,3 s quase parado). O card que sai some assim que se afasta.
+    const stable = now - stableSince >= 45;
+    if (stable) rest = { left: r.left, top: r.top, width: r.width, height: r.height, vw: innerWidth, vh: innerHeight };
+    const nearRest = rest && rest.vw === innerWidth && rest.vh === innerHeight && near(r.left, rest.left, 48) && near(r.top, rest.top, 48)
+      && Math.abs(r.width / rest.width - 1) < 0.07;
+    if (!stable && !nearRest) { setVisible(false); return; }
+    const { left, top } = posOf(stable ? r : rest);
+    if (!placed || !near(placed.left, left, 2) || !near(placed.top, top, 2)) {
+      host.style.left = Math.round(left) + 'px';
+      host.style.top = Math.round(top) + 'px';
+      placed = { left, top };
+    }
     host.style.display = 'block';
+    setVisible(true);
     const tipW = (ghostEl.querySelector('.tip') || {}).offsetWidth || 220;
     ghostEl.classList.toggle('flip', innerWidth - (left + w) < tipW + 24);
   }
 
-  setInterval(render, 300);
+  // confere a cada quadro nos stories (para seguir a animação) e devagar fora deles
+  let lastTick = 0;
+  (function loop(t) {
+    const fast = location.pathname.startsWith('/stories/');
+    const post = !fast && POST_RE.test(location.pathname);
+    if (t - lastTick >= (fast ? 15 : post ? 40 : 400)) { lastTick = t; try { render(); } catch (_) {} }
+    requestAnimationFrame(loop);
+  })(0);
+  setInterval(() => { if (document.hidden) render(); }, 1000); // aba em segundo plano: o requestAnimationFrame para
   addEventListener('resize', render);
 
   addEventListener('keydown', (e) => {
@@ -570,11 +840,13 @@
     // tecla digitada dentro do menu (shadow DOM fechado: daqui de fora o alvo aparece como o próprio <salva-stories-menu>)
     const t = (e.composedPath && e.composedPath()[0]) || e.target;
     if (t && (t.tagName === 'SALVA-STORIES-MENU' || t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
-    if (!location.pathname.startsWith('/stories/') || !host || host.style.display === 'none') return;
+    const onPost = mode !== 'story' && POST_RE.test(location.pathname);
+    if (!(location.pathname.startsWith('/stories/') || onPost) || !host || host.style.display === 'none' || host.style.opacity === '0') return;
+    if (onPost && e.shiftKey && btnAll.style.display === 'none') return;
     e.preventDefault();
     e.stopPropagation();
-    if (e.shiftKey) run(btnAll, ICON_ALL, downloadAll);
-    else run(btnOne, ICON_DL, downloadCurrent);
+    if (e.shiftKey) run(btnAll, ICON_ALL, onPost ? downloadPostAll : downloadAll);
+    else run(btnOne, ICON_DL, onPost ? downloadPostCurrent : downloadCurrent);
   }, true);
 
   // ───────────────────────── API para os outros módulos (mesmo mundo MAIN) ─────────────────────────
@@ -590,5 +862,8 @@
     }),
   });
   // depuração pelo console: __salvaStoriesDebug()
-  window.__salvaStoriesDebug = () => ({ items: ITEMS.size, reels: new Set(REELS.values()).size, current: currentPk(), settings });
+  const __box = (el) => { if (!el || el.style.display === 'none') return null; const r = el.getBoundingClientRect(); return r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } : null; };
+  window.__salvaStoriesDebug = () => ({ items: ITEMS.size, reels: new Set(REELS.values()).size, posts: POSTS.size, current: currentPk(), settings, mode,
+    post: (() => { const c = postCode(); const p = c && POSTS.get(c); const pv = c && postView(); return c ? { code: c, loaded: !!p, parts: p ? p.parts.length : 0, index: p ? postIndex(p, pv && pv.vpEl) : null, view: pv ? { left: Math.round(pv.v.left), right: Math.round(pv.right), top: Math.round(pv.v.top), carousel: pv.carousel } : null } : null; })(),
+    at: host && host.style.display !== 'none' ? { opacity: host.style.opacity, left: host.style.left, top: host.style.top, one: __box(btnOne), all: __box(btnAll), title: btnOne.title } : null });
 })();

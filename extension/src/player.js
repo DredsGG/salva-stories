@@ -45,13 +45,14 @@
   .row { display: flex; align-items: center; gap: 2px; min-width: 0; }
   .b { width: 34px; height: 34px; flex: none; border: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; background: transparent; color: #fff; cursor: pointer; transition: background .12s, transform .1s; }
   .b:hover { background: rgba(255,255,255,.14); } .b:active { transform: scale(.9); }
-  .b svg { display: block; }
+  .b svg { display: block; pointer-events: none; }
   .time { font: 600 12.5px var(--font); font-variant-numeric: tabular-nums; padding: 0 6px; opacity: .92; white-space: nowrap; }
   .sp { flex: 1; min-width: 4px; }
   .spd { width: auto; min-width: 42px; padding: 0 9px; border-radius: 99px; font: 800 12.5px var(--font); font-variant-numeric: tabular-nums; }
   .spd.on { background: linear-gradient(135deg,#962fbf,#d62976 55%,#fa7e1e); }
   .volg { display: flex; align-items: center; }
   .vs { width: 0; opacity: 0; transition: width .18s, opacity .18s; height: 34px; display: flex; align-items: center; }
+  /* o controle de volume abre para a esquerda: o alto-falante fica parado debaixo do mouse (antes ele era empurrado e o clique caía no controle) */
   .volg:hover .vs, .volg.drag .vs { width: 74px; opacity: 1; margin-right: 4px; }
   .vt { position: relative; width: 70px; height: 4px; border-radius: 99px; background: rgba(255,255,255,.25); cursor: pointer; touch-action: none; }
   .vt i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: #fff; }
@@ -90,21 +91,39 @@
           <span class="time"><span class="cu">0:00</span><span class="dur"> / 0:00</span></span>
           <span class="sp"></span>
           <button class="b spd" type="button">1×</button>
-          <span class="volg"><button class="b mu" type="button"></button><span class="vs"><span class="vt"><i></i><b></b></span></span></span>
+          <span class="volg"><span class="vs"><span class="vt"><i></i><b></b></span></span><button class="b mu" type="button"></button></span>
           <button class="b dl" type="button">${K().ICON.dl}</button>
         </div>
       </div>
       <div class="menu" hidden></div>`);
     const $ = ui.$;
     const bar = $('.bar2');
-    bar.addEventListener('pointerenter', () => { overBar = true; });
     bar.addEventListener('pointerleave', () => { overBar = false; poke(); });
-    $('.pp').addEventListener('click', () => { if (!cur) return; cur.paused ? resume(cur) : hold(cur); sync(); });
-    $('.bk').addEventListener('click', () => { if (cur) { cur.currentTime = Math.max(0, cur.currentTime - 10); sync(); } });
-    $('.fw').addEventListener('click', () => { if (!cur) return; const d = cur.duration; cur.currentTime = isFinite(d) && d > 0 ? Math.min(d - 0.1, cur.currentTime + 10) : cur.currentTime + 10; sync(); });
-    $('.mu').addEventListener('click', () => { if (!cur) return; setMuted(cur, !cur.muted); sync(); });
-    $('.spd').addEventListener('click', (e) => { e.stopPropagation(); toggleSpeedMenu(); });
-    $('.dl').addEventListener('click', download);
+    // "Toque": apertou e soltou no mesmo botão → age. Não depende do evento click do navegador (que se perdia quando o
+    // conteúdo do botão mudava entre apertar e soltar). Teclado (Enter/Espaço) continua pelo click com detail 0.
+    const onTap = (btn, fn) => {
+      let downAt = 0;
+      btn.addEventListener('pointerdown', (e) => { if (e.button === 0) downAt = Date.now(); });
+      btn.addEventListener('pointerup', (e) => { if (e.button === 0 && downAt && Date.now() - downAt < 1500) { downAt = 0; btn.__tapAt = Date.now(); fn(e); } });
+      btn.addEventListener('pointerleave', () => { downAt = 0; });
+      btn.addEventListener('click', (e) => { if (Date.now() - (btn.__tapAt || 0) < 700) return; if (e.detail === 0 || !btn.__tapAt) fn(e); });
+    };
+    onTap($('.pp'), () => {
+      armDiag(); const before = cur; const ok = fresh(); diag('click pp', { switched: before !== cur, ok });
+      if (!ok) return; cur.paused ? resume(cur) : hold(cur); sync();
+      setTimeout(() => diag('pp +300ms'), 300); setTimeout(() => diag('pp +1500ms'), 1500);
+    });
+    onTap($('.bk'), () => { if (fresh()) { cur.currentTime = Math.max(0, cur.currentTime - 10); sync(); } });
+    onTap($('.fw'), () => { if (!fresh()) return; const d = cur.duration; cur.currentTime = isFinite(d) && d > 0 ? Math.min(d - 0.1, cur.currentTime + 10) : cur.currentTime + 10; sync(); });
+    onTap($('.mu'), () => {
+      armDiag(); const before = cur; const ok = fresh(); diag('click mu', { switched: before !== cur, ok });
+      if (!ok) return; setMuted(cur, !cur.muted); sync();
+      setTimeout(() => diag('mu +300ms'), 300); setTimeout(() => diag('mu +1500ms'), 1500);
+    });
+    // qualquer pressionar dentro da barra: qual botão recebeu
+    bar.addEventListener('pointerdown', (e) => { const b = e.target && e.target.closest && e.target.closest('button, .seek, .vt'); diag('down bar', { on: b ? String(b.className).slice(0, 20) : String((e.target && e.target.className) || '?').slice(0, 20) }); }, true);
+    onTap($('.spd'), (e) => { e.stopPropagation(); toggleSpeedMenu(); });
+    onTap($('.dl'), download);
     // linha do tempo
     const seek = $('.seek');
     const seekAt = (x) => { const r = seek.getBoundingClientRect(); return Math.max(0, Math.min(1, (x - r.left) / r.width)); };
@@ -115,7 +134,7 @@
       if (dragging === 'seek') { cur.currentTime = f * cur.duration; sync(); }
     });
     seek.addEventListener('pointerdown', (e) => {
-      if (!cur || !isFinite(cur.duration)) return;
+      if (!fresh() || !isFinite(cur.duration)) return;
       dragging = 'seek'; seek.classList.add('drag'); seek.setPointerCapture(e.pointerId);
       cur.currentTime = seekAt(e.clientX) * cur.duration; sync();
     });
@@ -125,7 +144,7 @@
     const vt = $('.vt');
     const volAt = (x) => { const r = vt.getBoundingClientRect(); return Math.max(0, Math.min(1, (x - r.left) / r.width)); };
     const setVolFrom = (x) => { if (!cur) return; const v = volAt(x); cur.volume = v; pref.vol = v; savePref(); setMuted(cur, v === 0); sync(); };
-    vt.addEventListener('pointerdown', (e) => { dragging = 'vol'; $('.volg').classList.add('drag'); vt.setPointerCapture(e.pointerId); setVolFrom(e.clientX); });
+    vt.addEventListener('pointerdown', (e) => { fresh(); dragging = 'vol'; $('.volg').classList.add('drag'); vt.setPointerCapture(e.pointerId); setVolFrom(e.clientX); });
     vt.addEventListener('pointermove', (e) => { if (dragging === 'vol') setVolFrom(e.clientX); });
     vt.addEventListener('pointerup', endDrag); vt.addEventListener('pointercancel', endDrag);
     addEventListener('pointerdown', (e) => { if (!$('.menu').hidden && !e.composedPath().includes(ui.host)) $('.menu').hidden = true; }, true);
@@ -142,13 +161,46 @@
   function guard(v) {
     if (v.__ssGuard) return;
     v.__ssGuard = true;
-    v.play = function () { if (v.__ssHold) { API() && API().log('info', { pt: 'player: play() do Instagram ignorado (pausado pelo usuário)', en: "player: Instagram's play() ignored (paused by the user)", es: 'player: play() de Instagram ignorado (pausado por el usuario)' }); return Promise.resolve(); } return NATIVE_PLAY.call(v); };
+    v.play = function () { if (Date.now() < diagUntil) diag('v.play()', { hold: !!v.__ssHold, by: stackTop() }); if (v.__ssHold) { API() && API().log('info', { pt: 'player: play() do Instagram ignorado (pausado pelo usuário)', en: "player: Instagram's play() ignored (paused by the user)", es: 'player: play() de Instagram ignorado (pausado por el usuario)' }); return Promise.resolve(); } return NATIVE_PLAY.call(v); };
     // reserva: se algo tocar mesmo assim, pausa de novo
     v.addEventListener('play', () => { if (v.__ssHold) v.pause(); });
     v.addEventListener('loadstart', () => { if (v.__ssHold && v.__ssHoldSrc && v.currentSrc && v.currentSrc !== v.__ssHoldSrc) v.__ssHold = false; });
   }
+  // ───────── diagnóstico (relato do André, 27/10: pause e alto-falante não funcionam no Reels dele) ─────────
+  // Grava no storage.local ('ss.diag.player') o que acontece quando ele clica: botão, estado do vídeo antes/depois e
+  // quem chamou play/pause/muted logo depois (pilha só com endereços de script). Nada da conta.
+  const DIAG = [];
+  let diagUntil = 0, diagT = 0;
+  const vinfo = (v) => { if (!v) return null; const r = v.getBoundingClientRect(); return { p: v.paused, m: v.muted, vol: Math.round(v.volume * 100) / 100, t: Math.round(v.currentTime * 10) / 10, top: Math.round(r.top), h: Math.round(r.height), con: v.isConnected, hold: !!v.__ssHold }; };
+  const pageKind = () => { const p = location.pathname; return p.startsWith('/reels') ? 'reels' : /\/reel\//.test(p) ? 'reel' : /\/p\//.test(p) ? 'post' : p === '/' ? 'feed' : 'other'; };
+  const stackTop = () => String(new Error().stack || '').split('\n').slice(3, 6).map((l) => l.trim().replace(/https:\/\/static\.cdninstagram\.com\/rsrc\.php\/[^ )]*\//, 'ig/').slice(0, 90)).join(' < ');
+  function diag(ev, extra) {
+    try {
+      DIAG.push(Object.assign({ t: Date.now(), ev, pg: pageKind(), ver: (K() && K().version()) || '', cur: vinfo(cur), dlg: !!document.querySelector('[role="dialog"]') }, extra || {}));
+      if (DIAG.length > 80) DIAG.splice(0, DIAG.length - 80);
+      clearTimeout(diagT); diagT = setTimeout(() => { try { K().lset('ss.diag.player', DIAG.slice()); } catch (_) {} }, 400);
+    } catch (_) {}
+  }
+  const armDiag = () => { diagUntil = Date.now() + 4000; };
+  {
+    const P = HTMLMediaElement.prototype, op = P.play, opa = P.pause, md = Object.getOwnPropertyDescriptor(P, 'muted');
+    P.play = function () { if (Date.now() < diagUntil && this === cur) diag('play()', { by: stackTop() }); return op.apply(this, arguments); };
+    P.pause = function () { if (Date.now() < diagUntil && this === cur) diag('pause()', { by: stackTop() }); return opa.apply(this, arguments); };
+    if (md && md.set) Object.defineProperty(P, 'muted', { configurable: true, enumerable: md.enumerable, get: md.get, set(val) { if (Date.now() < diagUntil && this === cur && !!val !== this.muted) diag('muted=' + !!val, { by: stackTop() }); return md.set.call(this, val); } });
+  }
+
   function hold(v) { guard(v); v.__ssHold = true; v.__ssHoldSrc = v.currentSrc; v.pause(); }
   function resume(v) { v.__ssHold = false; NATIVE_PLAY.call(v).catch(() => {}); }
+  // pressionar onde a barra está, mas que não chegou nela (algo por cima, ou a barra já tinha sumido)
+  addEventListener('pointerdown', (e) => {
+    if (!ui || (e.composedPath && e.composedPath().includes(ui.host))) return;
+    const r = ui.$('.bar2').getBoundingClientRect();
+    if (r.width && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top - 4 && e.clientY <= r.bottom + 4) {
+      armDiag();
+      const el = e.composedPath ? e.composedPath()[0] : e.target;
+      diag('down MISSED bar', { shown: ui.$('.bar2').classList.contains('show'), op: getComputedStyle(ui.$('.bar2')).opacity, tgt: (el && el.tagName) || '?', role: (el && el.getAttribute && (el.getAttribute('role') || el.getAttribute('aria-label'))) || '' });
+    }
+  }, true);
   // toque no próprio vídeo (fora da nossa barra) devolve o controle ao Instagram
   addEventListener('pointerdown', (e) => {
     const v = cur;
@@ -195,13 +247,17 @@
     m.style.top = Math.round(br.top - h - 10 < 8 ? br.bottom + 10 : br.top - h - 10) + 'px';
   }
 
+  function setIcon(btn, key) { if (btn.dataset.icon !== key) { btn.dataset.icon = key; btn.innerHTML = I[key]; } }
   function sync() {
     if (!ui || !cur) return;
     const $ = ui.$, v = cur, d = v.duration;
-    $('.pp').innerHTML = v.paused ? I.play : I.pause;
+    // Só troca o ícone quando o estado muda. Antes trocava a cada quadro: o <svg> que recebia o aperto do mouse era
+    // substituído antes de soltar e o Chrome descartava o clique (pause e alto-falante "não faziam nada"; medido no
+    // Reels do André em 27/10/2026 com o diagnóstico: o aperto chegava no botão, o clique nunca).
+    setIcon($('.pp'), v.paused ? 'play' : 'pause');
     $('.pp').title = v.paused ? t('play') : t('pause');
     $('.bk').title = t('back'); $('.fw').title = t('fwd');
-    $('.mu').innerHTML = v.muted || v.volume === 0 ? I.muted : I.vol;
+    setIcon($('.mu'), v.muted || v.volume === 0 ? 'muted' : 'vol');
     $('.mu').title = v.muted ? t('unmute') : t('mute');
     $('.dl').title = t('dl');
     $('.spd').textContent = rateLabel(v.playbackRate || 1);
@@ -235,13 +291,32 @@
     return v;
   }
 
-  function place() {
+  // O vídeo debaixo da barra agora. No Reels, ao passar para o próximo, o <video> muda e a barra pode continuar no mesmo
+  // lugar: sem isto, pausar/mutar iam para o vídeo anterior (fora da tela) e "não acontecia nada" (relato de 27/10/2026).
+  function underBar() {
+    if (!ui) return null;
+    const b = ui.$('.bar2').getBoundingClientRect();
+    if (!b.width) return null;
+    return videoAt(b.left + b.width / 2, Math.max(2, b.top - 24)) || videoAt(b.left + b.width / 2, b.top + b.height / 2);
+  }
+  function fresh() {
+    const v = underBar();
+    if (v && v !== cur) { cur = v; adopt(v); sync(); place(); }
+    return !!(cur && cur.isConnected);
+  }
+
+  function place(retry) {
     if (!ui || !cur) return;
     const bar = ui.$('.bar2');
     const r = cur.getBoundingClientRect();
     const vis = { l: Math.max(r.left, 0), r: Math.min(r.right, innerWidth), t: Math.max(r.top, 0), b: Math.min(r.bottom, innerHeight) };
     const w = Math.min(560, vis.r - vis.l - 20);
-    if (!cur.isConnected || w < 160 || vis.b - vis.t < 120) return hide(true);
+    if (!cur.isConnected || w < 160 || vis.b - vis.t < 120) {
+      // o vídeo saiu da tela (passou para o próximo reel): se outro vídeo está debaixo da barra, a barra passa para ele
+      const v = !retry && underBar();
+      if (v && v !== cur) { cur = v; adopt(v); sync(); return place(true); }
+      return hide(true);
+    }
     bar.style.width = Math.round(w) + 'px';
     bar.style.left = Math.round(vis.l + (vis.r - vis.l - w) / 2) + 'px';
     bar.style.top = Math.round(vis.b - bar.offsetHeight - 10) + 'px';
@@ -255,11 +330,20 @@
     sync(); place();
     loop();
   }
+  // o mouse está em cima da barra (ou do menu de velocidade)? Pela posição, não por evento: com o mouse parado em cima,
+  // a barra sumia em ~2 s e o clique seguinte atravessava para o vídeo do Instagram (medido no feed em 27/10/2026)
+  function pointerOnBar() {
+    if (!ui || !ui.$('.bar2').classList.contains('show')) return false;
+    const inR = (el) => { if (!el || el.hidden) return false; const r = el.getBoundingClientRect(); return px >= r.left - 6 && px <= r.right + 6 && py >= r.top - 6 && py <= r.bottom + 6; };
+    return inR(ui.$('.bar2')) || inR(ui.$('.menu'));
+  }
   function hide(now) {
     if (!ui) return;
-    if (!now && (overBar || dragging || !ui.$('.menu').hidden)) return;
+    if (Date.now() < diagUntil && ui.$('.bar2').classList.contains('show')) diag('hide', { now: !!now });
+    if (!now && (overBar || dragging || !ui.$('.menu').hidden || pointerOnBar())) { if (!now) poke(); return; }
     ui.$('.bar2').classList.remove('show');
     ui.$('.menu').hidden = true;
+    overBar = false;
   }
   function poke() { clearTimeout(hideT); hideT = setTimeout(() => hide(false), 2200); }
 
@@ -267,22 +351,27 @@
   function loop() {
     if (looping) return;
     looping = true;
-    const step = () => {
+    let chk = 0;
+    const step = (ts) => {
       if (!ui || !ui.$('.bar2').classList.contains('show')) { looping = false; return; }
+      if (!dragging && ts - chk > 250) { chk = ts; const v = underBar(); if (v && v !== cur) { cur = v; adopt(v); } }
       sync(); place();
       requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
   }
 
-  let raf = 0, px = 0, py = 0;
+  let raf = 0, px = 0, py = 0, onBarNow = false;
   addEventListener('pointermove', (e) => {
     px = e.clientX; py = e.clientY; lastMove = Date.now();
+    // composedPath só vale durante o evento: decide aqui se o mouse está na barra
+    onBarNow = !!(ui && e.composedPath && e.composedPath().includes(ui.host));
     if (raf) return;
     raf = requestAnimationFrame(() => {
       raf = 0;
       if (!enabled || onStories() || !API() || !K()) return hide(true);
-      if (ui && e.composedPath && overBar) { poke(); return; }
+      overBar = !!(onBarNow || pointerOnBar());
+      if (overBar) { poke(); return; }
       const v = videoAt(px, py);
       if (v) { show(v); poke(); }
       else if (ui && ui.$('.bar2').classList.contains('show') && !overBar && !dragging) {
@@ -351,6 +440,7 @@
   };
   watch();
   const __box = (el) => { if (!el || el.hidden) return null; const r = el.getBoundingClientRect(); return r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } : null; };
+  window.__salvaStoriesPlayerDiag = () => DIAG.slice();
   window.__salvaStoriesPlayerDebug = () => ({ shown: !!(ui && ui.$('.bar2').classList.contains('show')),
-    at: ui ? { pp: __box(ui.$('.pp')), back: __box(ui.$('.bk')), fwd: __box(ui.$('.fw')), speed: __box(ui.$('.spd')), mute: __box(ui.$('.mu')), dl: __box(ui.$('.dl')), seek: __box(ui.$('.seek')), rates: ui.$$('.menu button').map((b) => ({ r: b.dataset.r, ...(__box(b) || {}) })) } : null, enabled, cur: cur ? { src: (cur.currentSrc || '').slice(0, 30), hold: !!cur.__ssHold, paused: cur.paused, rate: cur.playbackRate, muted: cur.muted, vol: cur.volume } : null, pref });
+    at: ui ? { pp: __box(ui.$('.pp')), back: __box(ui.$('.bk')), fwd: __box(ui.$('.fw')), speed: __box(ui.$('.spd')), mute: __box(ui.$('.mu')), dl: __box(ui.$('.dl')), seek: __box(ui.$('.seek')), rates: ui.$$('.menu button').map((b) => ({ r: b.dataset.r, ...(__box(b) || {}) })) } : null, enabled, overBar, curVisible: cur ? (() => { const r = cur.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; })() : null, cur: cur ? { src: (cur.currentSrc || '').slice(0, 30), hold: !!cur.__ssHold, paused: cur.paused, rate: cur.playbackRate, muted: cur.muted, vol: cur.volume } : null, pref });
 })();

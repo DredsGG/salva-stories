@@ -14,11 +14,13 @@ const page = `<!doctype html><html class="__fb-dark-mode"><head><meta charset="u
 <nav style="position:fixed;left:0;top:0;bottom:0;width:72px;border-right:1px solid #262626"></nav><main style="margin-left:420px;padding-top:40px"></main></body></html>`;
 
 const ctx = await chromium.launchPersistentContext(path.join(DIR, 'pob-' + Date.now()), {
-  executablePath: process.env.CHROME_PATH || undefined, headless: true, viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1.5,
+  executablePath: process.env.CHROME_PATH || undefined, headless: true, channel: 'chromium', viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1.5,
   args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`, '--headless=new'],
 });
 await ctx.route('https://www.instagram.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: page }));
-await ctx.route('https://api.github.com/**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tag_name: 'v0.0.1', body: '', assets: [] }) }));
+// o service worker confere sozinho ao abrir (regra 14): a rota responde o Release "atual" do teste
+let REL = { tag_name: 'v0.0.1', body: '', assets: [] };
+await ctx.route('https://api.github.com/**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(REL) }));
 await ctx.route('https://github.com/**', (r) => r.fulfill({ status: 200, contentType: 'application/zip', body: Buffer.from('PK\x05\x06' + '\0'.repeat(18), 'binary') }));
 let [sw] = ctx.serviceWorkers(); if (!sw) sw = await ctx.waitForEvent('serviceworker');
 await wait(1200);
@@ -61,7 +63,8 @@ await p.reload(); await wait(2800);
 out.newsOnlyOnce = (await dbg()).open === null;
 out.storeEnd = await sw.evaluate(() => chrome.storage.local.get('ss.onboard').then((r) => r['ss.onboard']));
 // 6) Release mais novo simulado: o aviso aparece sozinho na página, sem abrir o menu
-const setUpd = (o) => sw.evaluate((o) => chrome.storage.local.set({ 'ss.update': Object.assign({ procuradoEm: Date.now(), disponivel: true, dispensada: null, notas: '### Install\n**Chrome, Edge:** download the zip.\n\n- Faster saves.\n- Fixed the player.', zip: 'https://github.com/DredsGG/salva-stories/releases/download/v9.9.9/x.zip', pagina: 'https://github.com/DredsGG/salva-stories/releases/tag/v9.9.9' }, o) }), o);
+const NOTAS = '### Install\n**Chrome, Edge:** download the zip.\n\n- Faster saves.\n- Fixed the player.';
+const setUpd = (o) => { REL = { tag_name: 'v' + o.ultima, name: 'v' + o.ultima, body: NOTAS, assets: [{ name: 'x.zip', browser_download_url: 'https://github.com/DredsGG/salva-stories/releases/download/v9.9.9/x.zip' }], html_url: 'https://github.com/DredsGG/salva-stories/releases/tag/v9.9.9' }; return sw.evaluate((o) => chrome.storage.local.set({ 'ss.update': Object.assign({ procuradoEm: Date.now(), disponivel: true, dispensada: null, notas: '### Install\n**Chrome, Edge:** download the zip.\n\n- Faster saves.\n- Fixed the player.', zip: 'https://github.com/DredsGG/salva-stories/releases/download/v9.9.9/x.zip', pagina: 'https://github.com/DredsGG/salva-stories/releases/tag/v9.9.9' }, o) }), o); };
 await setUpd({ ultima: '9.9.9' });
 await p.reload(); await wait(2800);
 d = await dbg(); out.updShown = { open: d.open, title: d.title, items: d.items, menuOpen: (await p.evaluate(() => window.__salvaStoriesMenuDebug())).open };
@@ -77,7 +80,7 @@ await p.screenshot({ path: path.join(SHOT, `update-applied-${LANG}.png`) });
 await p.mouse.click(d.at.close.x, d.at.close.y); await wait(400);
 out.dismissedStored = await sw.evaluate(() => chrome.storage.local.get('ss.update').then((r) => r['ss.update'].dispensada));
 await p.reload(); await wait(2800);
-out.updHiddenAfterX = (await dbg()).open === null;
+out.updBackNextOpenAfterX = (await dbg()).open === 'update'; // regra 14 revisada: o X só adia
 await setUpd({ ultima: '9.9.10', dispensada: '9.9.9' });
 await p.reload(); await wait(2800);
 out.updNewerShowsAgain = (await dbg()).title;
@@ -92,7 +95,7 @@ const ok = out.storeAfterInstall && out.storeAfterInstall.tutorial === 'pendente
   && out.afterReload === null && out.helpBtn && out.reopened.open === 'tutorial' && out.reopened.step === 0 && !out.reopened.menuOpen && out.closedByOk
   && out.update.open === 'news' && out.update.items >= 3 && out.newsClosedByX && out.newsOnlyOnce
   && out.updShown.open === 'update' && !out.updShown.menuOpen && out.updShown.items && out.updShown.items.length === 2 && out.updEscCloses && out.updBackAfterReload
-  && out.updApply.note && /github\.com/.test(out.zipDownloaded || '') && out.dismissedStored === '9.9.9' && out.updHiddenAfterX && /9\.9\.10/.test(out.updNewerShowsAgain || '')
+  && out.updApply.note && /github\.com/.test(out.zipDownloaded || '') && out.dismissedStored === '9.9.9' && out.updBackNextOpenAfterX && /9\.9\.10/.test(out.updNewerShowsAgain || '')
   && out.tutorialFirst === 'tutorial' && out.updAfterTutorial === 'update';
 console.log(ok ? 'TUDO PASSOU' : 'FALHOU');
 await ctx.close();

@@ -3,7 +3,8 @@
 //   Reabre pelo "?" do menu (Como usar).
 // - Depois de cada atualização: "Novidades da vX.Y.Z", uma vez por versão, com os textos de src/novidades/<idioma>.js.
 // - O "já viu" fica no storage.local da extensão (chave ss.onboard, gravada pelo bridge).
-// - Os quadros ficam num canto, não cobrem a página nem param nada que esteja rodando; fecham no X ou no Esc.
+// - Regra 14 (revisada 27/10 20h): os quadros aparecem sozinhos no meio da tela, compactos. Fecham no X ou no Esc.
+//   Versão nova: o X só adia (volta em 1 h ou na próxima abertura). Versão URGENTE: sem X, e a extensão pausa até atualizar.
 (() => {
   'use strict';
   const KEY = Symbol.for('salvaStories.onboard');
@@ -18,10 +19,11 @@
       tutTitle: 'Como usar o Salva Stories', step: (a, b) => `${a} de ${b}`, skip: 'Pular', next: 'Próximo', back: 'Voltar', ok: 'Entendi', close: 'Fechar',
       newsTitle: (v) => `Novidades da v${v}`,
       updTitle: (v) => `Nova versão v${v}`, updGo: 'Atualizar', updHow: 'Como atualizar', updLater: 'Depois',
+      updUrgTitle: (v) => `Atualização urgente v${v}`, updUrgNote: 'Corrige um problema grave. As funções da extensão ficam pausadas até você atualizar.', updSnooze: 'Lembrar daqui a 1 hora',
       updZip: 'O zip novo foi para Downloads. Extraia por cima da pasta da extensão: ela se recarrega sozinha em até 1 minuto.',
       updXpi: 'O Firefox vai perguntar se instala a versão nova: confirme. Ele também se atualiza sozinho.',
       steps: [
-        ['Stories', 'Abra um story: os botões redondos ao lado salvam o atual ou todos da pessoa. Atalhos <kbd>D</kbd> e <kbd>Shift</kbd>+<kbd>D</kbd>. Foto no tamanho original, vídeo com som.'],
+        ['Stories e posts', 'Abra um story ou um post: os botões redondos ao lado salvam o atual ou todos (da pessoa ou do carrossel). Atalhos <kbd>D</kbd> e <kbd>Shift</kbd>+<kbd>D</kbd>. Foto no tamanho original, vídeo com som.'],
         ['Menu', 'O ícone com a seta na barra lateral do Instagram (ou <kbd>Alt</kbd>+<kbd>S</kbd>) abre os ajustes: pasta, modo fantasma, idioma e tema.'],
         ['Perfis e vídeos', 'Num perfil, <b>Baixar perfil</b> salva os posts em pastas. Nos vídeos e reels, passe o mouse para ver o player com velocidade e download.'],
         ['Direct e seguidores', 'No Direct, o botão redondo seleciona várias conversas. No menu, em Ferramentas, <b>Seguidores e seguindo</b> mostra quem não te segue de volta.'],
@@ -32,10 +34,11 @@
       tutTitle: 'How to use Salva Stories', step: (a, b) => `${a} of ${b}`, skip: 'Skip', next: 'Next', back: 'Back', ok: 'Got it', close: 'Close',
       newsTitle: (v) => `What's new in v${v}`,
       updTitle: (v) => `New version v${v}`, updGo: 'Update', updHow: 'How to update', updLater: 'Later',
+      updUrgTitle: (v) => `Urgent update v${v}`, updUrgNote: "Fixes a serious problem. The extension's features are paused until you update.", updSnooze: 'Remind me in 1 hour',
       updZip: 'The new zip went to Downloads. Extract it over the extension folder: it reloads itself within a minute.',
       updXpi: 'Firefox will ask whether to install the new version: confirm. It also updates itself.',
       steps: [
-        ['Stories', 'Open a story: the round buttons next to it save the current one or all of that person\'s. Shortcuts <kbd>D</kbd> and <kbd>Shift</kbd>+<kbd>D</kbd>. Photos at original size, videos with sound.'],
+        ['Stories and posts', 'Open a story or a post: the round buttons next to it save the current one or all of them (the person\'s stories or the whole carousel). Shortcuts <kbd>D</kbd> and <kbd>Shift</kbd>+<kbd>D</kbd>. Photos at original size, videos with sound.'],
         ['Menu', 'The arrow icon in Instagram\'s sidebar (or <kbd>Alt</kbd>+<kbd>S</kbd>) opens the settings: folder, ghost mode, language and theme.'],
         ['Profiles and videos', 'On a profile, <b>Download profile</b> saves the posts into folders. On videos and reels, hover to see the player with speed and download.'],
         ['Direct and followers', 'In Direct, the round button selects several chats. In the menu, under Tools, <b>Followers &amp; following</b> shows who doesn\'t follow you back.'],
@@ -46,10 +49,11 @@
       tutTitle: 'Cómo usar Salva Stories', step: (a, b) => `${a} de ${b}`, skip: 'Saltar', next: 'Siguiente', back: 'Atrás', ok: 'Entendido', close: 'Cerrar',
       newsTitle: (v) => `Novedades de la v${v}`,
       updTitle: (v) => `Nueva versión v${v}`, updGo: 'Actualizar', updHow: 'Cómo actualizar', updLater: 'Después',
+      updUrgTitle: (v) => `Actualización urgente v${v}`, updUrgNote: 'Corrige un problema grave. Las funciones de la extensión quedan en pausa hasta que actualices.', updSnooze: 'Recordar en 1 hora',
       updZip: 'El zip nuevo fue a Descargas. Extráelo sobre la carpeta de la extensión: se recarga sola en hasta 1 minuto.',
       updXpi: 'Firefox preguntará si instala la versión nueva: confirma. También se actualiza solo.',
       steps: [
-        ['Historias', 'Abre una historia: los botones redondos al lado guardan la actual o todas de la persona. Atajos <kbd>D</kbd> y <kbd>Shift</kbd>+<kbd>D</kbd>. Fotos en tamaño original, videos con sonido.'],
+        ['Historias y publicaciones', 'Abre una historia o una publicación: los botones redondos al lado guardan la actual o todas (de la persona o del carrusel). Atajos <kbd>D</kbd> y <kbd>Shift</kbd>+<kbd>D</kbd>. Fotos en tamaño original, videos con sonido.'],
         ['Menú', 'El ícono con la flecha en la barra lateral de Instagram (o <kbd>Alt</kbd>+<kbd>S</kbd>) abre los ajustes: carpeta, modo fantasma, idioma y tema.'],
         ['Perfiles y videos', 'En un perfil, <b>Descargar perfil</b> guarda las publicaciones en carpetas. En videos y reels, pasa el mouse para ver el reproductor con velocidad y descarga.'],
         ['Direct y seguidores', 'En Direct, el botón redondo selecciona varios chats. En el menú, en Herramientas, <b>Seguidores y seguidos</b> muestra quién no te sigue.'],
@@ -68,10 +72,14 @@
   const GIFT = '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/>';
 
   const CSS = `
-  .card { position: fixed; right: 24px; bottom: 92px; width: 360px; max-width: calc(100vw - 32px); background: var(--bg); color: var(--fg);
-    border: 1px solid var(--sep); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; pointer-events: auto;
+  .card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 380px; max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px); overflow: auto; background: var(--bg); color: var(--fg);
+    border: 1px solid var(--sep); border-radius: 18px; box-shadow: var(--shadow); pointer-events: auto;
     animation: ssIn .22s ease-out; }
-  @keyframes ssIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .card.urg { border-color: rgba(217,58,58,.55); box-shadow: var(--shadow), 0 0 0 3px rgba(217,58,58,.18); }
+  .card.urg .app { background: linear-gradient(135deg,#d93a3a,#fa7e1e); }
+  .note.urg { background: rgba(217,58,58,.12); color: var(--fg); font-weight: 600; }
+  @keyframes ssIn { from { opacity: 0; transform: translate(-50%, calc(-50% + 10px)); } to { opacity: 1; transform: translate(-50%, -50%); } }
   .top { display: flex; align-items: center; gap: 12px; padding: 14px 14px 10px 16px; }
   .app { flex: none; width: 32px; height: 32px; border-radius: 9px; background: var(--grad); display: grid; place-items: center; color: #fff;
     box-shadow: 0 3px 10px -2px rgba(214,41,118,.55); }
@@ -172,7 +180,11 @@
     c.hidden = false;
   }
   // Esc fecha (só quando um quadro está aberto; não mexe em mais nada da página)
-  addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) { if (open === 'update') updShownThisPage = 'closed'; close(); } }, true);
+  addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !open) return;
+    if (open === 'update') { if (isUrgent()) return; snooze(); }
+    close();
+  }, true);
 
   const versaoQuandoChegar = async () => {
     for (let i = 0; i < 60; i++) { const v = K() && K().version(); if (v) return v; await new Promise((r) => setTimeout(r, 100)); }
@@ -188,9 +200,18 @@
     return out.length ? out.slice(0, 8) : null;
   };
 
-  // ───────── aviso de versão nova (regra 14): aparece sozinho na página, a cada abertura, até atualizar ─────────
-  // O X esconde até sair uma versão mais nova (mesmo "Depois" do menu); Esc fecha só nesta página.
-  let upd = {}, updBusy = false, updDone = null, updShownThisPage = false, ready = false;
+  // ───────── aviso de versão nova (regra 14, revisada 27/10 20h) ─────────
+  // Aparece sozinho no meio da tela, na hora em que o service worker acha a versão (sem recarregar a página).
+  // O X e o Esc só adiam: volta depois de 1 h (nesta página) ou na próxima abertura do Instagram, até atualizar.
+  // URGENTE no título do Release: sem X, Esc não fecha, e a extensão fica pausada (kit.js, page.js, sw.js).
+  const SNOOZE_MS = 60 * 60000;
+  let upd = {}, updBusy = false, updDone = null, snoozeUntil = 0, snoozedVer = null, snoozeT = 0, ready = false;
+  const isUrgent = () => !!(upd.urgente && upd.disponivel);
+  function snooze() {
+    snoozeUntil = Date.now() + SNOOZE_MS; snoozedVer = upd.ultima;
+    updCmd('dismiss', upd.ultima);
+    clearTimeout(snoozeT); snoozeT = setTimeout(maybeUpdate, SNOOZE_MS + 500);
+  }
   const updCmd = (cmd, data) => window.postMessage({ __salvaStories: 'page', kind: 'updCmd', cmd, data }, location.origin);
   const noteItems = (md) => String(md || '').replace(/^\s*#+\s*Install[\s\S]*?(\n\s*\n)(?=\S)/i, '').split(/\r?\n/)
     .map((l) => l.replace(/^\s*(#+|[-*+]|\d+\.)\s*/, '').replace(/[*_`]/g, '').trim())
@@ -198,16 +219,18 @@
     .flatMap((l) => (l.length > 170 ? l.split(/(?<=[.!?])\s+/) : [l])).filter(Boolean).slice(0, 4);
   function updateCard() {
     ensureUi(); open = 'update';
-    const L = t(), c = ui.$('.card'), items = noteItems(upd.notas);
-    c.setAttribute('aria-label', L.updTitle(upd.ultima));
-    c.innerHTML = `<div class="top"><span class="app">${svg(GIFT)}</span><span class="ttl"><b>${esc(L.updTitle(upd.ultima))}</b><small>v${esc(K().version())} → v${esc(upd.ultima)}</small></span>
-        <button class="x" type="button" title="${esc(L.close)}" aria-label="${esc(L.close)}">${K().ICON.x}</button></div>
-      <div class="bd">${items.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    const L = t(), c = ui.$('.card'), items = noteItems(upd.notas), urg = isUrgent();
+    const title = urg ? L.updUrgTitle(upd.ultima) : L.updTitle(upd.ultima);
+    c.classList.toggle('urg', urg);
+    c.setAttribute('aria-label', title);
+    c.innerHTML = `<div class="top"><span class="app">${svg(GIFT)}</span><span class="ttl"><b>${esc(title)}</b><small>v${esc(K().version())} → v${esc(upd.ultima)}</small></span>
+        ${urg ? '' : `<button class="x" type="button" title="${esc(L.updSnooze)}" aria-label="${esc(L.updSnooze)}">${K().ICON.x}</button>`}</div>
+      <div class="bd">${urg ? `<div class="note urg">${esc(L.updUrgNote)}</div>` : ''}${items.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
         ${updDone ? `<div class="note">${esc(updDone === 'xpi' || IS_FF ? L.updXpi : L.updZip)}</div>` : ''}</div>
       ${langsHtml()}
       <div class="ft"><span class="dots"></span><button class="lk how" type="button">${esc(L.updHow)}</button>
         <button class="btn pri go" type="button"${updBusy ? ' disabled' : ''}>${esc(updBusy ? '…' : L.updGo)}</button></div>`;
-    c.querySelector('.x').addEventListener('click', () => { updCmd('dismiss', upd.ultima); upd.dispensada = upd.ultima; close(); });
+    if (!urg) c.querySelector('.x').addEventListener('click', () => { snooze(); close(); });
     c.querySelector('.how').addEventListener('click', () => updCmd('guide', '#atualizar'));
     c.querySelector('.go').addEventListener('click', () => { updBusy = true; updateCard(); updCmd('apply'); });
     wireLangs(c, updateCard);
@@ -215,17 +238,18 @@
   }
   const IS_FF = /Firefox\//.test(navigator.userAgent);
   function maybeUpdate() {
-    if (!ready || open || !K()) return;
+    if (!ready || !K()) return;
     const v = K().version();
-    if (!upd.disponivel || !upd.ultima || upd.dispensada === upd.ultima || !v || cmpVer(upd.ultima, v) <= 0) return;
-    if (updShownThisPage === 'closed') return;
-    updShownThisPage = true;
+    if (!upd.disponivel || !upd.ultima || !v || cmpVer(upd.ultima, v) <= 0) return;
+    // urgente passa na frente de tutorial/novidades; o normal espera eles fecharem e respeita o adiamento
+    if (isUrgent()) { if (open !== 'update') updateCard(); return; }
+    if (open || (Date.now() < snoozeUntil && snoozedVer === upd.ultima)) return; // versão mais nova que a adiada aparece na hora
     updateCard();
   }
   window.addEventListener('message', (ev) => {
     const d = ev.data;
     if (ev.source !== window || !d || d.__salvaStories !== 'ext') return;
-    if (d.kind === 'upd') { upd = d.state || {}; if (open === 'update') { if (!upd.disponivel || upd.dispensada === upd.ultima) close(); else updateCard(); } else maybeUpdate(); }
+    if (d.kind === 'upd') { upd = d.state || {}; if (open === 'update') { if (!upd.disponivel) close(); else updateCard(); } else maybeUpdate(); }
     if (d.kind === 'updRes' && d.cmd === 'apply') { updBusy = false; updDone = (d.res && d.res.modo) || 'download'; if (open === 'update') updateCard(); }
   });
 
@@ -260,7 +284,9 @@
   window.__salvaStoriesOnboardDebug = () => ({
     open, step, newsVer, lang: lang(),
     title: ui && !ui.$('.card').hidden ? (ui.$('.ttl b') || {}).textContent : null,
-    items: ui && (open === 'news' || open === 'update') ? ui.$$('li').map((l) => l.textContent) : null, upd: { disponivel: upd.disponivel, ultima: upd.ultima, dispensada: upd.dispensada }, updDone,
+    items: ui && (open === 'news' || open === 'update') ? ui.$$('li').map((l) => l.textContent) : null, upd: { disponivel: upd.disponivel, ultima: upd.ultima, urgente: !!upd.urgente }, updDone,
+    hasX: !!(ui && open && ui.$('.x')), snoozeUntil, paused: document.documentElement.dataset.ssPaused === '1',
+    rect: ui && open ? (() => { const r = ui.$('.card').getBoundingClientRect(); return { cx: Math.round(r.left + r.width / 2), cy: Math.round(r.top + r.height / 2), vw: innerWidth, vh: innerHeight }; })() : null,
     note: ui && open === 'update' && ui.$('.note') ? ui.$('.note').textContent : null,
     at: ui && open ? { close: box(ui.$('.x')), next: box(ui.$('.go')), skip: box(ui.$('.skip')), back: box(ui.$('.back')), how: box(ui.$('.how')) } : null,
   });

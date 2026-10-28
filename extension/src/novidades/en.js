@@ -1,5 +1,22 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.8.6': [
+    "A new version shows up by itself in the middle of the screen as soon as it is out, without reloading the page. The X only snoozes it for 1 hour.",
+    "Urgent update: the notice can't be closed and the extension pauses until you update.",
+    "What's new and the tutorial also show up in the middle of the screen.",
+    "Player: pause and the speaker respond to every click, including on Reels after moving to the next reel.",
+    "The player bar no longer hides while the mouse rests on it, and the speaker stays under the mouse when the volume slider opens.",
+  ],
+  '1.8.0': [
+    "Open post (from the feed or a profile): the same buttons as in stories save the photo or video on screen, or the whole carousel. Shortcuts D and Shift+D.",
+    "Files go to the same folder as \"Download profile\" (perfil/fotos and perfil/videos). You can turn it off in the menu, under Tools.",
+  ],
+  '1.7.4': [
+    "The story buttons show up together with the story when moving to the next person, without waiting for it to fully settle.",
+  ],
+  '1.7.2': [
+    "The buttons next to the story no longer jump when you move from one person to the next: they fade out for a moment and come back in the right place.",
+  ],
   '1.7.1': [
     "When a new version is out, the notice shows up by itself on the Instagram page, with what changed and an Update button.",
     "The first time, the language comes from your browser (Portuguese, English or Spanish).",

@@ -1,6 +1,23 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.8.6': [
+    "Versão nova aparece sozinha no meio da tela assim que sai, sem recarregar a página. O X só adia por 1 hora.",
+    "Atualização urgente: o aviso não fecha e a extensão pausa até você atualizar.",
+    "Novidades e tutorial também aparecem no meio da tela.",
+    "Player: pausar e o alto-falante respondem a todo clique, inclusive no Reels depois de passar de reel.",
+    "A barra do player não some com o mouse parado em cima, e o alto-falante não sai mais de baixo do mouse quando o volume abre.",
+  ],
+  '1.8.0': [
+    "Post aberto (do feed ou do perfil): os mesmos botões dos stories salvam a foto ou o vídeo da tela, ou o carrossel inteiro. Atalhos D e Shift+D.",
+    "Os arquivos vão para a mesma pasta do \"Baixar perfil\" (perfil/fotos e perfil/videos). Dá para desligar no menu, em Ferramentas.",
+  ],
+  '1.7.4': [
+    "Os botões do story aparecem junto com o story na troca de pessoa, sem esperar ele terminar de parar.",
+  ],
+  '1.7.2': [
+    "Os botões ao lado do story não pulam mais quando você passa de uma pessoa para outra: somem por um instante e voltam no lugar certo.",
+  ],
   '1.7.1': [
     "Quando sai versão nova, o aviso aparece sozinho na página do Instagram, com o que mudou e o botão Atualizar.",
     "Na primeira vez, o idioma vem do navegador (português, inglês ou espanhol).",

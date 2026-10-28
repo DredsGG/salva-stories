@@ -11,15 +11,15 @@ const IS_FF = !!(ext.runtime && ext.runtime.getBrowserInfo); // só o Firefox te
 const SYNC = ext.storage.sync || ext.storage.local;
 
 // muda a cada versão do service worker: a página confere e avisa se o Chrome ficou com o código antigo
-const SW_BUILD = 'ss-sw-1.7.1';
+const SW_BUILD = 'ss-sw-1.8.6';
 
 // idioma da primeira abertura: o da interface do navegador (pt, en ou es; qualquer outro → en). Regra 13.
 const UI_LANG = (() => { const l = String((ext.i18n && ext.i18n.getUILanguage && ext.i18n.getUILanguage()) || navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
 const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: UI_LANG, theme: 'auto', player: true, profileBtn: true, inboxTools: true };
 const ERR = {
-  pt: { video: 'trilha de vídeo inválida', audio: 'trilha de áudio inválida', host: 'endereço de mídia fora do Instagram', refused: 'download recusado', none: 'nada baixado' },
-  en: { video: 'invalid video track', audio: 'invalid audio track', host: 'media address outside Instagram', refused: 'download refused', none: 'nothing downloaded' },
-  es: { video: 'pista de video inválida', audio: 'pista de audio inválida', host: 'dirección de medios fuera de Instagram', refused: 'descarga rechazada', none: 'nada descargado' },
+  pt: { video: 'trilha de vídeo inválida', audio: 'trilha de áudio inválida', host: 'endereço de mídia fora do Instagram', refused: 'download recusado', none: 'nada baixado', urgent: 'atualização urgente pendente: atualize a extensão para voltar a baixar' },
+  en: { video: 'invalid video track', audio: 'invalid audio track', host: 'media address outside Instagram', refused: 'download refused', none: 'nothing downloaded', urgent: 'urgent update pending: update the extension to download again' },
+  es: { video: 'pista de video inválida', audio: 'pista de audio inválida', host: 'dirección de medios fuera de Instagram', refused: 'descarga rechazada', none: 'nada descargado', urgent: 'actualización urgente pendiente: actualiza la extensión para volver a descargar' },
 };
 let lang = UI_LANG;
 const tr = (k) => (ERR[lang] || ERR.pt)[k];
@@ -120,8 +120,8 @@ async function runJob(job, s) {
 ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg && msg.type === 'salva-stories:ping') { sendResponse({ build: SW_BUILD, version: ext.runtime.getManifest().version, firefox: IS_FF }); return; }
   if (msg && msg.type === 'salva-stories:update') {
-    const run = msg.cmd === 'check' ? procurar() : msg.cmd === 'apply' ? aplicar() : msg.cmd === 'guide' ? abrirGuia(msg.data) : msg.cmd === 'perm' ? conferirPermissao()
-      : msg.cmd === 'dismiss' ? salvarUpd({ dispensada: msg.data || null }) : msg.cmd === 'seen' ? salvarUpd({ acabouDeAtualizar: null }) : Promise.resolve(null);
+    const run = msg.cmd === 'check' ? procurar(msg.data === 'auto') : msg.cmd === 'apply' ? aplicar() : msg.cmd === 'guide' ? abrirGuia(msg.data) : msg.cmd === 'perm' ? conferirPermissao()
+      : msg.cmd === 'dismiss' ? salvarUpd({ dispensada: msg.data || null, adiadaEm: Date.now() }) : msg.cmd === 'seen' ? salvarUpd({ acabouDeAtualizar: null }) : Promise.resolve(null);
     run.then((r) => sendResponse(r || {}), (e) => sendResponse({ erro: String((e && e.message) || e) }));
     return true;
   }
@@ -130,6 +130,8 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
     const s = await SYNC.get(DEFAULTS);
     lang = s.lang || UI_LANG;
+    // regra 14 d: versão urgente pendente → a extensão fica pausada até atualizar
+    if (await urgentePendente()) { sendResponse({ ok: false, count: 0, error: tr('urgent') }); return; }
     const jobs = Array.isArray(msg.jobs) ? msg.jobs.slice(0, 60) : []; // o perfil manda em lotes
     let count = 0;
     const errors = [];
@@ -197,7 +199,9 @@ if (ext.permissions && ext.permissions.onAdded) ext.permissions.onAdded.addListe
 // - Depois de recarregar, as abas do Instagram recarregam para pegar a versão nova.
 const REPO = 'DredsGG/salva-stories';
 const UPD_KEY = 'ss.update';
-const PROCURA_MIN = 360;
+// regra 14 (revisada 27/10 20h): confere a cada 30 min, ao abrir o Instagram e ao voltar para a aba (no máximo 1 vez a cada 10 min)
+const PROCURA_MIN = 30;
+const PROCURA_TRAVA_MS = 10 * 60000;
 const DISCO_MIN = 1;
 const IG_TABS = ['https://www.instagram.com/*'];
 
@@ -219,21 +223,31 @@ async function salvarUpd(patch) {
   return novo;
 }
 
-async function procurar() {
+// auto = aberto/volta para a aba/alarme: respeita a trava de 10 min. Sem auto (botão do rodapé): confere na hora.
+async function procurar(auto) {
   const cur = versaoAtual();
+  const old = (await ext.storage.local.get(UPD_KEY))[UPD_KEY] || {};
+  if (auto && old.procuradoEm && Date.now() - old.procuradoEm < PROCURA_TRAVA_MS && old.atual === cur) return old;
   const base = { procuradoEm: Date.now(), atual: cur, instalacao: await tipoInstalacao() };
   try {
-    const r = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
+    // ETag: se nada mudou, o GitHub responde 304 (mais leve no limite de 60 pedidos/h sem login)
+    const h = { Accept: 'application/vnd.github+json' };
+    if (old.etag && old.ultima) h['If-None-Match'] = old.etag;
+    const r = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: h, cache: 'no-store' });
+    if (r.status === 304) return salvarUpd(Object.assign(base, { disponivel: !!old.ultima && cmpVer(old.ultima, cur) > 0, erro: null }));
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
     const ultima = String(j.tag_name || '').replace(/^v/i, '');
     const zip = ((j.assets || []).find((a) => /\.zip$/i.test(a.name)) || {}).browser_download_url || null;
     const xpi = ((j.assets || []).find((a) => /\.xpi$/i.test(a.name)) || {}).browser_download_url || null;
-    return salvarUpd(Object.assign(base, { ultima, notas: String(j.body || '').slice(0, 4000), pagina: j.html_url || null, zip, xpi, firefox: IS_FF, disponivel: !!ultima && cmpVer(ultima, cur) > 0, erro: null }));
+    // versão urgente: o André marca o Release com "URGENTE" no título (regra 14 d)
+    const titulo = String(j.name || '').slice(0, 200);
+    return salvarUpd(Object.assign(base, { ultima, titulo, urgente: /urgente|urgent/i.test(titulo), etag: r.headers.get('etag') || null, notas: String(j.body || '').slice(0, 4000), pagina: j.html_url || null, zip, xpi, firefox: IS_FF, disponivel: !!ultima && cmpVer(ultima, cur) > 0, erro: null }));
   } catch (e) {
     return salvarUpd(Object.assign(base, { erro: String((e && e.message) || e) }));
   }
 }
+const urgentePendente = async () => { const st = (await ext.storage.local.get(UPD_KEY))[UPD_KEY] || {}; return !!(st.urgente && st.ultima && cmpVer(st.ultima, versaoAtual()) > 0); };
 
 async function aplicar() {
   const st = (await ext.storage.local.get(UPD_KEY))[UPD_KEY] || {};
@@ -309,7 +323,7 @@ const agendar = () => {
   ext.alarms.create('ss-disco', { delayInMinutes: DISCO_MIN, periodInMinutes: DISCO_MIN });
 };
 ext.alarms.onAlarm.addListener((a) => {
-  if (a.name === 'ss-procura') procurar();
+  if (a.name === 'ss-procura') procurar(true);
   if (a.name === 'ss-disco') vigiarDisco();
 });
 ext.runtime.onStartup.addListener(() => { agendar(); procurar(); conferirPermissao(); });

@@ -89,7 +89,18 @@
     };
   }
 
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  // Regra 14 d: com versão URGENTE pendente, a automação da extensão pausa até a pessoa atualizar. Os trabalhos longos
+  // (baixar perfil, Direct, seguidores, deixar de seguir) esperam aqui, no próprio sleep; voltam sozinhos ao atualizar.
+  let urgent = false;
+  window.addEventListener('message', (ev) => {
+    const d = ev.data;
+    if (ev.source !== window || !d || d.__salvaStories !== 'ext' || d.kind !== 'upd') return;
+    const st = d.state || {};
+    urgent = !!(st.urgente && st.disponivel);
+    document.documentElement.dataset.ssPaused = urgent ? '1' : '';
+  });
+  const rawSleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const sleep = async (ms) => { await rawSleep(ms); while (urgent) await rawSleep(1000); };
   const jitter = (a, b) => a + Math.random() * (b - a);
 
   // versão do manifest (chega pelo bridge na mensagem "settings")
@@ -118,7 +129,7 @@
 
   Object.defineProperty(window, KEY, {
     value: Object.freeze({
-      esc, igDark, mode, lang, tr, nf, makeHost, ICON, signature, sleep, jitter, busy,
+      esc, igDark, mode, lang, tr, nf, makeHost, ICON, signature, sleep, jitter, busy, urgent: () => urgent,
       version: () => version,
       lget: (key) => local('lget', key), lset: (key, value) => local('lset', key, value),
       myId: () => (document.cookie.match(/(?:^|;\s*)ds_user_id=(\d+)/) || [])[1] || null,

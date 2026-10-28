@@ -9,7 +9,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
 ![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.7.1-d62976)
+![Version](https://img.shields.io/badge/version-1.8.6-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
@@ -29,6 +29,14 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 - **Videos with audio.** By default it saves the progressive MP4 (video + sound in one file). When the original is above 720p, it fetches the separate DASH video and audio tracks and **muxes them in the browser, with no re-encoding**. If that fails, it falls back to the 720p file.
 - **Ghost mode** (off by default): the "seen" request isn't sent, so viewing a story doesn't mark it as seen. A ghost badge shows when it's on, in stories and anywhere else on Instagram.
 
+**Posts**
+
+<img src="docs/salva-stories-post-buttons.png" width="540" alt="An open Instagram post (a three-photo carousel) with the Salva Stories buttons to the right of the post: save this photo, save the whole carousel, and the settings gear">
+
+- **The same round buttons on an open post** (from the feed or a profile, in the pop-up or on its own page): *save the photo or video on screen* and *save the whole carousel*, in order. Shortcuts: `D` and `Shift+D`. Single photos only get the first button.
+- They sit outside the post, to the right, and stay still while you swipe through the carousel. In a narrow window they move inside the photo's top corner.
+- Files land in the same place and with the same names as **Download profile** (`perfil/fotos` or `perfil/videos`, `YYYY-MM-DD_{code}_NN`), so downloading the profile later doesn't create duplicates. You can turn the buttons off in the menu (*Tools* → *Post buttons*).
+
 **Profiles**
 
 <img src="docs/salva-stories-profile-download.png" width="720" alt="Download profile button next to Follow and Message on an Instagram profile, with its card open: how many posts, photos and videos checkboxes, destination folder and a Download button">
@@ -42,6 +50,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 - Laid over Instagram's own `<video>` on posts and reels: play/pause, ±10 s, a seek bar, speed from 0.5× to 2×, volume and a download button.
 - A pause stays a pause: Instagram's feed tries to resume videos when you scroll, and the player holds them until you press play again (or tap the video yourself).
+- On Reels, the bar follows the reel on screen when you move to the next one, every click on pause and the speaker counts, and the bar stays put while the mouse rests on it.
 
 **Direct**
 
@@ -62,9 +71,10 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 - **Settings inside Instagram**, not in a popup: a story-ring icon in Instagram's left sidebar (or a gear in the story viewer, or `Alt+S`, or the extension icon) opens the menu.
 - **Tidy file names:** `Downloads/Instagram Stories/{user}/stories/{user}_{YYYY-MM-DD_HH-MM-SS}_{id}.jpg|mp4`, using the date it was posted. Folder and per-profile subfolder are configurable.
-- **Report a bug** and **Check for updates** in the menu footer. *Report a bug* opens a GitHub issue already filled with the version and a short diagnostic (no username, no content). *Check for updates* reads this repo's latest release (also when the browser opens and every 6 hours).
-- **Update notice on the page itself:** when a new version is out, a small *New version vX.Y.Z* card shows up by itself on Instagram (no need to open the menu), with what changed and an **Update** button that does the right thing for your browser (downloads the zip on Chromium, opens the signed `.xpi` on Firefox). It comes back on every visit until you update; ✕ hides it until an even newer version.
-- **First-run tutorial and what's new:** a short tutorial the first time (Skip / Got it; reopen it with **?** in the menu), and after each update a *What's new* card, once per version. Both sit in a corner, never block anything and close with ✕ or `Esc`.
+- **Report a bug** and **Check for updates** in the menu footer. *Report a bug* opens a GitHub issue already filled with the version and a short diagnostic (no username, no content). *Check for updates* reads this repo's latest release right away; the extension also checks by itself when you open Instagram, when you come back to the tab (at most every 10 minutes) and every 30 minutes.
+- **Update notice on the page itself:** as soon as a new version is out, a compact *New version vX.Y.Z* card shows up by itself in the middle of the Instagram page you're on, without reloading, with what changed and an **Update** button that does the right thing for your browser (downloads the zip on Chromium, opens the signed `.xpi` on Firefox). ✕ or `Esc` only snooze it: it comes back after an hour or the next time you open Instagram, until you update.
+- **Urgent updates:** when a release is marked *URGENTE* (a serious bug), the card can't be dismissed and the extension pauses until you update: downloads are refused with a notice, and long jobs (profile download, Direct, followers, unfollow) wait where they are and carry on by themselves after the update.
+- **First-run tutorial and what's new:** a short tutorial the first time (Skip / Got it; reopen it with **?** in the menu), and after each update a *What's new* card, once per version. Both also show up in the middle of the screen, never block anything and close with ✕ or `Esc`.
 - **Auto / light / dark** theme (auto follows Instagram).
 
 <img src="docs/salva-stories-update-notice.png" width="300" alt="New version card on the Instagram page with the version jump, what changed, PT EN ES switch, How to update and Update buttons">&nbsp;&nbsp;<img src="docs/salva-stories-tutorial.png" width="320" alt="First-run tutorial card, step 1 of 5: Stories, explaining the round buttons and the D and Shift+D shortcuts, with Skip and Next">&nbsp;&nbsp;<img src="docs/salva-stories-whats-new.png" width="320" alt="What's new in v1.7.0 card listing the new browsers, the tutorial, bulk unfollow and ignore, with a Got it button">
@@ -95,6 +105,7 @@ Download the files from the [latest release](https://github.com/DredsGG/salva-st
 | Where | What to do |
 | --- | --- |
 | Story | Click the top button or press `D` to save it; the second button or `Shift+D` saves every story from that profile. |
+| Post | Open it: the top button next to the post (or `D`) saves the photo or video on screen; the second one (or `Shift+D`) saves the whole carousel. |
 | Profile | Click **Download profile**, pick how many posts and the types, then **Download**. Keep the tab open until it finishes. |
 | Post or reel with video | Hover the video to show the player; the last button downloads it. |
 | Direct | Click the select button, check conversations (or **All**) and pick an action in the bottom bar. |
@@ -136,6 +147,7 @@ flowchart LR
 ```
 
 - **No extra traffic in the normal case.** `page.js` listens to the responses Instagram itself already downloads (the reels media GraphQL payload and inline JSON) and keeps the story items in memory. Only when an item isn't cached does it make a single `media/{id}/info` call.
+- **Finding the post on screen:** the post's data (every carousel item, in order) comes from the same responses Instagram already loads (the grid, the post pop-up or the inline JSON of `/p/{code}/`), indexed by its shortcode. The item on screen is the image inside the carousel window whose file name matches one of the item's candidates (video: React fiber; fallback: `img_index` in the URL).
 - **Finding the story on screen:** the biggest `<video>`/`<img>` in the center of the viewer, matched to its media id through React fiber. When the URL already has an id, that one wins, which covers the slide animation between stories.
 - **"Save all" uses only the reel the viewer already loaded.** It doesn't do batch API calls, since that's what triggers Instagram's automation checks.
 - **Minimal permissions:** `downloads`, `storage` and `alarms` (and `permissions.contains` to warn when Firefox site access was removed); host access to Instagram's CDN (`*.cdninstagram.com`, `*.fbcdn.net`, needed to fetch DASH tracks), to `www.instagram.com` (to reload its tabs after an update) and to `api.github.com` (to read the latest release). The service worker refuses any download URL that isn't HTTPS on the CDN hosts. No `cookies`, `tabs` or `webRequest`, and nothing about you is sent anywhere: the only outside request is that read-only release check.
@@ -157,11 +169,15 @@ End-to-end with the real extension loaded, against a simulated instagram.com and
 
 - `e2e.mjs`, stories: photo at the largest candidate with the right name, 1080p DASH video muxed with audio (checked with `ffprobe`), video without sound, `Shift+D` saving three, max-resolution off, ghost mode blocking only when on, and the settings menu.
 - `e2e-v15.mjs`, everything else, in light and dark: ghost badge outside stories, a 30-post profile with carousels saved as 34 files in the right folders, the player (pause that survives the page trying to resume it, ±10 s, 2×, sound, volume, download), Direct (all 40 chats selected, 2 marked unread, 2 deleted after one confirmation), two followers checks with unfollowers and new followers, bulk ignore and unfollow, and the update notice and bug report.
-- `e2e-onboard.mjs` (in PT, EN and ES): the tutorial on a fresh install, the **?** button, `Esc`, *What's new* once after a simulated update, and a newer simulated release: the notice shows up by itself on the page, comes back after a reload, **Update** downloads the zip, ✕ hides it until a newer version, and it waits for the tutorial to close.
+- `e2e-onboard.mjs` (in PT, EN and ES): the tutorial on a fresh install, the **?** button, `Esc`, *What's new* once after a simulated update, and a newer simulated release: the notice shows up by itself on the page, comes back after a reload, **Update** downloads the zip, ✕ only snoozes it, and it waits for the tutorial to close.
+- `e2e-update14.mjs`, with the page open the whole time and a simulated GitHub: check on open, no extra check when coming back within 10 minutes, a check after that showing the card in the middle without a reload, ✕ snoozing for an hour (clock fast-forwarded) and the card back on the next visit, then an *URGENTE* release: no ✕, `Esc` ignored, downloads refused, long jobs paused, and everything back once it's resolved.
+- `e2e-post.mjs`: post buttons on a carousel pop-up (photo, video, photo), swiping without the buttons moving or blinking, `D` and `Shift+D` with the right names, a single post, a post opened on its own page, scrolling away, a narrow window and the menu switch.
+- `e2e-reels.mjs`: the player on a Reels-like page with human-paced clicks (press, 120 ms, release): pause and the speaker act on the reel on screen after moving to the next one, the speaker stays under the mouse when the volume slider opens, and the bar stays while the mouse rests on it.
+- `e2e-flick.mjs`: the story buttons only ever show at their final spot while Instagram slides to the next person, and come back before the slide finishes.
 - `e2e-lang.mjs`: first run with the browser in pt-BR, pt-PT, en-US, es-ES, es-419 and de-DE (falls back to English), then switching PT · EN · ES in the footer, tutorial, menu, *What's new* and the bug report log.
 - **Firefox** (GitHub Actions, `Test` workflow): `web-ext lint` with no errors, then real Firefox with the extension installed as temporary: tutorial, menu and footer, update check, story photo with `D`, DASH video muxed through `blob:` (checked with `ffprobe`) and *What's new*.
 
-The screenshots on this page are the real extension (v1.7.1) running on that simulated Instagram, with placeholder accounts and generated images.
+The screenshots on this page are the real extension (v1.7.1, and v1.8.6 for the post buttons) running on that simulated Instagram, with placeholder accounts and generated images.
 
 ## Disclaimer
 

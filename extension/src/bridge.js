@@ -3,16 +3,16 @@
   'use strict';
   // idioma da primeira abertura: o do navegador (pt, en ou es; qualquer outro → en). Regra 13.
   const NAV_LANG = (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
-  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: NAV_LANG, theme: 'auto', player: true, profileBtn: true, inboxTools: true };
+  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: NAV_LANG, theme: 'auto', player: true, postBtn: true, profileBtn: true, inboxTools: true };
   const RELOAD = { pt: 'extensão atualizada — recarregue a página (F5)', en: 'extension updated — reload the page (F5)', es: 'extensión actualizada — recarga la página (F5)' };
   // só estes ajustes podem ser gravados pelo menu, com o tipo certo
-  const BOOL = ['ghost', 'hotkey', 'showAll', 'perUser', 'maxQuality', 'player', 'profileBtn', 'inboxTools'];
+  const BOOL = ['ghost', 'hotkey', 'showAll', 'perUser', 'maxQuality', 'player', 'postBtn', 'profileBtn', 'inboxTools'];
   // storage.local acessível pela página: varreduras de seguidores e o "já viu" do tutorial/novidades
-  const LOCAL_PREFIXES = ['ss.follows.', 'ss.onboard'];
+  const LOCAL_PREFIXES = ['ss.follows.', 'ss.onboard', 'ss.diag.'];
   const ENUM = { lang: ['pt', 'en', 'es'], theme: ['auto', 'light', 'dark'] };
   const UPD_KEY = 'ss.update';
   // tem de bater com o SW_BUILD do sw.js desta versão: se o Chrome ficou com o service worker antigo, o menu avisa
-  const EXPECT_SW = 'ss-sw-1.7.1';
+  const EXPECT_SW = 'ss-sw-1.8.6';
   const UPD_CMDS = ['check', 'apply', 'dismiss', 'seen', 'guide', 'perm'];
   // Opera: storage.sync pode não existir (tabela do MDN) → ajustes no local
   const SYNC = () => chrome.storage.sync || chrome.storage.local;
@@ -118,10 +118,20 @@
       // clique no ícone da extensão na barra do Chrome → abre/fecha o menu
       if (msg && msg.type === 'salva-stories:toggle-menu') post({ kind: 'toggleMenu' });
       // antes de se recarregar para a versão nova, o service worker pergunta se a aba está no meio de um trabalho longo
-      if (msg && msg.type === 'salva-stories:busy?') { reply({ busy: (parseInt(document.documentElement.dataset.ssBusy || '0', 10) || 0) > 0 }); }
+      if (msg && msg.type === 'salva-stories:busy?') { reply({ busy: (parseInt(document.documentElement.dataset.ssBusy || '0', 10) || 0) > 0 && document.documentElement.dataset.ssPaused !== '1' }); }
     });
   } catch (_) { markDead(); }
   sendSettings();
   sendUpdate();
   pingSw();
+
+  // Regra 14 (revisada 27/10 20h): confere versão nova ao abrir o Instagram e toda vez que a pessoa volta para a aba.
+  // O service worker segura em no máximo 1 conferência a cada 10 min; o alarme dele confere a cada 30 min.
+  const autoCheck = () => {
+    if (!alive() || document.visibilityState !== 'visible') return;
+    try { chrome.runtime.sendMessage({ type: 'salva-stories:update', cmd: 'check', data: 'auto' }, () => { void chrome.runtime.lastError; }); } catch (_) { markDead(); }
+  };
+  autoCheck();
+  document.addEventListener('visibilitychange', autoCheck);
+  window.addEventListener('focus', autoCheck);
 })();
