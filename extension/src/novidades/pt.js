@@ -1,6 +1,12 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.8.10': [
+    "Fantasminha sempre à vista, no story e na barra lateral: aceso é modo fantasma ligado, apagado é desligado. Clique nele para ligar ou desligar.",
+  ],
+  '1.8.9': [
+    "Stories de vídeo em 0,5×, 1,5× ou 2×: passe o mouse no botão \"1×\" ao lado do story e escolha. A velocidade vale para os próximos stories até você mudar. Dá para tirar o botão no menu, em Ferramentas.",
+  ],
   '1.8.8': [
     "Página inicial: os botões de salvar aparecem ao lado do post que está na tela. Salva a foto ou o vídeo da vez, ou o carrossel inteiro (teclas D e Shift+D).",
     "O nosso ícone na barra lateral e o fantasminha somem enquanto o menu \"Mais\" do Instagram está aberto, sem ficar por cima de \"Trocar de conta\" e \"Sair\".",

@@ -3,16 +3,16 @@
   'use strict';
   // idioma da primeira abertura: o do navegador (pt, en ou es; qualquer outro → en). Regra 13.
   const NAV_LANG = (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
-  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: NAV_LANG, theme: 'auto', player: true, reelsSound: true, postBtn: true, profileBtn: true, inboxTools: true };
+  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: NAV_LANG, theme: 'auto', player: true, reelsSound: true, storySpeed: true, postBtn: true, profileBtn: true, inboxTools: true };
   const RELOAD = { pt: 'extensão atualizada — recarregue a página (F5)', en: 'extension updated — reload the page (F5)', es: 'extensión actualizada — recarga la página (F5)' };
   // só estes ajustes podem ser gravados pelo menu, com o tipo certo
-  const BOOL = ['ghost', 'hotkey', 'showAll', 'perUser', 'maxQuality', 'player', 'reelsSound', 'postBtn', 'profileBtn', 'inboxTools'];
+  const BOOL = ['ghost', 'hotkey', 'showAll', 'perUser', 'maxQuality', 'player', 'reelsSound', 'storySpeed', 'postBtn', 'profileBtn', 'inboxTools'];
   // storage.local acessível pela página: varreduras de seguidores e o "já viu" do tutorial/novidades
   const LOCAL_PREFIXES = ['ss.follows.', 'ss.onboard', 'ss.diag.'];
   const ENUM = { lang: ['pt', 'en', 'es'], theme: ['auto', 'light', 'dark'] };
   const UPD_KEY = 'ss.update';
   // tem de bater com o SW_BUILD do sw.js desta versão: se o Chrome ficou com o service worker antigo, o menu avisa
-  const EXPECT_SW = 'ss-sw-1.8.8';
+  const EXPECT_SW = 'ss-sw-1.8.10';
   const UPD_CMDS = ['check', 'apply', 'dismiss', 'seen', 'guide', 'perm'];
   // Opera: storage.sync pode não existir (tabela do MDN) → ajustes no local
   const SYNC = () => chrome.storage.sync || chrome.storage.local;

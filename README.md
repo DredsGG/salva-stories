@@ -9,7 +9,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
 ![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.8.8-d62976)
+![Version](https://img.shields.io/badge/version-1.8.10-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
@@ -27,7 +27,8 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 - **Two round buttons next to the open story:** *save this one* and *save all from this person*. Shortcuts: `D` and `Shift+D`.
 - **Photos at the largest size Instagram has**, not the size on screen (for example 1320×2346 when the viewer shows 720×1280).
 - **Videos with audio.** By default it saves the progressive MP4 (video + sound in one file). When the original is above 720p, it fetches the separate DASH video and audio tracks and **muxes them in the browser, with no re-encoding**. If that fails, it falls back to the 720p file.
-- **Ghost mode** (off by default): the "seen" request isn't sent, so viewing a story doesn't mark it as seen. A ghost badge shows when it's on, in stories and anywhere else on Instagram.
+- **Video stories at 0.5×, 1.5× or 2×:** hover the speed button next to the story and pick from the vertical list. The speed sticks for the next stories (Instagram moves on when the video ends, so 2× really is twice as fast). Photo stories keep Instagram's own timer.
+- **Ghost mode** (off by default): the "seen" request isn't sent, so viewing a story doesn't mark it as seen. A ghost badge sits in the story buttons and under our sidebar icon: lit when ghost mode is on, dimmed when it's off. Click it to turn ghost mode on or off.
 
 **Posts**
 
@@ -106,7 +107,7 @@ Download the files from the [latest release](https://github.com/DredsGG/salva-st
 
 | Where | What to do |
 | --- | --- |
-| Story | Click the top button or press `D` to save it; the second button or `Shift+D` saves every story from that profile. |
+| Story | Click the top button or press `D` to save it; the second button or `Shift+D` saves every story from that profile. Hover the speed button (`1×`) to watch a video story at 0.5×, 1.5× or 2×. |
 | Post | Open it, or just scroll the home feed: the top button next to the post (or `D`) saves the photo or video on screen; the second one (or `Shift+D`) saves the whole carousel. |
 | Profile | Click **Download profile**, pick how many posts and the types, then **Download**. Keep the tab open until it finishes. |
 | Post or reel with video | Hover the video to show the player; the last button downloads it. |
@@ -175,6 +176,7 @@ End-to-end with the real extension loaded, against a simulated instagram.com and
 - `e2e-update14.mjs`, with the page open the whole time and a simulated GitHub: check on open, no extra check when coming back within 10 minutes, a check after that showing the card in the middle without a reload, ✕ snoozing for an hour (clock fast-forwarded) and the card back on the next visit, then an *URGENTE* release: no ✕, `Esc` ignored, downloads refused, long jobs paused, and everything back once it's resolved.
 - `e2e-post.mjs`: post buttons on a carousel pop-up (photo, video, photo), swiping without the buttons moving or blinking, `D` and `Shift+D` with the right names, a single post, a post opened on its own page, scrolling away, a narrow window and the menu switch.
 - `e2e-reels.mjs`: the player on a Reels-like page with human-paced clicks (press, 120 ms, release): pause and the speaker act on the reel on screen after moving to the next one, the speaker stays under the mouse when the volume slider opens, and the bar stays while the mouse rests on it.
+- `e2e-story-speed.mjs`: speed in video stories (the vertical list opens on hover, 2× applied and re-applied when the page resets it, dimmed on photo stories, kept on the next video and after a reload, the menu switch) and the ghost badge turning ghost mode on and off, in a story and on the sidebar.
 - `e2e-feed.mjs`: buttons on the home feed (a carousel with photo, video and photo, a single photo and a reel): `D`, `Shift+D` and a real click with the right names, moving to the next post as you scroll, hiding while scrolling, and the menu switch; plus our sidebar icon and ghost badge hiding while Instagram's "More" menu is open over them.
 - `e2e-reels-sound.mjs`: sound on Reels. It's on when you enter Reels, stays on across reels, our speaker changes Instagram's own mute state, a mute holds until you leave Reels and comes back on when you return, and with the setting off nothing is touched.
 - `e2e-flick.mjs`: the story buttons only ever show at their final spot while Instagram slides to the next person, and come back before the slide finishes.

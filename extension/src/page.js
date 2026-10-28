@@ -20,14 +20,15 @@
 
   // idioma da primeira abertura: o do navegador (pt, en ou es; qualquer outro → en). Regra 13.
   const NAV_LANG = (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
-  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, postBtn: true, lang: NAV_LANG };
+  const DEFAULTS = { ghost: false, hotkey: true, showAll: true, postBtn: true, storySpeed: true, lang: NAV_LANG };
 
   // ───────────────────────── idiomas (escolhidos pelas bandeiras do menu) ─────────────────────────
   const I18N = {
     pt: {
       saveOne: 'Salvar este story (D)', saveOneA: 'Salvar este story',
       saveAll: 'Salvar todos os stories desta pessoa (Shift+D)', saveAllA: 'Salvar todos os stories desta pessoa',
-      ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', menu: 'Ajustes (Alt+S)',
+      ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', ghostClick: 'Clique para desligar', ghostOffA: 'Desligar o modo fantasma', ghostOffDone: 'Modo fantasma desligado: quem postou vê que você assistiu.', ghostOffT: 'Modo fantasma desligado', ghostOffSub: 'Quem postou vê que você assistiu', ghostOnClick: 'Clique para ligar', ghostOnA: 'Ligar o modo fantasma', ghostOnDone: 'Modo fantasma ligado: ninguém vê que você assistiu.', menu: 'Ajustes (Alt+S)',
+      speed: 'Velocidade do vídeo', speedPhoto: 'Velocidade (só em story de vídeo)', speedSet: (r) => 'Velocidade: ' + r,
       noStory: 'não achei o story na tela', noData: 'não achei os dados do story', noMedia: 'story sem mídia', nothing: 'nada para salvar',
       noReply: 'a extensão não respondeu (recarregue a página)', failed: 'falhou', notSaved: 'Não salvou: ',
       video: 'vídeo salvo', videoMute: 'vídeo salvo (sem som no original)', photo: 'foto salva',
@@ -39,7 +40,8 @@
     en: {
       saveOne: 'Save this story (D)', saveOneA: 'Save this story',
       saveAll: "Save all of this person's stories (Shift+D)", saveAllA: "Save all of this person's stories",
-      ghostOn: 'Ghost mode on', ghostSub: "Nobody sees that you watched", menu: 'Settings (Alt+S)',
+      ghostOn: 'Ghost mode on', ghostSub: "Nobody sees that you watched", ghostClick: 'Click to turn it off', ghostOffA: 'Turn off ghost mode', ghostOffDone: 'Ghost mode off: the poster sees that you watched.', ghostOffT: 'Ghost mode off', ghostOffSub: 'The poster sees that you watched', ghostOnClick: 'Click to turn it on', ghostOnA: 'Turn on ghost mode', ghostOnDone: 'Ghost mode on: nobody sees that you watched.', menu: 'Settings (Alt+S)',
+      speed: 'Video speed', speedPhoto: 'Speed (video stories only)', speedSet: (r) => 'Speed: ' + r,
       noStory: "couldn't find the story on screen", noData: "couldn't find the story data", noMedia: 'story has no media', nothing: 'nothing to save',
       noReply: "the extension didn't respond (reload the page)", failed: 'failed', notSaved: 'Not saved: ',
       video: 'video saved', videoMute: 'video saved (original has no sound)', photo: 'photo saved',
@@ -51,7 +53,8 @@
     es: {
       saveOne: 'Guardar esta historia (D)', saveOneA: 'Guardar esta historia',
       saveAll: 'Guardar todas las historias de esta persona (Shift+D)', saveAllA: 'Guardar todas las historias de esta persona',
-      ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', menu: 'Ajustes (Alt+S)',
+      ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', ghostClick: 'Haz clic para desactivarlo', ghostOffA: 'Desactivar el modo fantasma', ghostOffDone: 'Modo fantasma desactivado: quien publicó ve que la viste.', ghostOffT: 'Modo fantasma desactivado', ghostOffSub: 'Quien publicó ve que la viste', ghostOnClick: 'Haz clic para activarlo', ghostOnA: 'Activar el modo fantasma', ghostOnDone: 'Modo fantasma activado: nadie ve que la viste.', menu: 'Ajustes (Alt+S)',
+      speed: 'Velocidad del video', speedPhoto: 'Velocidad (solo en historias de video)', speedSet: (r) => 'Velocidad: ' + r,
       noStory: 'no encontré la historia en pantalla', noData: 'no encontré los datos de la historia', noMedia: 'historia sin contenido', nothing: 'nada para guardar',
       noReply: 'la extensión no respondió (recarga la página)', failed: 'falló', notSaved: 'No se guardó: ',
       video: 'video guardado', videoMute: 'video guardado (el original no tiene sonido)', photo: 'foto guardada',
@@ -642,7 +645,54 @@
 
   // ───────────────────────── interface ─────────────────────────
   let mode = 'story'; // 'story' | 'photo' | 'video' (post aberto)
-  let host, shadow, wrap, btnOne, btnAll, btnMenu, ghostEl, toastEl, labelsLang = null;
+  let host, shadow, wrap, btnOne, btnAll, btnMenu, ghostEl, spdEl, btnRate, toastEl, labelsLang = null;
+  // ───────── velocidade do story de vídeo ─────────
+  // Medido ao vivo (28/10/2026): o Instagram passa para o próximo story quando o vídeo termina (evento ended), então
+  // 2× termina e avança na metade do tempo e 0,5× toca até o fim. Foto não tem velocidade (o relógio de 5 s é do Instagram).
+  const RATES = [2, 1.5, 1, 0.5];
+  const RATE_KEY = 'salvaStories.storyRate';
+  let storyRate = 1;
+  try { const r = parseFloat(localStorage.getItem(RATE_KEY)); if (RATES.includes(r)) storyRate = r; } catch (_) {}
+  const rateLabel = (r) => String(r).replace('.', (settings && settings.lang) === 'en' ? '.' : ',') + '×';
+  function applyStoryRate(el) {
+    if (el && el.tagName === 'VIDEO' && Math.abs((el.playbackRate || 1) - storyRate) > 0.01) { try { el.playbackRate = storyRate; } catch (_) {} }
+  }
+  function setStoryRate(r) {
+    storyRate = r;
+    try { localStorage.setItem(RATE_KEY, String(r)); } catch (_) {}
+    if (location.pathname.startsWith('/stories/')) applyStoryRate(activeMedia());
+    speedLabels();
+  }
+  function speedLabels() {
+    if (!spdEl) return;
+    btnRate.textContent = rateLabel(storyRate);
+    btnRate.classList.toggle('on', storyRate !== 1);
+    const off = spdEl.classList.contains('off');
+    btnRate.title = off ? t('speedPhoto') : t('speed');
+    btnRate.setAttribute('aria-label', t('speed') + ': ' + rateLabel(storyRate));
+    for (const b of spdEl.querySelectorAll('.rates button')) { const r = parseFloat(b.dataset.r); b.textContent = rateLabel(r); b.classList.toggle('sel', r === storyRate); b.setAttribute('aria-checked', String(r === storyRate)); }
+  }
+  // liga/desliga o modo fantasma (mesmo caminho da chave do menu: a ponte grava e avisa todos os módulos)
+  function setGhost(on) {
+    if (settings) settings.ghost = on;
+    window.postMessage({ __salvaStories: 'page', kind: 'set', patch: { ghost: on } }, location.origin);
+    ghostLabels();
+  }
+  // fantasminha sempre na pilha do story: aceso = ligado, apagado = desligado; o texto acompanha o estado
+  let ghostShown = null;
+  function ghostLabels() {
+    if (!ghostEl) return;
+    const on = !!(settings && settings.ghost);
+    const key = on + ':' + ((settings && settings.lang) || 'pt');
+    if (key === ghostShown) return;
+    ghostShown = key;
+    ghostEl.classList.toggle('off', !on);
+    ghostEl.setAttribute('aria-pressed', String(on));
+    ghostEl.setAttribute('aria-label', t(on ? 'ghostOffA' : 'ghostOnA'));
+    ghostEl.querySelector('.tip b').textContent = t(on ? 'ghostOn' : 'ghostOffT');
+    ghostEl.querySelector('.tip span').textContent = t(on ? 'ghostSub' : 'ghostOffSub');
+    ghostEl.querySelector('.tip i').textContent = t(on ? 'ghostClick' : 'ghostOnClick');
+  }
   function applyLabels() {
     const lang = ((settings && settings.lang) || 'pt') + ':' + mode;
     if (lang === labelsLang) return;
@@ -652,9 +702,8 @@
     btnOne.title = t(one); btnOne.setAttribute('aria-label', t(one + 'A'));
     btnAll.title = t(all); btnAll.setAttribute('aria-label', t(all + 'A'));
     btnMenu.title = t('menu'); btnMenu.setAttribute('aria-label', t('menu'));
-    ghostEl.setAttribute('aria-label', t('ghostOn'));
-    ghostEl.querySelector('.tip b').textContent = t('ghostOn');
-    ghostEl.querySelector('.tip span').textContent = t('ghostSub');
+    ghostShown = null; ghostLabels();
+    speedLabels();
   }
   const ICON_DL = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>';
   const ICON_ALL = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="12" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/><path d="M9 11v6"/><path d="m6.5 14.5 2.5 2.5 2.5-2.5"/></svg>';
@@ -683,10 +732,10 @@
         button.ok { background:#1f9d55; border-color:#1f9d55; }
         button.err { background:#d93a3a; border-color:#d93a3a; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); padding:10px 16px; border-radius:10px; background:rgba(20,20,20,.92);
+        .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); padding:10px 16px; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; border-radius:10px; background:rgba(20,20,20,.92);
           color:#fff; font-size:14px; line-height:1.3; max-width:80vw; box-shadow:0 4px 18px rgba(0,0,0,.4); opacity:0; transition:opacity .2s; pointer-events:none; }
         .toast.show { opacity:1; }
-        .ghost { position:relative; width:44px; height:44px; margin-top:4px; border-radius:50%; display:grid; place-items:center; cursor:default;
+        .ghost { position:relative; width:44px; height:44px; margin-top:4px; border-radius:50%; display:grid; place-items:center; cursor:pointer; outline:none;
           color:#fff; background:rgba(20,10,30,.55); backdrop-filter: blur(6px); box-shadow: 0 2px 14px rgba(150,47,191,.45); user-select:none; }
         .ghost::before { content:""; position:absolute; inset:0; border-radius:50%; padding:1.5px;
           background:linear-gradient(135deg,#962fbf,#d62976 55%,#fa7e1e);
@@ -699,6 +748,31 @@
           box-shadow:0 6px 22px rgba(0,0,0,.45), 0 0 0 1px rgba(214,41,118,.35); opacity:0; transition:opacity .18s ease, transform .18s ease; }
         .tip b { display:block; font-weight:700; background:linear-gradient(90deg,#c77dff,#ff5fa2 55%,#ffb36b); -webkit-background-clip:text; background-clip:text; color:transparent; }
         .tip span { display:block; color:rgba(255,255,255,.7); font-size:11.5px; }
+        .tip i { display:block; margin-top:4px; font-style:normal; color:rgba(255,255,255,.55); font-size:11px; }
+        .ghost:hover { background:rgba(40,16,52,.75); }
+        .ghost.off { background:rgba(0,0,0,.45); box-shadow:0 2px 10px rgba(0,0,0,.35); }
+        .ghost.off::before { background:rgba(255,255,255,.28); }
+        .ghost.off svg { filter:none; animation:none; opacity:.5; }
+        .ghost.off:hover svg { opacity:.85; }
+        .ghost.off .tip b { background:none; color:#fff; }
+        .ghost:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+        /* velocidade do story de vídeo: botão com a velocidade; passando o mouse, a lista vertical abre ao lado */
+        .spd { position:relative; }
+        button.rate { font-size:13px; font-weight:700; letter-spacing:-.2px; }
+        button.rate.on { background:rgba(214,41,118,.8); border-color:rgba(255,255,255,.5); }
+        .spd.off button.rate { opacity:.45; cursor:default; }
+        .spd.off button.rate:hover { transform:none; background:rgba(0,0,0,.55); }
+        .rates { position:absolute; left:calc(100% + 10px); top:50%; transform:translate(-6px,-50%); display:flex; flex-direction:column; gap:6px; padding:6px;
+          border-radius:24px; background:rgba(18,12,24,.86); backdrop-filter: blur(6px); box-shadow:0 6px 22px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.14);
+          opacity:0; pointer-events:none; transition:opacity .15s ease, transform .15s ease; }
+        .rates::before { content:""; position:absolute; right:100%; top:0; bottom:0; width:14px; } /* ponte: o mouse passa do botão para a lista sem fechar */
+        .spd:not(.off):hover .rates, .spd.open:not(.off) .rates { opacity:1; pointer-events:auto; transform:translate(0,-50%); }
+        .rates button { width:48px; height:34px; border-radius:17px; font-size:13px; font-weight:700; background:transparent; border-color:transparent; box-shadow:none; backdrop-filter:none; }
+        .rates button:hover { background:rgba(255,255,255,.14); transform:none; }
+        .rates button.sel { background:#fff; color:#111; }
+        .spd.flip .rates { left:auto; right:calc(100% + 10px); transform:translate(6px,-50%); }
+        .spd.flip .rates::before { right:auto; left:100%; }
+        .spd.flip:not(.off):hover .rates, .spd.flip.open:not(.off) .rates { transform:translate(0,-50%); }
         .tip::after { content:""; position:absolute; right:100%; top:50%; transform:translateY(-50%); border:6px solid transparent; border-right-color:rgba(18,12,24,.94); }
         /* sem espaço à direita (janela estreita): o balão vai para a esquerda */
         .ghost.flip .tip { left:auto; right:calc(100% + 12px); transform:translate(6px,-50%); }
@@ -711,7 +785,8 @@
       <div class="wrap">
         <button class="one">${ICON_DL}</button>
         <button class="all">${ICON_ALL}</button>
-        <div class="ghost" role="img" style="display:none">${ICON_GHOST}<div class="tip"><b></b><span></span></div></div>
+        <div class="spd" style="display:none"><button class="rate">1×</button><div class="rates" role="menu">${RATES.map((r) => `<button role="menuitemradio" data-r="${r}">${r}×</button>`).join('')}</div></div>
+        <div class="ghost" role="button" tabindex="0" style="display:none">${ICON_GHOST}<div class="tip"><b></b><span></span><i></i></div></div>
         <button class="menu">${ICON_GEAR}</button>
       </div>
       <div class="toast" role="status"></div>`;
@@ -720,6 +795,17 @@
     btnAll = shadow.querySelector('.all');
     ghostEl = shadow.querySelector('.ghost');
     btnMenu = shadow.querySelector('.menu');
+    spdEl = shadow.querySelector('.spd');
+    btnRate = shadow.querySelector('.rate');
+    // fantasminha: clique (ou Enter) desliga o modo fantasma, nos stories e fora deles (o da barra lateral está no menu.js)
+    const ghostToggle = () => { const on = !(settings && settings.ghost); setGhost(on); toast(t(on ? 'ghostOnDone' : 'ghostOffDone')); };
+    ghostEl.addEventListener('click', ghostToggle);
+    ghostEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ghostToggle(); } });
+    btnRate.addEventListener('click', () => { if (!spdEl.classList.contains('off')) spdEl.classList.toggle('open'); });
+    spdEl.addEventListener('mouseleave', () => spdEl.classList.remove('open'));
+    for (const b of spdEl.querySelectorAll('.rates button')) {
+      b.addEventListener('click', () => { setStoryRate(parseFloat(b.dataset.r)); spdEl.classList.remove('open'); toast(t('speedSet', rateLabel(storyRate))); });
+    }
     labelsLang = null;
     toastEl = shadow.querySelector('.toast');
     for (const ev of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend', 'keydown']) {
@@ -804,6 +890,7 @@
     mode = cur && cur.tagName === 'VIDEO' ? 'video' : 'photo';
     btnAll.style.display = pv.carousel || (post && post.parts.length > 1) ? '' : 'none';
     ghostEl.style.display = 'none';
+    spdEl.style.display = 'none';
     applyLabels();
     const box = { left: v.left, top: v.top, width: pv.right - v.left, height: v.height };
     const moved = !lastRect || !near(box.left, lastRect.left, 1) || !near(box.top, lastRect.top, 1) || !near(box.width, lastRect.width, 1) || !near(box.height, lastRect.height, 1);
@@ -845,7 +932,13 @@
     if (!host.style.transition) host.style.transition = 'opacity .1s ease';
     lastSeen = now;
     btnAll.style.display = settings && settings.showAll === false ? 'none' : '';
-    ghostEl.style.display = settings && settings.ghost ? '' : 'none';
+    ghostEl.style.display = '';
+    ghostLabels();
+    // velocidade: vale para o vídeo da vez (o Instagram cria um <video> novo a cada story e volta para 1×)
+    const isVid = el.tagName === 'VIDEO';
+    spdEl.style.display = settings && settings.storySpeed === false ? 'none' : '';
+    if (spdEl.classList.contains('off') === isVid) { spdEl.classList.toggle('off', !isVid); spdEl.classList.remove('open'); speedLabels(); }
+    if (isVid && !(settings && settings.storySpeed === false)) applyStoryRate(el);
     applyLabels();
     const r = el.getBoundingClientRect();
     const moved = !lastRect || !near(r.left, lastRect.left, 1) || !near(r.top, lastRect.top, 1) || !near(r.width, lastRect.width, 1) || !near(r.height, lastRect.height, 1);
@@ -877,6 +970,7 @@
     setVisible(true);
     const tipW = (ghostEl.querySelector('.tip') || {}).offsetWidth || 220;
     ghostEl.classList.toggle('flip', innerWidth - (left + w) < tipW + 24);
+    spdEl.classList.toggle('flip', innerWidth - (left + w) < 80);
   }
 
   // confere a cada quadro nos stories (para seguir a animação) e devagar fora deles
@@ -921,5 +1015,5 @@
   const __box = (el) => { if (!el || el.style.display === 'none') return null; const r = el.getBoundingClientRect(); return r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } : null; };
   window.__salvaStoriesDebug = () => ({ items: ITEMS.size, reels: new Set(REELS.values()).size, posts: POSTS.size, current: currentPk(), settings, mode,
     post: (() => { const cp = curPost(); const c = cp.code; const p = c && POSTS.get(c); const pv = cp.pv; return c ? { code: c, loaded: !!p, parts: p ? p.parts.length : 0, index: p ? postIndex(p, pv && pv.vpEl) : null, view: pv ? { left: Math.round(pv.v.left), right: Math.round(pv.right), top: Math.round(pv.v.top), carousel: pv.carousel } : null } : null; })(),
-    at: host && host.style.display !== 'none' ? { opacity: host.style.opacity, left: host.style.left, top: host.style.top, one: __box(btnOne), all: __box(btnAll), title: btnOne.title } : null });
+    at: host && host.style.display !== 'none' ? { opacity: host.style.opacity, left: host.style.left, top: host.style.top, one: __box(btnOne), all: __box(btnAll), title: btnOne.title, ghost: __box(ghostEl), ghostOff: ghostEl ? ghostEl.classList.contains('off') : null, rate: spdEl && spdEl.style.display !== 'none' ? __box(btnRate) : null, rateOff: spdEl ? spdEl.classList.contains('off') : null, rateText: btnRate ? btnRate.textContent : null, rates: spdEl ? Object.fromEntries([...spdEl.querySelectorAll('.rates button')].map((b) => [b.dataset.r, __box(b)])) : null, ratesOpen: spdEl ? getComputedStyle(spdEl.querySelector('.rates')).opacity : null } : null, storyRate });
 })();

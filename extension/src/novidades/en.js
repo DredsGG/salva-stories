@@ -1,5 +1,11 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.8.10': [
+    "The little ghost is always there, in stories and on the sidebar: lit means ghost mode is on, dimmed means it's off. Click it to turn it on or off.",
+  ],
+  '1.8.9': [
+    "Video stories at 0.5×, 1.5× or 2×: hover the \"1×\" button next to the story and pick one. The speed sticks for the next stories until you change it. You can remove the button in the menu, under Tools.",
+  ],
   '1.8.8': [
     "Home feed: the save buttons show up next to the post on screen. Save the current photo or video, or the whole carousel (keys D and Shift+D).",
     "Our sidebar icon and the little ghost hide while Instagram's \"More\" menu is open, so they no longer sit on top of \"Switch accounts\" and \"Log out\".",

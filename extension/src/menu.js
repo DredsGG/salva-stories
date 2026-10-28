@@ -32,10 +32,11 @@
       secTools: 'Ferramentas', follows: 'Seguidores e seguindo', followsD: 'Quem não te segue de volta, quem você não segue, mútuos e quem deixou de seguir',
       player: 'Player nos vídeos', playerD: 'Pausar, voltar, avançar, velocidade, volume e baixar nos vídeos e reels',
       reelsSound: 'Som ligado no Reels', reelsSoundD: 'Os reels já começam com som e continuam com som ao passar. Se você mutar, fica mudo até sair do Reels',
+      storySpeed: 'Velocidade nos stories', storySpeedD: 'Botão para ver story de vídeo em 0,5×, 1,5× ou 2×',
       postBtn: 'Botões nos posts', postBtnD: 'No post aberto e no feed, salva a foto da tela ou todas do carrossel',
       profileBtn: 'Botão "baixar perfil"', profileBtnD: 'Na página de um perfil, baixa todos os posts organizados em pastas',
       inboxTools: 'Seleção no direct', inboxToolsD: 'Selecionar várias conversas e agir em todas de uma vez',
-      ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', open2: 'Abrir',
+      ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', ghostClick: 'Clique para desligar', ghostOffA: 'Desligar o modo fantasma', ghostOffT: 'Modo fantasma desligado', ghostOffSub: 'Quem postou vê que você assistiu', ghostOnClick: 'Clique para ligar', ghostOnA: 'Ligar o modo fantasma', open2: 'Abrir',
       updCheck: 'Procurar atualização', updChecking: 'Procurando…', updLatest: 'Você está na versão mais nova', updFail: 'Não deu para procurar agora',
       updAvail: (v) => `v${v} disponível`, updTitle: 'Atualização disponível', updUrgTitle: 'Atualização urgente: a extensão está pausada até atualizar', updGo: 'Atualizar', updLater: 'Depois', updHow: 'Como atualizar, passo a passo',
       updDownloaded: 'O zip novo foi para a pasta Downloads. Extraia por cima da pasta da extensão: ela se recarrega sozinha em até 1 minuto.',
@@ -63,10 +64,11 @@
       secTools: 'Tools', follows: 'Followers & following', followsD: "Who doesn't follow you back, who you don't follow back, mutuals and who unfollowed",
       player: 'Video player', playerD: 'Pause, rewind, forward, speed, volume and download on videos and reels',
       reelsSound: 'Sound on in Reels', reelsSoundD: 'Reels start with sound and keep it as you swipe. If you mute, it stays muted until you leave Reels',
+      storySpeed: 'Speed in stories', storySpeedD: 'A button to watch video stories at 0.5×, 1.5× or 2×',
       postBtn: 'Post buttons', postBtnD: 'On an open post and in the feed, saves the photo on screen or the whole carousel',
       profileBtn: '"Download profile" button', profileBtnD: "On a profile page, downloads every post into tidy folders",
       inboxTools: 'Direct selection', inboxToolsD: 'Select several chats and act on all of them at once',
-      ghostOn: 'Ghost mode on', ghostSub: 'Nobody sees that you watched', open2: 'Open',
+      ghostOn: 'Ghost mode on', ghostSub: 'Nobody sees that you watched', ghostClick: 'Click to turn it off', ghostOffA: 'Turn off ghost mode', ghostOffT: 'Ghost mode off', ghostOffSub: 'The poster sees that you watched', ghostOnClick: 'Click to turn it on', ghostOnA: 'Turn on ghost mode', open2: 'Open',
       updCheck: 'Check for updates', updChecking: 'Checking…', updLatest: "You're on the latest version", updFail: "Couldn't check right now",
       updAvail: (v) => `v${v} available`, updTitle: 'Update available', updUrgTitle: 'Urgent update: the extension is paused until you update', updGo: 'Update', updLater: 'Later', updHow: 'How to update, step by step',
       updDownloaded: 'The new zip went to your Downloads folder. Unzip it over the extension folder: it reloads itself within 1 minute.',
@@ -94,10 +96,11 @@
       secTools: 'Herramientas', follows: 'Seguidores y seguidos', followsD: 'Quién no te sigue, a quién no sigues, mutuos y quién dejó de seguirte',
       player: 'Reproductor en los videos', playerD: 'Pausar, retroceder, avanzar, velocidad, volumen y descargar en videos y reels',
       reelsSound: 'Sonido activado en Reels', reelsSoundD: 'Los reels empiezan con sonido y lo mantienen al pasar. Si silencias, queda en silencio hasta salir de Reels',
+      storySpeed: 'Velocidad en historias', storySpeedD: 'Un botón para ver historias de video a 0,5×, 1,5× o 2×',
       postBtn: 'Botones en las publicaciones', postBtnD: 'En una publicación abierta y en el feed, guarda la foto en pantalla o todo el carrusel',
       profileBtn: 'Botón "descargar perfil"', profileBtnD: 'En un perfil, descarga todas las publicaciones en carpetas ordenadas',
       inboxTools: 'Selección en el direct', inboxToolsD: 'Selecciona varios chats y actúa en todos a la vez',
-      ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', open2: 'Abrir',
+      ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', ghostClick: 'Haz clic para desactivarlo', ghostOffA: 'Desactivar el modo fantasma', ghostOffT: 'Modo fantasma desactivado', ghostOffSub: 'Quien publicó ve que la viste', ghostOnClick: 'Haz clic para activarlo', ghostOnA: 'Activar el modo fantasma', open2: 'Abrir',
       updCheck: 'Buscar actualización', updChecking: 'Buscando…', updLatest: 'Tienes la versión más nueva', updFail: 'No se pudo buscar ahora',
       updAvail: (v) => `v${v} disponible`, updTitle: 'Actualización disponible', updUrgTitle: 'Actualización urgente: la extensión está en pausa hasta actualizar', updGo: 'Actualizar', updLater: 'Después', updHow: 'Cómo actualizar, paso a paso',
       updDownloaded: 'El zip nuevo fue a la carpeta Descargas. Extráelo sobre la carpeta de la extensión: se recarga sola en hasta 1 minuto.',
@@ -112,7 +115,7 @@
     },
   };
 
-  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, reelsSound: true, postBtn: true, profileBtn: true, inboxTools: true };
+  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, reelsSound: true, storySpeed: true, postBtn: true, profileBtn: true, inboxTools: true };
   let version = '';
   let stale = false;
   const tr = (k, ...a) => { const v = (T[S.lang] || T.pt)[k] ?? T.pt[k]; return typeof v === 'function' ? v(...a) : v; };
@@ -175,8 +178,15 @@
   .navtip { position: fixed; z-index: 2147483001; pointer-events: none; padding: 7px 11px; border-radius: 8px; font: 600 13px/1.2 var(--font);
     background: rgb(54,54,54); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.35); opacity: 0; transform: translateX(-4px); transition: opacity .15s, transform .15s; white-space: nowrap; }
   .navtip.show { opacity: 1; transform: none; }
-  /* fantasminha abaixo do ícone da barra (só aparece com o modo fantasma ligado; não é botão) */
-  .ghost { position: fixed; z-index: 2147483000; width: 48px; height: 48px; display: grid; place-items: center; cursor: default; user-select: none; }
+  /* fantasminha abaixo do ícone da barra: aceso = modo fantasma ligado, apagado = desligado; clique liga/desliga (1.8.9) */
+  .ghost { position: fixed; z-index: 2147483000; width: 48px; height: 48px; display: grid; place-items: center; cursor: pointer; user-select: none; outline: none; }
+  .ghost:hover .gc { background: rgba(150,47,191,.24); }
+  .ghost.off .gc { background: transparent; box-shadow: none; }
+  .ghost.off .gc::before { background: var(--navfg, #fff); opacity: .45; }
+  .ghost.off svg { filter: none; animation: none; opacity: .6; }
+  .ghost.off:hover svg { opacity: .8; }
+  .ghost.off .gtip b { background: none; color: #fff; }
+  .ghost:focus-visible .gc { outline: 2px solid var(--navfg, #fff); outline-offset: 2px; }
   .ghost .gc { position: relative; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--navfg, #fff);
     background: rgba(150,47,191,.12); box-shadow: 0 2px 12px rgba(150,47,191,.35); }
   .ghost .gc::before { content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 1.5px; background: var(--grad);
@@ -189,6 +199,7 @@
     box-shadow: 0 6px 22px rgba(0,0,0,.45), 0 0 0 1px rgba(214,41,118,.35); opacity: 0; transition: opacity .18s, transform .18s; }
   .gtip b { display: block; font-weight: 700; background: linear-gradient(90deg,#c77dff,#ff5fa2 55%,#ffb36b); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .gtip span { display: block; color: rgba(255,255,255,.7); font-size: 11.5px; }
+  .gtip i { display: block; margin-top: 4px; font-style: normal; color: rgba(255,255,255,.55); font-size: 11px; }
   .gtip::after { content: ""; position: absolute; right: 100%; top: 50%; transform: translateY(-50%); border: 6px solid transparent; border-right-color: rgba(18,12,24,.96); }
   .ghost.flip .gtip { left: auto; right: calc(100% + 10px); transform: translate(6px,-50%); }
   .ghost.flip .gtip::after { right: auto; left: 100%; border-right-color: transparent; border-left-color: rgba(18,12,24,.96); }
@@ -322,7 +333,7 @@
     sh.innerHTML = `<style>${CSS}</style><div class="root" data-mode="dark">
       <button class="nav" type="button" hidden>${NAV_ICON}</button>
       <div class="navtip"></div>
-      <div class="ghost" role="img" hidden><div class="gc">${GHOST}</div><div class="gtip"><b></b><span></span></div></div>
+      <div class="ghost" role="button" tabindex="0" hidden><div class="gc">${GHOST}</div><div class="gtip"><b></b><span></span><i></i></div></div>
       <div class="panel" role="dialog" aria-modal="false" hidden></div>
     </div>`;
     root = sh.querySelector('.root');
@@ -335,6 +346,10 @@
       host.addEventListener(ev, (e) => e.stopPropagation());
     }
     nav.addEventListener('click', () => toggle(nav.getBoundingClientRect()));
+    // fantasminha: clique (ou Enter) desliga o modo fantasma; para ligar de novo, a chave no menu
+    const ghostToggle = () => { set({ ghost: !S.ghost }, !isOpen()); placeNav(); };
+    ghostEl.addEventListener('click', ghostToggle);
+    ghostEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ghostToggle(); } });
     nav.addEventListener('mouseenter', () => { if (anchorMode !== 'sidebar' || isOpen()) return; const r = nav.getBoundingClientRect();
       navTip.textContent = tr('title'); navTip.style.left = Math.round(r.right + 10) + 'px'; navTip.style.top = Math.round(r.top + r.height / 2 - 15) + 'px'; navTip.classList.add('show'); });
     nav.addEventListener('mouseleave', () => navTip.classList.remove('show'));
@@ -421,14 +436,17 @@
     const nl = parseFloat(nav.style.left), nt = parseFloat(nav.style.top);
     nav.hidden = !!home && coveredAt(nl + 24, nt + 24, home);
     // modo fantasma ligado → fantasminha logo abaixo do nosso ícone (no flutuante, acima dele)
-    ghostEl.hidden = !S.ghost || (!!home && (nav.hidden || coveredAt(nl + 24, nt + 52 + 22, home)));
+    ghostEl.hidden = !!home && (nav.hidden || coveredAt(nl + 24, nt + 52 + 22, home)); // sempre à vista: aceso ou apagado
     if (nav.hidden) navTip.classList.remove('show');
-    if (S.ghost) {
+    {
+      ghostEl.classList.toggle('off', !S.ghost);
+      ghostEl.setAttribute('aria-pressed', String(!!S.ghost));
       ghostEl.style.left = nl + 'px';
       ghostEl.style.top = (anchorMode === 'fab' ? nt - 56 : nt + 52) + 'px';
-      ghostEl.setAttribute('aria-label', tr('ghostOn'));
-      ghostEl.querySelector('.gtip b').textContent = tr('ghostOn');
-      ghostEl.querySelector('.gtip span').textContent = tr('ghostSub');
+      ghostEl.setAttribute('aria-label', tr(S.ghost ? 'ghostOffA' : 'ghostOnA'));
+      ghostEl.querySelector('.gtip b').textContent = tr(S.ghost ? 'ghostOn' : 'ghostOffT');
+      ghostEl.querySelector('.gtip span').textContent = tr(S.ghost ? 'ghostSub' : 'ghostOffSub');
+      ghostEl.querySelector('.gtip i').textContent = tr(S.ghost ? 'ghostClick' : 'ghostOnClick');
       ghostEl.classList.toggle('flip', anchorMode === 'fab');
     }
     nav.title = anchorMode === 'fab' ? tr('open') : '';
@@ -441,7 +459,7 @@
   const isOpen = () => panel && !panel.hidden;
   let lastAnchor = null;
 
-  const LABEL = { perUser: 'perUser', maxQuality: 'maxQ', showAll: 'all', hotkey: 'hotkey', ghost: 'ghost', player: 'player', reelsSound: 'reelsSound', postBtn: 'postBtn', profileBtn: 'profileBtn', inboxTools: 'inboxTools' };
+  const LABEL = { perUser: 'perUser', maxQuality: 'maxQ', showAll: 'all', hotkey: 'hotkey', ghost: 'ghost', player: 'player', reelsSound: 'reelsSound', storySpeed: 'storySpeed', postBtn: 'postBtn', profileBtn: 'profileBtn', inboxTools: 'inboxTools' };
   // linha com chave liga/desliga (a descrição pode ter <kbd>, por isso não passa por esc)
   function sw(key) {
     const k = LABEL[key];
@@ -471,7 +489,7 @@
         <div class="sec">${esc(tr('secTools'))}</div>
         <div class="tool" role="button" tabindex="0" data-tool="follows"><span class="ti">${PEOPLE}</span>
           <span class="txt"><span class="t">${esc(tr('follows'))}</span><span class="d">${esc(tr('followsD'))}</span></span><span class="go">${CHEVRON}</span></div>
-        ${sw('player')}${sw('reelsSound')}${sw('postBtn')}${sw('profileBtn')}${sw('inboxTools')}
+        ${sw('player')}${sw('reelsSound')}${sw('storySpeed')}${sw('postBtn')}${sw('profileBtn')}${sw('inboxTools')}
         <div class="sec">${esc(tr('secLook'))}</div>
         <div class="row static"><span class="txt"><span class="t">${esc(tr('lang'))}</span></span>
           <div class="flags" role="radiogroup" aria-label="${esc(tr('lang'))}">${['pt', 'en', 'es'].map(flag).join('')}</div></div>
@@ -589,7 +607,7 @@
       disco ? `Auto-reload: checked ${Math.round((Date.now() - (disco.em || 0)) / 60000)} min ago · disk v${disco.noDisco || '?'} · running v${disco.rodando || '?'} · ${disco.estado || '?'}` : 'Auto-reload: no check yet',
       `Browser: ${brow} · ${os} · UI ${S.lang} · ${navigator.language}${perm && perm.ok === false ? ' · site access MISSING' : ''}`,
       `Page: ${page} · theme ${S.theme} (${mode()})`,
-      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, reelsSound ${on('reelsSound')}, postBtn ${on('postBtn')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
+      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, reelsSound ${on('reelsSound')}, storySpeed ${on('storySpeed')}, postBtn ${on('postBtn')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
       api && api.itemCount ? `Cache: ${api.itemCount()} items` : '',
     ].filter(Boolean).join('\n');
     const logs = api && api.logs ? api.logs() : [];
@@ -747,6 +765,6 @@
       follows: box(panel.querySelector('.tool[data-tool="follows"]')), player: box(panel.querySelector('.row[data-key="player"] .sw')),
       uchk: box(panel.querySelector('.uchk')), ubug: box(panel.querySelector('.ubug')), ugo: box(panel.querySelector('.ugo')), bgh: box(panel.querySelector('.bgh')), bwhat: box(panel.querySelector('.bwhat')),
     } : null,
-    ghostBadge: ghostEl && !ghostEl.hidden ? box(ghostEl) : null, navHidden: nav ? nav.hidden : null,
+    ghostBadge: ghostEl && !ghostEl.hidden ? box(ghostEl) : null, ghostOff: ghostEl ? ghostEl.classList.contains('off') : null, navHidden: nav ? nav.hidden : null,
   });
 })();

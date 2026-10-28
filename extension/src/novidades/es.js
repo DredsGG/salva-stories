@@ -1,5 +1,11 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.8.10': [
+    "El fantasmita siempre está a la vista, en las historias y en la barra lateral: encendido es modo fantasma activado, apagado es desactivado. Haz clic para activarlo o desactivarlo.",
+  ],
+  '1.8.9': [
+    "Historias de video a 0,5×, 1,5× o 2×: pasa el ratón por el botón \"1×\" junto a la historia y elige. La velocidad se mantiene en las siguientes historias hasta que la cambies. Puedes quitar el botón en el menú, en Herramientas.",
+  ],
   '1.8.8': [
     "Página de inicio: los botones de guardar aparecen junto a la publicación en pantalla. Guarda la foto o el video actual, o todo el carrusel (teclas D y Shift+D).",
     "Nuestro ícono de la barra lateral y el fantasmita se ocultan mientras el menú \"Más\" de Instagram está abierto, sin taparle \"Cambiar de cuenta\" y \"Salir\".",
