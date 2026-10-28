@@ -1,6 +1,10 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.8.8': [
+    "Página inicial: os botões de salvar aparecem ao lado do post que está na tela. Salva a foto ou o vídeo da vez, ou o carrossel inteiro (teclas D e Shift+D).",
+    "O nosso ícone na barra lateral e o fantasminha somem enquanto o menu \"Mais\" do Instagram está aberto, sem ficar por cima de \"Trocar de conta\" e \"Sair\".",
+  ],
   '1.8.7': [
     "Reels com som: o som já vem ligado e continua ligado ao passar de reel. Se você mutar, fica mudo até sair do Reels. Dá para desligar no menu, em Ferramentas.",
   ],

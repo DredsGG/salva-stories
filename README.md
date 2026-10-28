@@ -9,7 +9,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
 ![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.8.7-d62976)
+![Version](https://img.shields.io/badge/version-1.8.8-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
@@ -35,6 +35,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 - **The same round buttons on an open post** (from the feed or a profile, in the pop-up or on its own page): *save the photo or video on screen* and *save the whole carousel*, in order. Shortcuts: `D` and `Shift+D`. Single photos only get the first button.
 - They sit outside the post, to the right, and stay still while you swipe through the carousel. In a narrow window they move inside the photo's top corner.
+- **On the home feed too:** the same buttons show up next to the post on screen, follow you as you scroll and save the photo or video you're looking at, or the whole carousel.
 - Files land in the same place and with the same names as **Download profile** (`perfil/fotos` or `perfil/videos`, `YYYY-MM-DD_{code}_NN`), so downloading the profile later doesn't create duplicates. You can turn the buttons off in the menu (*Tools* → *Post buttons*).
 
 **Profiles**
@@ -106,7 +107,7 @@ Download the files from the [latest release](https://github.com/DredsGG/salva-st
 | Where | What to do |
 | --- | --- |
 | Story | Click the top button or press `D` to save it; the second button or `Shift+D` saves every story from that profile. |
-| Post | Open it: the top button next to the post (or `D`) saves the photo or video on screen; the second one (or `Shift+D`) saves the whole carousel. |
+| Post | Open it, or just scroll the home feed: the top button next to the post (or `D`) saves the photo or video on screen; the second one (or `Shift+D`) saves the whole carousel. |
 | Profile | Click **Download profile**, pick how many posts and the types, then **Download**. Keep the tab open until it finishes. |
 | Post or reel with video | Hover the video to show the player; the last button downloads it. |
 | Direct | Click the select button, check conversations (or **All**) and pick an action in the bottom bar. |
@@ -148,7 +149,7 @@ flowchart LR
 ```
 
 - **No extra traffic in the normal case.** `page.js` listens to the responses Instagram itself already downloads (the reels media GraphQL payload and inline JSON) and keeps the story items in memory. Only when an item isn't cached does it make a single `media/{id}/info` call.
-- **Finding the post on screen:** the post's data (every carousel item, in order) comes from the same responses Instagram already loads (the grid, the post pop-up or the inline JSON of `/p/{code}/`), indexed by its shortcode. The item on screen is the image inside the carousel window whose file name matches one of the item's candidates (video: React fiber; fallback: `img_index` in the URL).
+- **Finding the post on screen:** the post's data (every carousel item, in order) comes from the same responses Instagram already loads (the grid, the post pop-up or the inline JSON of `/p/{code}/`), indexed by its shortcode. The item on screen is the image inside the carousel window whose file name matches one of the item's candidates (video: React fiber; fallback: `img_index` in the URL, or on the home feed the carousel slide's own `translateX` position). On the home feed, each post is an `<article>` and its shortcode comes from the post's date link.
 - **Finding the story on screen:** the biggest `<video>`/`<img>` in the center of the viewer, matched to its media id through React fiber. When the URL already has an id, that one wins, which covers the slide animation between stories.
 - **"Save all" uses only the reel the viewer already loaded.** It doesn't do batch API calls, since that's what triggers Instagram's automation checks.
 - **Minimal permissions:** `downloads`, `storage` and `alarms` (and `permissions.contains` to warn when Firefox site access was removed); host access to Instagram's CDN (`*.cdninstagram.com`, `*.fbcdn.net`, needed to fetch DASH tracks), to `www.instagram.com` (to reload its tabs after an update) and to `api.github.com` (to read the latest release). The service worker refuses any download URL that isn't HTTPS on the CDN hosts. No `cookies`, `tabs` or `webRequest`, and nothing about you is sent anywhere: the only outside request is that read-only release check.
@@ -174,6 +175,7 @@ End-to-end with the real extension loaded, against a simulated instagram.com and
 - `e2e-update14.mjs`, with the page open the whole time and a simulated GitHub: check on open, no extra check when coming back within 10 minutes, a check after that showing the card in the middle without a reload, ✕ snoozing for an hour (clock fast-forwarded) and the card back on the next visit, then an *URGENTE* release: no ✕, `Esc` ignored, downloads refused, long jobs paused, and everything back once it's resolved.
 - `e2e-post.mjs`: post buttons on a carousel pop-up (photo, video, photo), swiping without the buttons moving or blinking, `D` and `Shift+D` with the right names, a single post, a post opened on its own page, scrolling away, a narrow window and the menu switch.
 - `e2e-reels.mjs`: the player on a Reels-like page with human-paced clicks (press, 120 ms, release): pause and the speaker act on the reel on screen after moving to the next one, the speaker stays under the mouse when the volume slider opens, and the bar stays while the mouse rests on it.
+- `e2e-feed.mjs`: buttons on the home feed (a carousel with photo, video and photo, a single photo and a reel): `D`, `Shift+D` and a real click with the right names, moving to the next post as you scroll, hiding while scrolling, and the menu switch; plus our sidebar icon and ghost badge hiding while Instagram's "More" menu is open over them.
 - `e2e-reels-sound.mjs`: sound on Reels. It's on when you enter Reels, stays on across reels, our speaker changes Instagram's own mute state, a mute holds until you leave Reels and comes back on when you return, and with the setting off nothing is touched.
 - `e2e-flick.mjs`: the story buttons only ever show at their final spot while Instagram slides to the next person, and come back before the slide finishes.
 - `e2e-lang.mjs`: first run with the browser in pt-BR, pt-PT, en-US, es-ES, es-419 and de-DE (falls back to English), then switching PT · EN · ES in the footer, tutorial, menu, *What's new* and the bug report log.

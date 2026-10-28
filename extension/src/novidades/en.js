@@ -1,5 +1,9 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.8.8': [
+    "Home feed: the save buttons show up next to the post on screen. Save the current photo or video, or the whole carousel (keys D and Shift+D).",
+    "Our sidebar icon and the little ghost hide while Instagram's \"More\" menu is open, so they no longer sit on top of \"Switch accounts\" and \"Log out\".",
+  ],
   '1.8.7': [
     "Reels with sound: sound is on from the start and stays on as you swipe. If you mute, it stays muted until you leave Reels. You can turn this off in the menu, under Tools.",
   ],

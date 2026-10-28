@@ -1,5 +1,9 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.8.8': [
+    "Página de inicio: los botones de guardar aparecen junto a la publicación en pantalla. Guarda la foto o el video actual, o todo el carrusel (teclas D y Shift+D).",
+    "Nuestro ícono de la barra lateral y el fantasmita se ocultan mientras el menú \"Más\" de Instagram está abierto, sin taparle \"Cambiar de cuenta\" y \"Salir\".",
+  ],
   '1.8.7': [
     "Reels con sonido: el sonido viene activado y sigue así al pasar de reel. Si silencias, queda en silencio hasta salir de Reels. Se puede desactivar en el menú, en Herramientas.",
   ],

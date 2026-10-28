@@ -32,7 +32,7 @@
       secTools: 'Ferramentas', follows: 'Seguidores e seguindo', followsD: 'Quem não te segue de volta, quem você não segue, mútuos e quem deixou de seguir',
       player: 'Player nos vídeos', playerD: 'Pausar, voltar, avançar, velocidade, volume e baixar nos vídeos e reels',
       reelsSound: 'Som ligado no Reels', reelsSoundD: 'Os reels já começam com som e continuam com som ao passar. Se você mutar, fica mudo até sair do Reels',
-      postBtn: 'Botões no post', postBtnD: 'No post aberto, salva a foto da tela ou todas do carrossel',
+      postBtn: 'Botões nos posts', postBtnD: 'No post aberto e no feed, salva a foto da tela ou todas do carrossel',
       profileBtn: 'Botão "baixar perfil"', profileBtnD: 'Na página de um perfil, baixa todos os posts organizados em pastas',
       inboxTools: 'Seleção no direct', inboxToolsD: 'Selecionar várias conversas e agir em todas de uma vez',
       ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', open2: 'Abrir',
@@ -63,7 +63,7 @@
       secTools: 'Tools', follows: 'Followers & following', followsD: "Who doesn't follow you back, who you don't follow back, mutuals and who unfollowed",
       player: 'Video player', playerD: 'Pause, rewind, forward, speed, volume and download on videos and reels',
       reelsSound: 'Sound on in Reels', reelsSoundD: 'Reels start with sound and keep it as you swipe. If you mute, it stays muted until you leave Reels',
-      postBtn: 'Post buttons', postBtnD: 'On an open post, saves the photo on screen or the whole carousel',
+      postBtn: 'Post buttons', postBtnD: 'On an open post and in the feed, saves the photo on screen or the whole carousel',
       profileBtn: '"Download profile" button', profileBtnD: "On a profile page, downloads every post into tidy folders",
       inboxTools: 'Direct selection', inboxToolsD: 'Select several chats and act on all of them at once',
       ghostOn: 'Ghost mode on', ghostSub: 'Nobody sees that you watched', open2: 'Open',
@@ -94,7 +94,7 @@
       secTools: 'Herramientas', follows: 'Seguidores y seguidos', followsD: 'Quién no te sigue, a quién no sigues, mutuos y quién dejó de seguirte',
       player: 'Reproductor en los videos', playerD: 'Pausar, retroceder, avanzar, velocidad, volumen y descargar en videos y reels',
       reelsSound: 'Sonido activado en Reels', reelsSoundD: 'Los reels empiezan con sonido y lo mantienen al pasar. Si silencias, queda en silencio hasta salir de Reels',
-      postBtn: 'Botones en la publicación', postBtnD: 'En una publicación abierta, guarda la foto en pantalla o todo el carrusel',
+      postBtn: 'Botones en las publicaciones', postBtnD: 'En una publicación abierta y en el feed, guarda la foto en pantalla o todo el carrusel',
       profileBtn: 'Botón "descargar perfil"', profileBtnD: 'En un perfil, descarga todas las publicaciones en carpetas ordenadas',
       inboxTools: 'Selección en el direct', inboxToolsD: 'Selecciona varios chats y actúa en todos a la vez',
       ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', open2: 'Abrir',
@@ -387,6 +387,19 @@
     return { x: cx - 24, y: top + last.height / 2 - 24 };
   }
 
+  // Um menu do Instagram por cima do nosso lugar (o "Mais" abre no canto de baixo da barra, por cima do nosso
+  // ícone e do fantasminha): o que fica no ponto, tirando o que é nosso, é o vão vazio da coluna da barra (o
+  // elemento que contém o "Início"). Se for outra coisa (um item do menu aberto), o ícone se esconde até o menu fechar.
+  function homeLink() {
+    return [...document.querySelectorAll('a[href="/"]')].filter((a) => { const r = a.getBoundingClientRect(); return r.width && r.left < 140; })
+      .sort((a, b) => b.getBoundingClientRect().top - a.getBoundingClientRect().top)[0] || null;
+  }
+  function coveredAt(x, y, home) {
+    if (!home || x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return false;
+    const hit = document.elementsFromPoint(x, y).find((e) => !/^SALVA-STORIES/.test(e.tagName));
+    return !!hit && !hit.contains(home);
+  }
+  let coverCheck = 0;
   function placeNav() {
     ensure();
     applyMode();
@@ -404,11 +417,13 @@
       nav.style.left = (innerWidth - 24 - 48) + 'px';
       nav.style.top = (innerHeight - 96 - 48) + 'px';
     }
-    nav.hidden = false;
+    const home = anchorMode === 'sidebar' && !isOpen() ? homeLink() : null;
+    const nl = parseFloat(nav.style.left), nt = parseFloat(nav.style.top);
+    nav.hidden = !!home && coveredAt(nl + 24, nt + 24, home);
     // modo fantasma ligado → fantasminha logo abaixo do nosso ícone (no flutuante, acima dele)
-    ghostEl.hidden = !S.ghost;
+    ghostEl.hidden = !S.ghost || (!!home && (nav.hidden || coveredAt(nl + 24, nt + 52 + 22, home)));
+    if (nav.hidden) navTip.classList.remove('show');
     if (S.ghost) {
-      const nl = parseFloat(nav.style.left), nt = parseFloat(nav.style.top);
       ghostEl.style.left = nl + 'px';
       ghostEl.style.top = (anchorMode === 'fab' ? nt - 56 : nt + 52) + 'px';
       ghostEl.setAttribute('aria-label', tr('ghostOn'));
@@ -714,6 +729,10 @@
 
   // o Instagram é SPA: reposiciona o ícone ao navegar/redimensionar e acompanha o tema dele
   setInterval(placeNav, 500);
+  // menu do Instagram abrindo/fechando por clique ou tecla: confere logo, sem esperar os 500 ms
+  const soon = () => { clearTimeout(coverCheck); coverCheck = setTimeout(() => { placeNav(); setTimeout(placeNav, 200); }, 40); };
+  addEventListener('click', soon, true);
+  addEventListener('keyup', soon, true);
   addEventListener('resize', () => { placeNav(); if (isOpen()) positionFrom(lastAnchor); });
   new MutationObserver(applyMode).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
@@ -728,6 +747,6 @@
       follows: box(panel.querySelector('.tool[data-tool="follows"]')), player: box(panel.querySelector('.row[data-key="player"] .sw')),
       uchk: box(panel.querySelector('.uchk')), ubug: box(panel.querySelector('.ubug')), ugo: box(panel.querySelector('.ugo')), bgh: box(panel.querySelector('.bgh')), bwhat: box(panel.querySelector('.bwhat')),
     } : null,
-    ghostBadge: ghostEl && !ghostEl.hidden ? box(ghostEl) : null,
+    ghostBadge: ghostEl && !ghostEl.hidden ? box(ghostEl) : null, navHidden: nav ? nav.hidden : null,
   });
 })();

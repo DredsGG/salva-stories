@@ -113,7 +113,7 @@
     const seen = new Set();
     let found = 0;
     (function walk(o, depth, ctxUser) {
-      if (!o || typeof o !== 'object' || depth > 16 || seen.has(o)) return;
+      if (!o || typeof o !== 'object' || depth > 24 || seen.has(o)) return; // feed da página inicial no HTML: o post fica no nível 17 (medido em 28/10/2026)
       seen.add(o);
       if (Array.isArray(o)) { for (const v of o) walk(v, depth + 1, ctxUser); return; }
       const user = (o.user && o.user.username) || ctxUser;
@@ -389,9 +389,54 @@
     const carousel = best.vpEl.querySelectorAll('li').length > 1;
     return { vpEl: best.vpEl, v, right, carousel };
   }
+  // página inicial (feed): cada post é um <article>; o código vem do link da data (/p/{code}/ ou /reel/{code}/).
+  // O post "da vez" é o que tem a mídia mais à vista; os botões ficam à direita dele, como no post aberto.
+  const FEED_LINK_RE = /\/(?:[A-Za-z0-9._]{1,30}\/)?(?:p|reels?)\/(?!audio\/)([A-Za-z0-9_-]{5,})/; // /reels/audio/{id}/ é o áudio, não o post
+  const onFeed = () => location.pathname === '/';
+  function articleCode(art) {
+    const tm = art.querySelector('a[href] time');
+    const links = tm ? [tm.closest('a'), ...art.querySelectorAll('a[href]')] : art.querySelectorAll('a[href]');
+    for (const l of links) { const m = (l.getAttribute('href') || '').match(FEED_LINK_RE); if (m) return m[1]; }
+    return null;
+  }
+  function feedView() {
+    let best = null;
+    for (const art of document.querySelectorAll('main article')) {
+      const ar = art.getBoundingClientRect();
+      if (ar.bottom < 60 || ar.top > innerHeight - 60 || ar.width < 200) continue;
+      let el = null, ov = -1;
+      for (const m of art.querySelectorAll('img, video')) {
+        const r = m.getBoundingClientRect();
+        if (r.width < 200 || r.height < 150) continue;
+        // no carrossel os outros slides ficam fora da janela, ao lado: vale o que está mais dentro do post
+        const o = Math.min(r.right, ar.right) - Math.max(r.left, ar.left);
+        if (o > ov) { ov = o; el = m; }
+      }
+      if (!el) continue;
+      const vpEl = viewportOf(slideOf(el));
+      const v = rectOf(vpEl);
+      const vis = (Math.min(v.bottom, innerHeight) - Math.max(v.top, 0)) * v.width;
+      if (vis <= 0 || (best && vis <= best.vis)) continue;
+      const cy = (Math.max(v.top, 0) + Math.min(v.bottom, innerHeight)) / 2;
+      const hit = document.elementFromPoint(v.left + v.width / 2, cy);
+      if (!hit || !vpEl.contains(hit)) continue; // coberta (menu, aviso do Instagram por cima)
+      const code = articleCode(art);
+      if (!code) continue;
+      best = { vpEl, v, vis, right: v.right, carousel: vpEl.querySelectorAll('li').length > 1, code };
+    }
+    return best;
+  }
+  // post dos botões: o aberto (/p/{code}/) ou, na página inicial, o do feed que está à vista
+  function curPost() {
+    const code = postCode();
+    if (code) return { code, pv: postView() };
+    const fv = onFeed() ? feedView() : null;
+    return fv ? { code: fv.code, pv: fv } : { code: null, pv: null };
+  }
   // qual parte do carrossel está na tela: a mídia mais dentro da janela, pelo nome do arquivo (foto) ou pelo fiber (vídeo); senão img_index
   function postIndex(post, vpEl) {
     if (post.parts.length < 2) return 0;
+    let liIdx = 0;
     if (vpEl) {
       const v = vpEl.getBoundingClientRect();
       let el = null, ov = 0;
@@ -410,10 +455,17 @@
         const pk = pkFromFiber(el);
         const i = pk ? post.parts.findIndex((p) => p.pk === pk) : -1;
         if (i >= 0) return i;
+        // carrossel do Instagram (feed e post aberto, medido em 28/10/2026): cada <li> fica parado em translateX(n × largura)
+        // e a janela rola por baixo; o n do <li> na tela é a posição no carrossel (o 1º <li> sem mídia é só um espaçador)
+        const li = el.closest('li');
+        const m = li && /translateX\((-?[\d.]+)px\)/.exec(li.style.transform || '');
+        const w = li && li.getBoundingClientRect().width;
+        if (m && w > 50) { const n = Math.round(parseFloat(m[1]) / w); if (n >= 0 && n < post.parts.length) liIdx = n; }
       }
     }
+    // post aberto: o Instagram põe ?img_index= na URL; no feed não tem, vale o <li>
     const n = parseInt(new URLSearchParams(location.search).get('img_index') || '', 10);
-    return n >= 1 && n <= post.parts.length ? n - 1 : 0;
+    return n >= 1 && n <= post.parts.length ? n - 1 : liIdx;
   }
 
   // ───────────────────────── API (plano B) ─────────────────────────
@@ -568,10 +620,9 @@
     return job;
   }
   async function downloadPostCurrent() {
-    const code = postCode();
+    const { code, pv } = curPost();
     const post = code && (await postData(code));
     if (!post) throw new Error(t('noPost'));
-    const pv = postView();
     const job = postJob(post, postIndex(post, pv && pv.vpEl));
     if (!job) throw new Error(t('noMedia'));
     const r = await askExtension([job]);
@@ -579,7 +630,7 @@
     return job.type === 'video' ? (job.audio ? t('video') : t('videoMute')) : t('photo');
   }
   async function downloadPostAll() {
-    const code = postCode();
+    const { code } = curPost();
     const post = code && (await postData(code));
     if (!post) throw new Error(t('noPost'));
     const jobs = post.parts.map((_, i) => postJob(post, i)).filter(Boolean);
@@ -626,6 +677,7 @@
           color:#fff; background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.28); backdrop-filter: blur(6px);
           box-shadow: 0 2px 10px rgba(0,0,0,.35); transition: transform .12s ease, background .12s ease; }
         button:hover { background:rgba(0,0,0,.75); transform: scale(1.06); }
+        button svg { pointer-events:none; } /* o ícone é trocado (ok/erro) durante o clique: o alvo é sempre o botão */
         button:focus-visible { outline:2px solid #fff; outline-offset:2px; }
         button.busy svg { animation: spin 1s linear infinite; opacity:.85; }
         button.ok { background:#1f9d55; border-color:#1f9d55; }
@@ -727,9 +779,9 @@
   // foto no canto de cima. A janela do carrossel não se mexe quando a foto passa, então os botões ficam parados.
   let postSeen = 0, postCodeShown = null;
   function hideAll() { if (host) { setVisible(false); host.style.display = 'none'; } placed = null; lastRect = null; }
-  function renderPost(code) {
+  function renderPost(code, given) {
     const now = performance.now();
-    const pv = postView();
+    const pv = given || postView();
     if (!pv) {
       // carregando ou trocando: segura um instante no lugar antes de sumir
       if (!(host && postCodeShown === code && now - postSeen < 1200)) { hideAll(); postCodeShown = null; }
@@ -773,10 +825,14 @@
     setVisible(true);
   }
 
+  const now0 = () => performance.now();
   function render() {
     const onStories = location.pathname.startsWith('/stories/');
     const code = !onStories && settings && settings.postBtn !== false ? postCode() : null;
     if (code) return renderPost(code);
+    const fv = !onStories && settings && settings.postBtn !== false && onFeed() ? feedView() : null;
+    if (fv) return renderPost(fv.code, fv);
+    if (mode !== 'story' && onFeed() && host && now0() - postSeen < 250) { setVisible(false); return; } // entre um post e outro, sem piscar
     if (mode !== 'story') { mode = 'story'; hideAll(); rest = null; postCodeShown = null; }
     const el = onStories ? activeMedia() : null;
     const now = performance.now();
@@ -827,7 +883,7 @@
   let lastTick = 0;
   (function loop(t) {
     const fast = location.pathname.startsWith('/stories/');
-    const post = !fast && POST_RE.test(location.pathname);
+    const post = !fast && (POST_RE.test(location.pathname) || onFeed());
     if (t - lastTick >= (fast ? 15 : post ? 40 : 400)) { lastTick = t; try { render(); } catch (_) {} }
     requestAnimationFrame(loop);
   })(0);
@@ -840,7 +896,7 @@
     // tecla digitada dentro do menu (shadow DOM fechado: daqui de fora o alvo aparece como o próprio <salva-stories-menu>)
     const t = (e.composedPath && e.composedPath()[0]) || e.target;
     if (t && (t.tagName === 'SALVA-STORIES-MENU' || t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
-    const onPost = mode !== 'story' && POST_RE.test(location.pathname);
+    const onPost = mode !== 'story' && (POST_RE.test(location.pathname) || (onFeed() && !!postCodeShown));
     if (!(location.pathname.startsWith('/stories/') || onPost) || !host || host.style.display === 'none' || host.style.opacity === '0') return;
     if (onPost && e.shiftKey && btnAll.style.display === 'none') return;
     e.preventDefault();
@@ -864,6 +920,6 @@
   // depuração pelo console: __salvaStoriesDebug()
   const __box = (el) => { if (!el || el.style.display === 'none') return null; const r = el.getBoundingClientRect(); return r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } : null; };
   window.__salvaStoriesDebug = () => ({ items: ITEMS.size, reels: new Set(REELS.values()).size, posts: POSTS.size, current: currentPk(), settings, mode,
-    post: (() => { const c = postCode(); const p = c && POSTS.get(c); const pv = c && postView(); return c ? { code: c, loaded: !!p, parts: p ? p.parts.length : 0, index: p ? postIndex(p, pv && pv.vpEl) : null, view: pv ? { left: Math.round(pv.v.left), right: Math.round(pv.right), top: Math.round(pv.v.top), carousel: pv.carousel } : null } : null; })(),
+    post: (() => { const cp = curPost(); const c = cp.code; const p = c && POSTS.get(c); const pv = cp.pv; return c ? { code: c, loaded: !!p, parts: p ? p.parts.length : 0, index: p ? postIndex(p, pv && pv.vpEl) : null, view: pv ? { left: Math.round(pv.v.left), right: Math.round(pv.right), top: Math.round(pv.v.top), carousel: pv.carousel } : null } : null; })(),
     at: host && host.style.display !== 'none' ? { opacity: host.style.opacity, left: host.style.left, top: host.style.top, one: __box(btnOne), all: __box(btnAll), title: btnOne.title } : null });
 })();
