@@ -1,5 +1,8 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.8.11': [
+    "Foto de perfil grande: en el perfil de alguien, haz clic en la foto (o mantenla pulsada, si tiene historia) para verla en alta resolución y guardarla. Se puede desactivar en el menú, en Herramientas.",
+  ],
   '1.8.10': [
     "El fantasmita siempre está a la vista, en las historias y en la barra lateral: encendido es modo fantasma activado, apagado es desactivado. Haz clic para activarlo o desactivarlo.",
   ],

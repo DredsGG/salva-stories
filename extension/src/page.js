@@ -112,6 +112,28 @@
     POST_PK.set(pk, o.code);
   }
 
+  // foto de perfil em alta (a resposta do perfil traz hd_profile_pic_url_info com o tamanho original, até 1080×1080;
+  // medido em 28/10/2026). Guarda por usuário para a foto grande do perfil (avatar.js).
+  const AVATARS = new Map(); // username(lower) -> { url, w, h }
+  function noteAvatar(o) {
+    const hd = o.hd_profile_pic_url_info;
+    if (!hd || typeof hd.url !== 'string' || typeof o.username !== 'string') return;
+    const key = o.username.toLowerCase(), old = AVATARS.get(key);
+    if (old && old.url === hd.url) return;
+    AVATARS.set(key, { url: hd.url, w: hd.width || 0, h: hd.height || 0, at: Date.now() });
+  }
+  function scanAvatars(text) {
+    if (typeof text !== 'string' || text.indexOf('hd_profile_pic_url_info') === -1) return;
+    const walk = (o, d) => {
+      if (!o || typeof o !== 'object' || d > 40) return;
+      if (Array.isArray(o)) { for (const v of o) walk(v, d + 1); return; }
+      noteAvatar(o);
+      for (const k in o) { const v = o[k]; if (v && typeof v === 'object') walk(v, d + 1); }
+    };
+    const t = text.replace(/^for \(;;\);/, '');
+    for (const line of t.indexOf('\n{') !== -1 ? t.split('\n') : [t]) { if (line.trim()) { try { walk(JSON.parse(line), 0); } catch (_) {} } }
+  }
+
   function harvest(root) {
     const seen = new Set();
     let found = 0;
@@ -165,6 +187,7 @@
   const dataListeners = [];
   function emitData(obj) { for (const fn of dataListeners) { try { fn(obj); } catch (_) {} } }
   function parseMaybe(text) {
+    scanAvatars(text);
     if (typeof text !== 'string' || text.indexOf('image_versions2') === -1) return;
     try {
       const t = text.replace(/^for \(;;\);/, '');
@@ -237,7 +260,7 @@
       xhr.addEventListener('load', () => {
         try {
           if (xhr.responseType === '' || xhr.responseType === 'text') parseMaybe(xhr.responseText);
-          else if (xhr.responseType === 'json' && xhr.response) harvest(xhr.response);
+          else if (xhr.responseType === 'json' && xhr.response) { harvest(xhr.response); try { scanAvatars(JSON.stringify(xhr.response)); } catch (_) {} }
         } catch (_) {}
       });
     }
@@ -257,6 +280,7 @@
   function harvestInline() {
     for (const s of document.querySelectorAll('script[type="application/json"]')) {
       const t = s.textContent;
+      if (t && !s.__ssAv && t.indexOf('hd_profile_pic_url_info') !== -1) { s.__ssAv = true; scanAvatars(t); }
       if (t && t.indexOf('image_versions2') !== -1 && !s.__ssSeen) { try { const o = JSON.parse(t); s.__ssSeen = true; harvest(o); emitData(o); } catch (_) {} }
     }
   }
@@ -1009,6 +1033,8 @@
       whenSettings: () => settingsReady,
       appId, csrf, fiberOf, pkFromFiber, log, logs: () => LOG.slice(), itemCount: () => ITEMS.size, ITEMS_HAS: (pk) => ITEMS.has(String(pk)),
       lang: () => (settings && settings.lang) || NAV_LANG,
+      avatar: (user) => { harvestInline(); return AVATARS.get(String(user || '').toLowerCase()) || null; },
+      avatarCount: () => AVATARS.size,
     }),
   });
   // depuração pelo console: __salvaStoriesDebug()

@@ -1,6 +1,9 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.8.11': [
+    "Foto de perfil grande: no perfil de alguém, clique na foto (ou segure, se a pessoa tiver story) para ver em alta resolução, do tamanho original, e salvar. Dá para desligar no menu, em Ferramentas.",
+  ],
   '1.8.10': [
     "Fantasminha sempre à vista, no story e na barra lateral: aceso é modo fantasma ligado, apagado é desligado. Clique nele para ligar ou desligar.",
   ],

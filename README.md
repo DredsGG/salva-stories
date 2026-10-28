@@ -9,7 +9,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
 ![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.8.10-d62976)
+![Version](https://img.shields.io/badge/version-1.8.11-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
@@ -43,6 +43,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 <img src="docs/salva-stories-profile-download.png" width="720" alt="Download profile button next to Follow and Message on an Instagram profile, with its card open: how many posts, photos and videos checkboxes, destination folder and a Download button">
 
+- **Large profile picture:** click someone's profile picture (or hold it, if they have a story) to see it at its original size, usually 1080×1080, in a square in the middle of the screen, with a Save button. It comes from the data Instagram already loads for the profile, with no extra request. On your own profile, only holding opens it (the click still changes your photo).
 - A **Download profile** button on any profile saves its posts (photos, videos and every carousel item) into `perfil/fotos` and `perfil/videos`. Choose how many posts and whether you want photos, videos or both.
 - It scrolls the grid and keeps the responses Instagram itself loads, at a calm pace (3–6 s per page), instead of calling private endpoints.
 
@@ -109,7 +110,7 @@ Download the files from the [latest release](https://github.com/DredsGG/salva-st
 | --- | --- |
 | Story | Click the top button or press `D` to save it; the second button or `Shift+D` saves every story from that profile. Hover the speed button (`1×`) to watch a video story at 0.5×, 1.5× or 2×. |
 | Post | Open it, or just scroll the home feed: the top button next to the post (or `D`) saves the photo or video on screen; the second one (or `Shift+D`) saves the whole carousel. |
-| Profile | Click **Download profile**, pick how many posts and the types, then **Download**. Keep the tab open until it finishes. |
+| Profile | Click **Download profile**, pick how many posts and the types, then **Download**. Keep the tab open until it finishes. Click the profile picture (hold it if there's a story) to see it full size and save it. |
 | Post or reel with video | Hover the video to show the player; the last button downloads it. |
 | Direct | Click the select button, check conversations (or **All**) and pick an action in the bottom bar. |
 | Followers | Open the menu → **Tools** → **Followers & following** → scan. Run it again later to see who unfollowed you. |
@@ -176,6 +177,7 @@ End-to-end with the real extension loaded, against a simulated instagram.com and
 - `e2e-update14.mjs`, with the page open the whole time and a simulated GitHub: check on open, no extra check when coming back within 10 minutes, a check after that showing the card in the middle without a reload, ✕ snoozing for an hour (clock fast-forwarded) and the card back on the next visit, then an *URGENTE* release: no ✕, `Esc` ignored, downloads refused, long jobs paused, and everything back once it's resolved.
 - `e2e-post.mjs`: post buttons on a carousel pop-up (photo, video, photo), swiping without the buttons moving or blinking, `D` and `Shift+D` with the right names, a single post, a post opened on its own page, scrolling away, a narrow window and the menu switch.
 - `e2e-reels.mjs`: the player on a Reels-like page with human-paced clicks (press, 120 ms, release): pause and the speaker act on the reel on screen after moving to the next one, the speaker stays under the mouse when the volume slider opens, and the bar stays while the mouse rests on it.
+- `e2e-avatar.mjs`: the large profile picture. Without a story a click opens it at 1080 without leaving the page, Save uses the right folder and name, Esc and a click outside close it; with a story (data from GraphQL) holding opens it and the story doesn't, a short click still opens the story; your own profile, a profile without the full-size data (warning) and the menu switch.
 - `e2e-story-speed.mjs`: speed in video stories (the vertical list opens on hover, 2× applied and re-applied when the page resets it, dimmed on photo stories, kept on the next video and after a reload, the menu switch) and the ghost badge turning ghost mode on and off, in a story and on the sidebar.
 - `e2e-feed.mjs`: buttons on the home feed (a carousel with photo, video and photo, a single photo and a reel): `D`, `Shift+D` and a real click with the right names, moving to the next post as you scroll, hiding while scrolling, and the menu switch; plus our sidebar icon and ghost badge hiding while Instagram's "More" menu is open over them.
 - `e2e-reels-sound.mjs`: sound on Reels. It's on when you enter Reels, stays on across reels, our speaker changes Instagram's own mute state, a mute holds until you leave Reels and comes back on when you return, and with the setting off nothing is touched.

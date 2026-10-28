@@ -1,5 +1,8 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.8.11': [
+    "Large profile picture: on someone's profile, click the picture (or hold it, if they have a story) to see it at full resolution and save it. You can turn this off in the menu, under Tools.",
+  ],
   '1.8.10': [
     "The little ghost is always there, in stories and on the sidebar: lit means ghost mode is on, dimmed means it's off. Click it to turn it on or off.",
   ],
