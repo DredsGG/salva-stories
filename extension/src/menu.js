@@ -31,6 +31,7 @@
       stale: 'A extensão foi atualizada. Recarregue a página para usar a versão nova.', reload: 'Recarregar',
       secTools: 'Ferramentas', follows: 'Seguidores e seguindo', followsD: 'Quem não te segue de volta, quem você não segue, mútuos e quem deixou de seguir',
       player: 'Player nos vídeos', playerD: 'Pausar, voltar, avançar, velocidade, volume e baixar nos vídeos e reels',
+      reelsSound: 'Som ligado no Reels', reelsSoundD: 'Os reels já começam com som e continuam com som ao passar. Se você mutar, fica mudo até sair do Reels',
       postBtn: 'Botões no post', postBtnD: 'No post aberto, salva a foto da tela ou todas do carrossel',
       profileBtn: 'Botão "baixar perfil"', profileBtnD: 'Na página de um perfil, baixa todos os posts organizados em pastas',
       inboxTools: 'Seleção no direct', inboxToolsD: 'Selecionar várias conversas e agir em todas de uma vez',
@@ -61,6 +62,7 @@
       stale: 'The extension was updated. Reload the page to use the new version.', reload: 'Reload',
       secTools: 'Tools', follows: 'Followers & following', followsD: "Who doesn't follow you back, who you don't follow back, mutuals and who unfollowed",
       player: 'Video player', playerD: 'Pause, rewind, forward, speed, volume and download on videos and reels',
+      reelsSound: 'Sound on in Reels', reelsSoundD: 'Reels start with sound and keep it as you swipe. If you mute, it stays muted until you leave Reels',
       postBtn: 'Post buttons', postBtnD: 'On an open post, saves the photo on screen or the whole carousel',
       profileBtn: '"Download profile" button', profileBtnD: "On a profile page, downloads every post into tidy folders",
       inboxTools: 'Direct selection', inboxToolsD: 'Select several chats and act on all of them at once',
@@ -91,6 +93,7 @@
       stale: 'La extensión se actualizó. Recarga la página para usar la versión nueva.', reload: 'Recargar',
       secTools: 'Herramientas', follows: 'Seguidores y seguidos', followsD: 'Quién no te sigue, a quién no sigues, mutuos y quién dejó de seguirte',
       player: 'Reproductor en los videos', playerD: 'Pausar, retroceder, avanzar, velocidad, volumen y descargar en videos y reels',
+      reelsSound: 'Sonido activado en Reels', reelsSoundD: 'Los reels empiezan con sonido y lo mantienen al pasar. Si silencias, queda en silencio hasta salir de Reels',
       postBtn: 'Botones en la publicación', postBtnD: 'En una publicación abierta, guarda la foto en pantalla o todo el carrusel',
       profileBtn: 'Botón "descargar perfil"', profileBtnD: 'En un perfil, descarga todas las publicaciones en carpetas ordenadas',
       inboxTools: 'Selección en el direct', inboxToolsD: 'Selecciona varios chats y actúa en todos a la vez',
@@ -109,7 +112,7 @@
     },
   };
 
-  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, postBtn: true, profileBtn: true, inboxTools: true };
+  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, reelsSound: true, postBtn: true, profileBtn: true, inboxTools: true };
   let version = '';
   let stale = false;
   const tr = (k, ...a) => { const v = (T[S.lang] || T.pt)[k] ?? T.pt[k]; return typeof v === 'function' ? v(...a) : v; };
@@ -423,7 +426,7 @@
   const isOpen = () => panel && !panel.hidden;
   let lastAnchor = null;
 
-  const LABEL = { perUser: 'perUser', maxQuality: 'maxQ', showAll: 'all', hotkey: 'hotkey', ghost: 'ghost', player: 'player', postBtn: 'postBtn', profileBtn: 'profileBtn', inboxTools: 'inboxTools' };
+  const LABEL = { perUser: 'perUser', maxQuality: 'maxQ', showAll: 'all', hotkey: 'hotkey', ghost: 'ghost', player: 'player', reelsSound: 'reelsSound', postBtn: 'postBtn', profileBtn: 'profileBtn', inboxTools: 'inboxTools' };
   // linha com chave liga/desliga (a descrição pode ter <kbd>, por isso não passa por esc)
   function sw(key) {
     const k = LABEL[key];
@@ -453,7 +456,7 @@
         <div class="sec">${esc(tr('secTools'))}</div>
         <div class="tool" role="button" tabindex="0" data-tool="follows"><span class="ti">${PEOPLE}</span>
           <span class="txt"><span class="t">${esc(tr('follows'))}</span><span class="d">${esc(tr('followsD'))}</span></span><span class="go">${CHEVRON}</span></div>
-        ${sw('player')}${sw('postBtn')}${sw('profileBtn')}${sw('inboxTools')}
+        ${sw('player')}${sw('reelsSound')}${sw('postBtn')}${sw('profileBtn')}${sw('inboxTools')}
         <div class="sec">${esc(tr('secLook'))}</div>
         <div class="row static"><span class="txt"><span class="t">${esc(tr('lang'))}</span></span>
           <div class="flags" role="radiogroup" aria-label="${esc(tr('lang'))}">${['pt', 'en', 'es'].map(flag).join('')}</div></div>
@@ -571,7 +574,7 @@
       disco ? `Auto-reload: checked ${Math.round((Date.now() - (disco.em || 0)) / 60000)} min ago · disk v${disco.noDisco || '?'} · running v${disco.rodando || '?'} · ${disco.estado || '?'}` : 'Auto-reload: no check yet',
       `Browser: ${brow} · ${os} · UI ${S.lang} · ${navigator.language}${perm && perm.ok === false ? ' · site access MISSING' : ''}`,
       `Page: ${page} · theme ${S.theme} (${mode()})`,
-      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, postBtn ${on('postBtn')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
+      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, reelsSound ${on('reelsSound')}, postBtn ${on('postBtn')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
       api && api.itemCount ? `Cache: ${api.itemCount()} items` : '',
     ].filter(Boolean).join('\n');
     const logs = api && api.logs ? api.logs() : [];

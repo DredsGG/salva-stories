@@ -9,7 +9,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
 ![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.8.6-d62976)
+![Version](https://img.shields.io/badge/version-1.8.7-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
@@ -51,6 +51,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 - Laid over Instagram's own `<video>` on posts and reels: play/pause, ±10 s, a seek bar, speed from 0.5× to 2×, volume and a download button.
 - A pause stays a pause: Instagram's feed tries to resume videos when you scroll, and the player holds them until you press play again (or tap the video yourself).
 - On Reels, the bar follows the reel on screen when you move to the next one, every click on pause and the speaker counts, and the bar stays put while the mouse rests on it.
+- **Reels with sound.** Sound is on from the start on Reels and stays on as you swipe to the next one. If you mute, it stays muted until you leave Reels. You can turn this off in the menu, under Tools.
 
 **Direct**
 
@@ -173,6 +174,7 @@ End-to-end with the real extension loaded, against a simulated instagram.com and
 - `e2e-update14.mjs`, with the page open the whole time and a simulated GitHub: check on open, no extra check when coming back within 10 minutes, a check after that showing the card in the middle without a reload, ✕ snoozing for an hour (clock fast-forwarded) and the card back on the next visit, then an *URGENTE* release: no ✕, `Esc` ignored, downloads refused, long jobs paused, and everything back once it's resolved.
 - `e2e-post.mjs`: post buttons on a carousel pop-up (photo, video, photo), swiping without the buttons moving or blinking, `D` and `Shift+D` with the right names, a single post, a post opened on its own page, scrolling away, a narrow window and the menu switch.
 - `e2e-reels.mjs`: the player on a Reels-like page with human-paced clicks (press, 120 ms, release): pause and the speaker act on the reel on screen after moving to the next one, the speaker stays under the mouse when the volume slider opens, and the bar stays while the mouse rests on it.
+- `e2e-reels-sound.mjs`: sound on Reels. It's on when you enter Reels, stays on across reels, our speaker changes Instagram's own mute state, a mute holds until you leave Reels and comes back on when you return, and with the setting off nothing is touched.
 - `e2e-flick.mjs`: the story buttons only ever show at their final spot while Instagram slides to the next person, and come back before the slide finishes.
 - `e2e-lang.mjs`: first run with the browser in pt-BR, pt-PT, en-US, es-ES, es-419 and de-DE (falls back to English), then switching PT · EN · ES in the footer, tutorial, menu, *What's new* and the bug report log.
 - **Firefox** (GitHub Actions, `Test` workflow): `web-ext lint` with no errors, then real Firefox with the extension installed as temporary: tutorial, menu and footer, update check, story photo with `D`, DASH video muxed through `blob:` (checked with `ffprobe`) and *What's new*.

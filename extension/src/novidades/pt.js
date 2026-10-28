@@ -1,6 +1,9 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.8.7': [
+    "Reels com som: o som já vem ligado e continua ligado ao passar de reel. Se você mutar, fica mudo até sair do Reels. Dá para desligar no menu, em Ferramentas.",
+  ],
   '1.8.6': [
     "Versão nova aparece sozinha no meio da tela assim que sai, sem recarregar a página. O X só adia por 1 hora.",
     "Atualização urgente: o aviso não fecha e a extensão pausa até você atualizar.",

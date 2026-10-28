@@ -1,5 +1,8 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.8.7': [
+    "Reels con sonido: el sonido viene activado y sigue así al pasar de reel. Si silencias, queda en silencio hasta salir de Reels. Se puede desactivar en el menú, en Herramientas.",
+  ],
   '1.8.6': [
     "Una versión nueva aparece sola en el centro de la pantalla en cuanto sale, sin recargar la página. La X solo la pospone 1 hora.",
     "Actualización urgente: el aviso no se cierra y la extensión se pausa hasta que actualices.",

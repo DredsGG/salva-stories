@@ -25,6 +25,8 @@ await ctx.route('https://www.instagram.com/**', (r) => {
 let [sw] = ctx.serviceWorkers(); if (!sw) sw = await ctx.waitForEvent('serviceworker');
 await wait(800);
 await sw.evaluate(() => chrome.storage.local.set({ 'ss.onboard': { tutorial: 'visto', visto: chrome.runtime.getManifest().version } }));
+// este teste mede o player sozinho: sem o "Som ligado no Reels" (que tem teste próprio, e2e-reels-sound.mjs)
+await sw.evaluate(() => chrome.storage.sync.set({ reelsSound: false }));
 const p = await ctx.newPage();
 await p.goto('https://www.instagram.com/reels/AAAA/'); await wait(1500);
 const click = async (x, y) => { await p.mouse.move(x, y); await p.mouse.down(); await wait(120); await p.mouse.up(); };

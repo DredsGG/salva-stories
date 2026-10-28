@@ -210,8 +210,69 @@
   }, true);
 
   // o Instagram costuma remutar o vídeo logo depois; se o usuário pediu som pelo nosso botão, devolve uma vez
+  // ───────── som no Reels (pedido do André, 28/10/2026) ─────────
+  // O Instagram guarda "som ligado" num estado dele, que só muda pelo botão de som DELE: quem desmutava pelo nosso
+  // alto-falante (só o <video>) via o reel seguinte voltar mudo. No Reels, o nosso alto-falante usa o botão do
+  // Instagram, e com "Som ligado no Reels" (padrão) o som já vem ligado e continua ao passar de reel. Se a pessoa
+  // mutar, fica mudo até sair do Reels.
+  let reelsSound = true, reelsUserMuted = false, lastReelsPath = false, audioTouchedAt = 0;
+  const onReels = () => /^\/reels?\//.test(location.pathname);
+  const AUDIO_RE = /áudio|audio|sonido|\bsom\b|sound/i;
+  function igAudioToggle(v) {
+    if (!v) return null;
+    const r = v.getBoundingClientRect();
+    for (const sv of document.querySelectorAll('svg[aria-label]')) {
+      if (!AUDIO_RE.test(sv.getAttribute('aria-label') || '')) continue;
+      const q = sv.getBoundingClientRect();
+      if (q.width && q.left >= r.left - 4 && q.right <= r.right + 40 && q.top >= r.top - 4 && q.bottom <= r.bottom + 40) return sv.closest('[role="button"], button') || sv.parentElement;
+    }
+    return null;
+  }
+  const activeReel = () => [...document.querySelectorAll('video')].find((x) => { const q = x.getBoundingClientRect(); return q.width > 150 && q.top < innerHeight / 2 && q.bottom > innerHeight / 2 && q.left < innerWidth / 2 + 300 && q.right > innerWidth / 2 - 300; }) || null;
+  // liga/desliga o som pelo botão do Instagram (estado dele fica certo); sem o botão, direto no vídeo
+  function igSetMuted(v, m) {
+    const tg = onReels() ? igAudioToggle(v) : null;
+    if (tg && v.muted !== m) { tg.__ssOurs = Date.now(); tg.click(); setTimeout(() => { if (v.muted !== m) v.muted = m; }, 120); return true; }
+    return false;
+  }
+  const hasActivation = () => !navigator.userActivation || navigator.userActivation.hasBeenActive;
+  function reelsTick() {
+    const here = onReels();
+    if (here !== lastReelsPath) { lastReelsPath = here; if (here) reelsUserMuted = false; } // entrou no Reels de novo: volta a ligar o som
+    if (!here || !reelsSound || reelsUserMuted || !enabled) return;
+    if (Date.now() - audioTouchedAt < 1500) return; // a pessoa acabou de mexer no som: não disputa o clique
+    const v = activeReel();
+    if (v && !v.muted) v.__ssMutedSince = 0;
+    if (!v || !v.muted || v.__ssAutoTried === v.currentSrc) return;
+    if (!hasActivation()) return; // o navegador só deixa tocar com som depois de um clique/tecla na página
+    // o reel que acabou de entrar pode nascer mudo por um instante antes de o Instagram aplicar o estado dele:
+    // só age se ele continua mudo e tocando há 700 ms (senão o clique no botão do Instagram inverteria o som)
+    const now = Date.now();
+    if (!v.__ssMutedSince) { v.__ssMutedSince = now; return; }
+    if (now - v.__ssMutedSince < 700 || v.paused) return;
+    v.__ssAutoTried = v.currentSrc;
+    if (!igSetMuted(v, false)) v.muted = false;
+    if (v.volume === 0) v.volume = pref.vol || 1;
+  }
+  setInterval(reelsTick, 400);
+  addEventListener('pointerdown', () => setTimeout(reelsTick, 60), true);
+  addEventListener('keydown', () => setTimeout(reelsTick, 60), true);
+  // a pessoa mutou pelo botão de som do Instagram: respeita até sair do Reels
+  addEventListener('click', (e) => {
+    if (!onReels() || !e.isTrusted) return;
+    const sv = e.target && e.target.closest && e.target.closest('[role="button"], button');
+    if (!sv || (sv.__ssOurs && Date.now() - sv.__ssOurs < 500)) return;
+    const svgEl = sv.querySelector('svg[aria-label]');
+    if (!svgEl || !AUDIO_RE.test(svgEl.getAttribute('aria-label') || '')) return;
+    const v = activeReel();
+    audioTouchedAt = Date.now();
+    if (v) reelsUserMuted = !v.muted; // este listener roda antes do Instagram trocar o estado: o novo estado é o oposto
+    setTimeout(() => { if (v) reelsUserMuted = v.muted; }, 300);
+  }, true);
+
   function setMuted(v, m) {
-    v.muted = m;
+    if (onReels()) { reelsUserMuted = m; audioTouchedAt = Date.now(); }
+    if (!igSetMuted(v, m)) v.muted = m;
     v.__ssSoundAt = m ? 0 : Date.now();
     if (!m && v.volume === 0) v.volume = pref.vol || 1;
   }
@@ -220,7 +281,7 @@
     v.__ssAdopted = true;
     try { v.volume = pref.vol; } catch (_) {}
     if (pref.rate !== 1) v.playbackRate = pref.rate;
-    v.addEventListener('volumechange', () => { if (v.muted && v.__ssSoundAt && Date.now() - v.__ssSoundAt < 3500) { v.__ssSoundAt = 0; v.muted = false; } if (v === cur) sync(); });
+    v.addEventListener('volumechange', () => { if (v.muted && v.__ssSoundAt && Date.now() - v.__ssSoundAt < 3500 && !onReels()) { v.__ssSoundAt = 0; v.muted = false; } if (v === cur) sync(); }); // no Reels o som segue o estado do Instagram (botão dele), sem brigar
     // o Instagram às vezes recria a fonte e volta para 1×
     v.addEventListener('ratechange', () => { if (v === cur) sync(); });
     // o Instagram troca a fonte (loadstart) e às vezes zera volume/velocidade ao dar play: reaplica
@@ -434,7 +495,7 @@
   // liga/desliga pelo menu (Ferramentas → Player)
   const watch = () => {
     if (!API() || !K()) return setTimeout(watch, 50);
-    const apply = (s) => { enabled = s.player !== false; if (!enabled) hide(true); if (ui) ui.refreshMode(); };
+    const apply = (s) => { enabled = s.player !== false; reelsSound = s.reelsSound !== false; if (!enabled) hide(true); if (ui) ui.refreshMode(); };
     API().whenSettings().then(() => apply(API().settings() || {}));
     K().onSettings(apply);
   };
@@ -442,5 +503,5 @@
   const __box = (el) => { if (!el || el.hidden) return null; const r = el.getBoundingClientRect(); return r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } : null; };
   window.__salvaStoriesPlayerDiag = () => DIAG.slice();
   window.__salvaStoriesPlayerDebug = () => ({ shown: !!(ui && ui.$('.bar2').classList.contains('show')),
-    at: ui ? { pp: __box(ui.$('.pp')), back: __box(ui.$('.bk')), fwd: __box(ui.$('.fw')), speed: __box(ui.$('.spd')), mute: __box(ui.$('.mu')), dl: __box(ui.$('.dl')), seek: __box(ui.$('.seek')), rates: ui.$$('.menu button').map((b) => ({ r: b.dataset.r, ...(__box(b) || {}) })) } : null, enabled, overBar, curVisible: cur ? (() => { const r = cur.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; })() : null, cur: cur ? { src: (cur.currentSrc || '').slice(0, 30), hold: !!cur.__ssHold, paused: cur.paused, rate: cur.playbackRate, muted: cur.muted, vol: cur.volume } : null, pref });
+    at: ui ? { pp: __box(ui.$('.pp')), back: __box(ui.$('.bk')), fwd: __box(ui.$('.fw')), speed: __box(ui.$('.spd')), mute: __box(ui.$('.mu')), dl: __box(ui.$('.dl')), seek: __box(ui.$('.seek')), rates: ui.$$('.menu button').map((b) => ({ r: b.dataset.r, ...(__box(b) || {}) })) } : null, enabled, reelsSound, reelsUserMuted, onReels: onReels(), igToggle: !!igAudioToggle(activeReel()), overBar, curVisible: cur ? (() => { const r = cur.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; })() : null, cur: cur ? { src: (cur.currentSrc || '').slice(0, 30), hold: !!cur.__ssHold, paused: cur.paused, rate: cur.playbackRate, muted: cur.muted, vol: cur.volume } : null, pref });
 })();

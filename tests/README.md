@@ -55,13 +55,14 @@ Deixe rodando (porta 443, com suporte a Range para o player poder pular). Depois
   - No modo `--load-extension` o Chrome desativa a extensão depois do `runtime.reload()`. É normal desse modo; carregada pela tela do Chrome, ela volta na versão nova.
 - O GitHub simulado não intercepta o `fetch` do service worker. Por isso o teste `upd` grava o estado da atualização direto no `chrome.storage`, e a procura real no GitHub também roda.
 
-## Novidades da v1.7.2 à v1.8.6
+## Novidades da v1.7.2 à v1.8.7
 
 Estes testes não precisam da CDN (`cdn.mjs`) nem do certificado. Usam o Chromium do Playwright com `channel: 'chromium'`, porque o headless shell não carrega extensão.
 
 - `node e2e-flick.mjs $PWD/ext-test`: na troca de pessoa nos stories, os botões só aparecem na posição final e voltam antes de a animação acabar.
 - `node e2e-post.mjs $PWD/ext-test`: botões no post aberto (carrossel foto, vídeo e foto), troca sem mexer, `D`, `Shift+D`, post único, post direto, rolar até a grade, janela estreita e desligar no menu.
 - `node e2e-reels.mjs $PWD/ext-test`: player num Reels simulado com clique humano (aperta, 120 ms, solta). Precisa do `media/long.webm`.
+- `node e2e-reels-sound.mjs $PWD/ext-test` (v1.8.7): som no Reels. O som já vem ligado, continua ao passar de reel, mutar vale até sair do Reels e o ajuste desligado não mexe em nada. Precisa do `media/long.webm`.
 - `PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1 node e2e-update14.mjs $PWD/ext-test`: regra 14 com a página aberta. Sem a variável, a rota do Playwright não pega o `fetch` do service worker e o teste lê o GitHub de verdade.
 - `node prints-post.mjs <pasta da extensão> <saida.png>`: print do post com os botões para a página do GitHub (conta fictícia e imagem gerada).
 - O `e2e-onboard.mjs` também precisa da variável acima desde a v1.8.6, porque o service worker confere o Release ao abrir a página.

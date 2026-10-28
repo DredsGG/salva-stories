@@ -11,11 +11,11 @@ const IS_FF = !!(ext.runtime && ext.runtime.getBrowserInfo); // só o Firefox te
 const SYNC = ext.storage.sync || ext.storage.local;
 
 // muda a cada versão do service worker: a página confere e avisa se o Chrome ficou com o código antigo
-const SW_BUILD = 'ss-sw-1.8.6';
+const SW_BUILD = 'ss-sw-1.8.7';
 
 // idioma da primeira abertura: o da interface do navegador (pt, en ou es; qualquer outro → en). Regra 13.
 const UI_LANG = (() => { const l = String((ext.i18n && ext.i18n.getUILanguage && ext.i18n.getUILanguage()) || navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
-const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: UI_LANG, theme: 'auto', player: true, profileBtn: true, inboxTools: true };
+const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: UI_LANG, theme: 'auto', player: true, reelsSound: true, postBtn: true, profileBtn: true, inboxTools: true };
 const ERR = {
   pt: { video: 'trilha de vídeo inválida', audio: 'trilha de áudio inválida', host: 'endereço de mídia fora do Instagram', refused: 'download recusado', none: 'nada baixado', urgent: 'atualização urgente pendente: atualize a extensão para voltar a baixar' },
   en: { video: 'invalid video track', audio: 'invalid audio track', host: 'media address outside Instagram', refused: 'download refused', none: 'nothing downloaded', urgent: 'urgent update pending: update the extension to download again' },
