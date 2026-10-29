@@ -1,5 +1,11 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.8.13': [
+    "Carousel: a counter under the buttons shows which photo you're on and how many there are (e.g. 3/9), in the feed and on an open post.",
+    "Post opened from Direct: the save buttons no longer sit on top of the comments; with no room beside the post, they move to the photo's corner.",
+    "Carousel with a video: when you swipe to the next photo, the player bar hides instead of sliding away with the video.",
+    "Profiles you follow: \"Download profile\" stays next to Following / Message instead of ending up in the far corner.",
+  ],
   '1.8.11': [
     "Large profile picture: on someone's profile, click the picture (or hold it, if they have a story) to see it at full resolution and save it. You can turn this off in the menu, under Tools.",
   ],

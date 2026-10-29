@@ -366,13 +366,29 @@
     return !!(cur && cur.isConnected);
   }
 
+  // ancestrais que recortam o vídeo (a janela do carrossel): o vídeo que saiu para o lado continua com tamanho, mas não
+  // aparece. Sem isto, ao passar do vídeo para a foto no carrossel, a barra ia junto para a esquerda (29/10/2026).
+  function clipsOf(v) {
+    if (v.__ssClipsFor === v.parentElement && v.__ssClips) return v.__ssClips;
+    const out = [];
+    for (let a = v.parentElement, d = 0; a && a !== document.body && d < 25; a = a.parentElement, d++) {
+      const cs = getComputedStyle(a);
+      if (cs.overflowX !== 'visible' || cs.overflowY !== 'visible') out.push(a);
+    }
+    v.__ssClips = out; v.__ssClipsFor = v.parentElement;
+    return out;
+  }
   function place(retry) {
     if (!ui || !cur) return;
     const bar = ui.$('.bar2');
     const r = cur.getBoundingClientRect();
     const vis = { l: Math.max(r.left, 0), r: Math.min(r.right, innerWidth), t: Math.max(r.top, 0), b: Math.min(r.bottom, innerHeight) };
+    for (const c of clipsOf(cur)) {
+      const q = c.getBoundingClientRect();
+      vis.l = Math.max(vis.l, q.left); vis.r = Math.min(vis.r, q.right); vis.t = Math.max(vis.t, q.top); vis.b = Math.min(vis.b, q.bottom);
+    }
     const w = Math.min(560, vis.r - vis.l - 20);
-    if (!cur.isConnected || w < 160 || vis.b - vis.t < 120) {
+    if (!cur.isConnected || w < 160 || vis.b - vis.t < 120 || (vis.r - vis.l) < r.width * 0.5) {
       // o vídeo saiu da tela (passou para o próximo reel): se outro vídeo está debaixo da barra, a barra passa para ele
       const v = !retry && underBar();
       if (v && v !== cur) { cur = v; adopt(v); sync(); return place(true); }

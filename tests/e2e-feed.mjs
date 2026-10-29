@@ -74,10 +74,12 @@ await p.goto('https://www.instagram.com/'); await wait(1200);
 let s = await st('vp1');
 check('feed: botões à direita do 1º post, no topo da foto', s.disp === 'block' && s.op === '1' && s.left === (s.vp.right + 14) + 'px' && s.top === (s.vp.top + 16) + 'px' && s.code === 'DQabcDEFghi', s);
 check('feed carrossel: texto "foto" e botão "todas"', /foto/i.test(s.title || '') && !!s.all, s);
+check('contador do carrossel: 1/3', (await p.evaluate(() => window.__salvaStoriesDebug().at.count)) === '1/3', await p.evaluate(() => window.__salvaStoriesDebug().at));
 await p.keyboard.press('d');
 let c = await calls(1);
 check('D no feed salva a foto da tela (_01) em perfil/fotos', c.length === 1 && /pessoa\.teste\/perfil\/fotos\/2026-10-\d\d_DQabcDEFghi_01\.jpg$/.test(c[0]), c);
 await p.evaluate(() => window.go(1)); await wait(500);
+check('contador acompanha: 2/3', (await p.evaluate(() => window.__salvaStoriesDebug().at.count)) === '2/3', await p.evaluate(() => window.__salvaStoriesDebug().at.count));
 await clear(); await p.keyboard.press('d'); c = await calls(1);
 check('passou para o vídeo do carrossel: D salva o _02.mp4', c.length === 1 && /perfil\/videos\/2026-10-\d\d_DQabcDEFghi_02\.mp4$/.test(c[0]), c);
 await clear(); await p.keyboard.press('Shift+D'); c = await calls(3);
@@ -89,9 +91,21 @@ await p.mouse.move(one.x, one.y, { steps: 3 }); await p.mouse.down(); await wait
 c = await calls(1);
 const at1 = await p.evaluate((o) => ({ top: document.elementFromPoint(o.x, o.y).tagName, dbg: window.__salvaStoriesDebug().at }), one);
 check('clique no botão salva', c.length === 1 && /_02\.mp4$/.test(c[0]), { c, one, at1 });
+// player no vídeo do carrossel: passar para a foto seguinte esconde a barra (não vai junto para a esquerda; 29/10/2026)
+await p.evaluate(() => window.go(1)); await wait(400);
+{ const vr = await p.evaluate(() => { const r = document.getElementById('vp1').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  await p.mouse.move(vr.x - 40, vr.y, { steps: 3 }); await p.mouse.move(vr.x, vr.y, { steps: 3 }); await wait(400);
+  const pd0 = await p.evaluate(() => window.__salvaStoriesPlayerDebug());
+  await p.evaluate(() => window.go(2)); await wait(500);
+  const pd = await p.evaluate(() => { const d = window.__salvaStoriesPlayerDebug(); const h = document.querySelector('salva-stories-player'); return { shown: d.shown, at: d.at && d.at.pp }; });
+  const vp = await p.evaluate(() => { const r = document.getElementById('vp1').getBoundingClientRect(); return { left: r.left, right: r.right }; });
+  check('carrossel: barra do player aparece no vídeo', pd0.shown === true, pd0.shown);
+  check('carrossel: passou para a foto, a barra some (não vai junto)', !pd.shown || (pd.at && pd.at.x >= vp.left && pd.at.x <= vp.right), { pd, vp }); }
+await p.evaluate(() => window.go(0)); await wait(300);
 // rola até o 2º post (foto única)
 await p.evaluate(() => document.getElementById('a2').scrollIntoView({ block: 'center' })); await wait(700);
 s = await st('vp2');
+check('foto única: sem contador', (await p.evaluate(() => window.__salvaStoriesDebug().at.count)) === null, null);
 check('rolou: botões vão para o 2º post, sem "todas"', s.disp === 'block' && s.op === '1' && s.left === (s.vp.right + 14) + 'px' && s.code === 'DQsingle123' && !s.all, s);
 await clear(); await p.keyboard.press('d'); c = await calls(1);
 check('post único do feed: nome sem _NN', c.length === 1 && /perfil\/fotos\/2026-10-\d\d_DQsingle123\.jpg$/.test(c[0]), c);

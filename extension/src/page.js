@@ -28,6 +28,7 @@
       saveOne: 'Salvar este story (D)', saveOneA: 'Salvar este story',
       saveAll: 'Salvar todos os stories desta pessoa (Shift+D)', saveAllA: 'Salvar todos os stories desta pessoa',
       ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', ghostClick: 'Clique para desligar', ghostOffA: 'Desligar o modo fantasma', ghostOffDone: 'Modo fantasma desligado: quem postou vê que você assistiu.', ghostOffT: 'Modo fantasma desligado', ghostOffSub: 'Quem postou vê que você assistiu', ghostOnClick: 'Clique para ligar', ghostOnA: 'Ligar o modo fantasma', ghostOnDone: 'Modo fantasma ligado: ninguém vê que você assistiu.', menu: 'Ajustes (Alt+S)',
+      count: (i, n) => i ? `Item ${i} de ${n} do carrossel` : `Carrossel com ${n} itens`,
       speed: 'Velocidade do vídeo', speedPhoto: 'Velocidade (só em story de vídeo)', speedSet: (r) => 'Velocidade: ' + r,
       noStory: 'não achei o story na tela', noData: 'não achei os dados do story', noMedia: 'story sem mídia', nothing: 'nada para salvar',
       noReply: 'a extensão não respondeu (recarregue a página)', failed: 'falhou', notSaved: 'Não salvou: ',
@@ -41,6 +42,7 @@
       saveOne: 'Save this story (D)', saveOneA: 'Save this story',
       saveAll: "Save all of this person's stories (Shift+D)", saveAllA: "Save all of this person's stories",
       ghostOn: 'Ghost mode on', ghostSub: "Nobody sees that you watched", ghostClick: 'Click to turn it off', ghostOffA: 'Turn off ghost mode', ghostOffDone: 'Ghost mode off: the poster sees that you watched.', ghostOffT: 'Ghost mode off', ghostOffSub: 'The poster sees that you watched', ghostOnClick: 'Click to turn it on', ghostOnA: 'Turn on ghost mode', ghostOnDone: 'Ghost mode on: nobody sees that you watched.', menu: 'Settings (Alt+S)',
+      count: (i, n) => i ? `Item ${i} of ${n} in the carousel` : `Carousel with ${n} items`,
       speed: 'Video speed', speedPhoto: 'Speed (video stories only)', speedSet: (r) => 'Speed: ' + r,
       noStory: "couldn't find the story on screen", noData: "couldn't find the story data", noMedia: 'story has no media', nothing: 'nothing to save',
       noReply: "the extension didn't respond (reload the page)", failed: 'failed', notSaved: 'Not saved: ',
@@ -54,6 +56,7 @@
       saveOne: 'Guardar esta historia (D)', saveOneA: 'Guardar esta historia',
       saveAll: 'Guardar todas las historias de esta persona (Shift+D)', saveAllA: 'Guardar todas las historias de esta persona',
       ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', ghostClick: 'Haz clic para desactivarlo', ghostOffA: 'Desactivar el modo fantasma', ghostOffDone: 'Modo fantasma desactivado: quien publicó ve que la viste.', ghostOffT: 'Modo fantasma desactivado', ghostOffSub: 'Quien publicó ve que la viste', ghostOnClick: 'Haz clic para activarlo', ghostOnA: 'Activar el modo fantasma', ghostOnDone: 'Modo fantasma activado: nadie ve que la viste.', menu: 'Ajustes (Alt+S)',
+      count: (i, n) => i ? `Elemento ${i} de ${n} del carrusel` : `Carrusel con ${n} elementos`,
       speed: 'Velocidad del video', speedPhoto: 'Velocidad (solo en historias de video)', speedSet: (r) => 'Velocidad: ' + r,
       noStory: 'no encontré la historia en pantalla', noData: 'no encontré los datos de la historia', noMedia: 'historia sin contenido', nothing: 'nada para guardar',
       noReply: 'la extensión no respondió (recarga la página)', failed: 'falló', notSaved: 'No se guardó: ',
@@ -406,10 +409,12 @@
     let right = v.right;
     const hy = Math.min(Math.max(v.top + Math.min(v.height / 2, 200), 2), innerHeight - 2);
     const hx = v.right + 24;
-    const hit = hx < innerWidth - 2 ? document.elementFromPoint(hx, hy) : null;
-    if (hit && scope.contains(hit) && !best.vpEl.contains(hit) && !(host && host.contains(hit)) && hit !== host) {
+    // o que está logo à direita da mídia, tirando o que é nosso (os botões já podem estar ali e não podem esconder o
+    // painel; antes disso, eles ficavam por cima dos comentários, como no post aberto pelo Direct em 29/10/2026)
+    const hit = hx < innerWidth - 2 ? document.elementsFromPoint(hx, hy).find((e) => !/^SALVA-STORIES/.test(e.tagName)) : null;
+    if (hit && hit !== document.body && hit !== document.documentElement && !best.vpEl.contains(hit)) {
       let p = hit;
-      while (p.parentElement && p.parentElement !== scope && p.parentElement.getBoundingClientRect().left >= v.right - 2) p = p.parentElement;
+      while (p.parentElement && p.parentElement !== scope && p.parentElement !== document.body && p.parentElement.getBoundingClientRect().left >= v.right - 2) p = p.parentElement;
       const q = p.getBoundingClientRect();
       if (q.left >= v.right - 2 && q.left <= v.right + 40 && q.width < innerWidth * 0.6) right = Math.max(right, q.right);
     }
@@ -669,7 +674,7 @@
 
   // ───────────────────────── interface ─────────────────────────
   let mode = 'story'; // 'story' | 'photo' | 'video' (post aberto)
-  let host, shadow, wrap, btnOne, btnAll, btnMenu, ghostEl, spdEl, btnRate, toastEl, labelsLang = null;
+  let host, shadow, wrap, btnOne, btnAll, btnMenu, ghostEl, spdEl, btnRate, cntEl, toastEl, labelsLang = null;
   // ───────── velocidade do story de vídeo ─────────
   // Medido ao vivo (28/10/2026): o Instagram passa para o próximo story quando o vídeo termina (evento ended), então
   // 2× termina e avança na metade do tempo e 0,5× toca até o fim. Foto não tem velocidade (o relógio de 5 s é do Instagram).
@@ -782,6 +787,10 @@
         .ghost:focus-visible { outline:2px solid #fff; outline-offset:2px; }
         /* velocidade do story de vídeo: botão com a velocidade; passando o mouse, a lista vertical abre ao lado */
         .spd { position:relative; }
+        /* contador do carrossel (foto da vez / total), logo abaixo de "salvar todas" */
+        .cnt { box-sizing:border-box; width:44px; height:24px; margin-top:-4px; border-radius:12px; display:grid; place-items:center; color:#fff;
+          font:700 12px/1 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; letter-spacing:-.2px; background:rgba(0,0,0,.55);
+          border:1px solid rgba(255,255,255,.28); backdrop-filter: blur(6px); box-shadow:0 2px 10px rgba(0,0,0,.35); user-select:none; white-space:nowrap; }
         button.rate { font-size:13px; font-weight:700; letter-spacing:-.2px; }
         button.rate.on { background:rgba(214,41,118,.8); border-color:rgba(255,255,255,.5); }
         .spd.off button.rate { opacity:.45; cursor:default; }
@@ -809,6 +818,7 @@
       <div class="wrap">
         <button class="one">${ICON_DL}</button>
         <button class="all">${ICON_ALL}</button>
+        <div class="cnt" role="status" style="display:none"></div>
         <div class="spd" style="display:none"><button class="rate">1×</button><div class="rates" role="menu">${RATES.map((r) => `<button role="menuitemradio" data-r="${r}">${r}×</button>`).join('')}</div></div>
         <div class="ghost" role="button" tabindex="0" style="display:none">${ICON_GHOST}<div class="tip"><b></b><span></span><i></i></div></div>
         <button class="menu">${ICON_GEAR}</button>
@@ -820,6 +830,7 @@
     ghostEl = shadow.querySelector('.ghost');
     btnMenu = shadow.querySelector('.menu');
     spdEl = shadow.querySelector('.spd');
+    cntEl = shadow.querySelector('.cnt');
     btnRate = shadow.querySelector('.rate');
     // fantasminha: clique (ou Enter) desliga o modo fantasma, nos stories e fora deles (o da barra lateral está no menu.js)
     const ghostToggle = () => { const on = !(settings && settings.ghost); setGhost(on); toast(t(on ? 'ghostOnDone' : 'ghostOffDone')); };
@@ -889,6 +900,26 @@
   // foto no canto de cima. A janela do carrossel não se mexe quando a foto passa, então os botões ficam parados.
   let postSeen = 0, postCodeShown = null;
   function hideAll() { if (host) { setVisible(false); host.style.display = 'none'; } placed = null; lastRect = null; }
+  // quantas fotos/vídeos o carrossel tem e qual está na tela. Total: os dados do post; senão, os pontinhos do Instagram
+  // ("Go to slide N", um por item, medido em 28/10/2026). Item da vez: o mesmo cálculo do "salvar esta".
+  function carouselCount(pv, post) {
+    if (!(pv.carousel || (post && post.parts.length > 1))) { cntEl.style.display = 'none'; return; }
+    let total = post && post.parts.length > 1 ? post.parts.length : 0, idx = 0;
+    // os pontinhos do PRÓPRIO post: dentro do mesmo <article> (feed) ou diálogo; sem subir até a lista do feed
+    const box = pv.vpEl.closest('article, [role="dialog"]') || pv.vpEl.parentElement;
+    const dots = box ? [...box.querySelectorAll('button[aria-label^="Go to slide"], button[aria-label^="Ir para o slide"], button[aria-label^="Ir a la diapositiva"]')] : [];
+    if (!total && dots.length > 1) total = dots.length;
+    if (total > 1) {
+      if (post && post.parts.length > 1) idx = postIndex(post, pv.vpEl) + 1;
+      else { const cur = dots.findIndex((b) => b.getAttribute('aria-current') === 'step' || b.getAttribute('aria-current') === 'true'); idx = cur >= 0 ? cur + 1 : 0; }
+    }
+    if (total > 1) {
+      const txt = (idx ? idx + '/' : '') + total;
+      if (cntEl.textContent !== txt) { cntEl.textContent = txt; cntEl.title = t('count', idx, total); cntEl.setAttribute('aria-label', cntEl.title); }
+      cntEl.style.display = '';
+    } else cntEl.style.display = 'none';
+  }
+  let inlineTry = -1e9;
   function renderPost(code, given) {
     const now = performance.now();
     const pv = given || postView();
@@ -910,9 +941,11 @@
       const o = Math.min(r.right, v.right) - Math.max(r.left, v.left);
       if (o > ov) { ov = o; cur = m; }
     }
+    if (!POSTS.has(code) && now - inlineTry > 2000) { inlineTry = now; harvestInline(); } // feed/post que veio no HTML
     const post = POSTS.get(code);
     mode = cur && cur.tagName === 'VIDEO' ? 'video' : 'photo';
     btnAll.style.display = pv.carousel || (post && post.parts.length > 1) ? '' : 'none';
+    carouselCount(pv, post);
     ghostEl.style.display = 'none';
     spdEl.style.display = 'none';
     applyLabels();
@@ -922,7 +955,18 @@
     if (moved) stableSince = now;
     const w = 44;
     let left = pv.right + 14, top = v.top + 16;
-    if (left + w > innerWidth - 8) { left = v.right - w - 12; top = v.top + 12; }
+    // fora do cartão só se o lugar estiver livre: o que fica embaixo (tirando o que é nosso) tem de ser o fundo, um
+    // contêiner que abraça a mídia inteira. Se for outra coisa (painel de comentários que não deu para medir, coluna
+    // de sugestões), os botões vão para dentro da foto. Visto no post aberto pelo Direct em 29/10/2026.
+    const freeAt = (x, y) => {
+      if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return true;
+      const hit = document.elementsFromPoint(x, y).find((e) => !/^SALVA-STORIES/.test(e.tagName));
+      if (!hit || hit === document.body || hit === document.documentElement) return true;
+      const q = hit.getBoundingClientRect();
+      return q.left <= v.left + 1 && q.right >= x;
+    };
+    const outsideOk = left + w <= innerWidth - 8 && freeAt(left + w / 2, Math.max(top, 0) + 22) && freeAt(left + w / 2, Math.max(top, 0) + 76);
+    if (!outsideOk) { left = v.right - w - 12; top = v.top + 12; }
     top = Math.max(8, Math.min(top, v.bottom - 120));
     if (v.bottom < 130 || v.top > innerHeight - 130) { setVisible(false); return; }
     // modal abrindo ou página rolando: espera parar (45 ms) para não arrastar os botões junto
@@ -957,6 +1001,7 @@
     lastSeen = now;
     btnAll.style.display = settings && settings.showAll === false ? 'none' : '';
     ghostEl.style.display = '';
+    cntEl.style.display = 'none';
     ghostLabels();
     // velocidade: vale para o vídeo da vez (o Instagram cria um <video> novo a cada story e volta para 1×)
     const isVid = el.tagName === 'VIDEO';
@@ -1041,5 +1086,5 @@
   const __box = (el) => { if (!el || el.style.display === 'none') return null; const r = el.getBoundingClientRect(); return r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } : null; };
   window.__salvaStoriesDebug = () => ({ items: ITEMS.size, reels: new Set(REELS.values()).size, posts: POSTS.size, current: currentPk(), settings, mode,
     post: (() => { const cp = curPost(); const c = cp.code; const p = c && POSTS.get(c); const pv = cp.pv; return c ? { code: c, loaded: !!p, parts: p ? p.parts.length : 0, index: p ? postIndex(p, pv && pv.vpEl) : null, view: pv ? { left: Math.round(pv.v.left), right: Math.round(pv.right), top: Math.round(pv.v.top), carousel: pv.carousel } : null } : null; })(),
-    at: host && host.style.display !== 'none' ? { opacity: host.style.opacity, left: host.style.left, top: host.style.top, one: __box(btnOne), all: __box(btnAll), title: btnOne.title, ghost: __box(ghostEl), ghostOff: ghostEl ? ghostEl.classList.contains('off') : null, rate: spdEl && spdEl.style.display !== 'none' ? __box(btnRate) : null, rateOff: spdEl ? spdEl.classList.contains('off') : null, rateText: btnRate ? btnRate.textContent : null, rates: spdEl ? Object.fromEntries([...spdEl.querySelectorAll('.rates button')].map((b) => [b.dataset.r, __box(b)])) : null, ratesOpen: spdEl ? getComputedStyle(spdEl.querySelector('.rates')).opacity : null } : null, storyRate });
+    at: host && host.style.display !== 'none' ? { opacity: host.style.opacity, left: host.style.left, top: host.style.top, one: __box(btnOne), all: __box(btnAll), title: btnOne.title, ghost: __box(ghostEl), count: cntEl && cntEl.style.display !== 'none' ? cntEl.textContent : null, ghostOff: ghostEl ? ghostEl.classList.contains('off') : null, rate: spdEl && spdEl.style.display !== 'none' ? __box(btnRate) : null, rateOff: spdEl ? spdEl.classList.contains('off') : null, rateText: btnRate ? btnRate.textContent : null, rates: spdEl ? Object.fromEntries([...spdEl.querySelectorAll('.rates button')].map((b) => [b.dataset.r, __box(b)])) : null, ratesOpen: spdEl ? getComputedStyle(spdEl.querySelector('.rates')).opacity : null } : null, storyRate });
 })();

@@ -101,10 +101,13 @@
       .map((b) => ({ b, r: b.getBoundingClientRect(), txt: (b.innerText || '').trim() }))
       .filter((x) => x.r.height >= 26 && x.r.height <= 52 && x.r.width >= 26 && x.r.top >= hr.top && x.r.bottom <= hr.bottom + 4);
     if (!all.length) return null;
-    const named = all.filter((x) => ACTION_TXT.test(x.txt));
-    const ref = named.length ? named[named.length - 1] : all.filter((x) => x.txt).sort((a, b) => b.r.top - a.r.top)[0];
+    // a linha do perfil é a de CIMA: quando você já segue a pessoa, aparece embaixo o carrossel "Sugestões para você"
+    // com vários "Seguir", que vai até fora da tela (29/10/2026: o botão ia parar no canto da direita)
+    const named = all.filter((x) => ACTION_TXT.test(x.txt)).sort((a, b) => a.r.top - b.r.top);
+    const ref = named.length ? named[0] : all.filter((x) => x.txt).sort((a, b) => b.r.top - a.r.top)[0];
     if (!ref) return null;
-    const row = all.filter((x) => Math.abs((x.r.top + x.r.height / 2) - (ref.r.top + ref.r.height / 2)) < 8).map((x) => x.r);
+    const row = all.filter((x) => Math.abs((x.r.top + x.r.height / 2) - (ref.r.top + ref.r.height / 2)) < 8 && x.r.left >= hr.left - 4 && x.r.right <= Math.min(hr.right, innerWidth) + 4).map((x) => x.r);
+    if (!row.length) row.push(ref.r);
     return { top: ref.r.top, height: ref.r.height, right: Math.max(...row.map((r) => r.right)), left: Math.min(...row.map((r) => r.left)), hr };
   }
 

@@ -9,7 +9,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
 ![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.8.11-d62976)
+![Version](https://img.shields.io/badge/version-1.8.13-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
@@ -37,6 +37,8 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 - **The same round buttons on an open post** (from the feed or a profile, in the pop-up or on its own page): *save the photo or video on screen* and *save the whole carousel*, in order. Shortcuts: `D` and `Shift+D`. Single photos only get the first button.
 - They sit outside the post, to the right, and stay still while you swipe through the carousel. In a narrow window they move inside the photo's top corner.
 - **On the home feed too:** the same buttons show up next to the post on screen, follow you as you scroll and save the photo or video you're looking at, or the whole carousel.
+- **Carousel counter:** a small `3/9` under the buttons shows which item you're on and how many the carousel has.
+- When there's no free space beside the post (for example a post opened from Direct, with the comments right next to it), the buttons move into the photo's top corner instead of covering the comments.
 - Files land in the same place and with the same names as **Download profile** (`perfil/fotos` or `perfil/videos`, `YYYY-MM-DD_{code}_NN`), so downloading the profile later doesn't create duplicates. You can turn the buttons off in the menu (*Tools* → *Post buttons*).
 
 **Profiles**
@@ -175,11 +177,12 @@ End-to-end with the real extension loaded, against a simulated instagram.com and
 - `e2e-v15.mjs`, everything else, in light and dark: ghost badge outside stories, a 30-post profile with carousels saved as 34 files in the right folders, the player (pause that survives the page trying to resume it, ±10 s, 2×, sound, volume, download), Direct (all 40 chats selected, 2 marked unread, 2 deleted after one confirmation), two followers checks with unfollowers and new followers, bulk ignore and unfollow, and the update notice and bug report.
 - `e2e-onboard.mjs` (in PT, EN and ES): the tutorial on a fresh install, the **?** button, `Esc`, *What's new* once after a simulated update, and a newer simulated release: the notice shows up by itself on the page, comes back after a reload, **Update** downloads the zip, ✕ only snoozes it, and it waits for the tutorial to close.
 - `e2e-update14.mjs`, with the page open the whole time and a simulated GitHub: check on open, no extra check when coming back within 10 minutes, a check after that showing the card in the middle without a reload, ✕ snoozing for an hour (clock fast-forwarded) and the card back on the next visit, then an *URGENTE* release: no ✕, `Esc` ignored, downloads refused, long jobs paused, and everything back once it's resolved.
-- `e2e-post.mjs`: post buttons on a carousel pop-up (photo, video, photo), swiping without the buttons moving or blinking, `D` and `Shift+D` with the right names, a single post, a post opened on its own page, scrolling away, a narrow window and the menu switch.
+- `e2e-post.mjs`: post buttons on a carousel pop-up (photo, video, photo), swiping without the buttons moving or blinking, `D` and `Shift+D` with the right names, a single post, a post opened on its own page, scrolling away, a narrow window, a comments panel that loads late or can't be measured (the buttons move into the photo instead of covering it) and the menu switch.
 - `e2e-reels.mjs`: the player on a Reels-like page with human-paced clicks (press, 120 ms, release): pause and the speaker act on the reel on screen after moving to the next one, the speaker stays under the mouse when the volume slider opens, and the bar stays while the mouse rests on it.
 - `e2e-avatar.mjs`: the large profile picture. Without a story a click opens it at 1080 without leaving the page, Save uses the right folder and name, Esc and a click outside close it; with a story (data from GraphQL) holding opens it and the story doesn't, a short click still opens the story; your own profile, a profile without the full-size data (warning) and the menu switch.
 - `e2e-story-speed.mjs`: speed in video stories (the vertical list opens on hover, 2× applied and re-applied when the page resets it, dimmed on photo stories, kept on the next video and after a reload, the menu switch) and the ghost badge turning ghost mode on and off, in a story and on the sidebar.
-- `e2e-feed.mjs`: buttons on the home feed (a carousel with photo, video and photo, a single photo and a reel): `D`, `Shift+D` and a real click with the right names, moving to the next post as you scroll, hiding while scrolling, and the menu switch; plus our sidebar icon and ghost badge hiding while Instagram's "More" menu is open over them.
+- `e2e-feed.mjs`: buttons on the home feed (a carousel with photo, video and photo, a single photo and a reel): `D`, `Shift+D` and a real click with the right names, the carousel counter, the player bar hiding when you swipe from the video to the next photo, moving to the next post as you scroll, hiding while scrolling, and the menu switch; plus our sidebar icon and ghost badge hiding while Instagram's "More" menu is open over them.
+- `e2e-profile-pill.mjs`: the *Download profile* button stays next to Following / Message when Instagram shows the "Suggested for you" carousel under a profile you follow.
 - `e2e-reels-sound.mjs`: sound on Reels. It's on when you enter Reels, stays on across reels, our speaker changes Instagram's own mute state, a mute holds until you leave Reels and comes back on when you return, and with the setting off nothing is touched.
 - `e2e-flick.mjs`: the story buttons only ever show at their final spot while Instagram slides to the next person, and come back before the slide finishes.
 - `e2e-lang.mjs`: first run with the browser in pt-BR, pt-PT, en-US, es-ES, es-419 and de-DE (falls back to English), then switching PT · EN · ES in the footer, tutorial, menu, *What's new* and the bug report log.

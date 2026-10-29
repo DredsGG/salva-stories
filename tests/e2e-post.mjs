@@ -23,11 +23,12 @@ const inline = JSON.stringify({ require: [['x', { data: { xdt_api__v1__media__sh
 const grid = Array.from({ length: 6 }, (_, i) => `<a href="/p/DQgrid${i}abcd/" style="display:inline-block;width:300px;height:400px;margin:4px;background:#333"><img src="${CDN}g${i}_n.jpg" style="width:300px;height:400px"></a>`).join('');
 const slides = (n) => post.carousel_media.map((m, i) => `<li style="position:absolute;left:0;top:0;width:${n}px;height:100%;list-style:none;transform:translateX(${i * n}px);transition:transform .35s ease">${m.media_type === 2 ? `<video style="width:${n}px;height:100%;background:#246;display:block" muted></video>` : `<img src="${CDN}${i === 0 ? 'a' : 'c'}_n.jpg?stp=small" style="width:${n}px;height:100%;display:block;background:#c36">`}</li>`).join('');
 // modal: mídia 900 + painel 500, centrado, com a grade do perfil atrás
-const modal = (vw) => { const mw = Math.min(900, vw - 560), left = Math.max(0, Math.round((vw - mw - 500) / 2)); return `<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#000;color:#fff">
+const modal = (vw, late = false, gap = false) => { const mw = Math.min(900, vw - 560), left = Math.max(0, Math.round((vw - mw - 500) / 2)); return `<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#000;color:#fff">
 <main style="padding:40px 200px">${grid}</main>
 <div role="dialog" style="position:fixed;inset:0;background:rgba(0,0,0,.65)"><article style="position:absolute;left:${left}px;top:24px;height:1100px;display:flex">
   <div id="vp" style="width:${mw}px;height:1100px;overflow:hidden;position:relative;background:#111"><ul id="ul" style="position:relative;width:1px;height:1100px;margin:0;padding:0">${slides(mw)}</ul></div>
-  <div id="panel" style="width:500px;height:1100px;background:#222"><div style="padding:16px">comentários</div></div></article></div>
+  ${gap ? `<div id="phead" style="position:absolute;left:${mw}px;top:0;width:500px;height:60px;background:#333">@pessoa · Seguir</div><div id="panel" style="position:absolute;left:${mw + 60}px;top:60px;width:440px;height:1040px;background:#222">comentários</div>` : `<div id="panel" style="width:500px;height:1100px;background:#222${late ? ';visibility:hidden' : ''}"><div style="padding:16px">comentários</div></div>`}</article></div>
+${late ? '<script>setTimeout(() => { document.getElementById(\'panel\').style.visibility = \'visible\'; }, 700);</script>' : ''}
 <script type="application/json">${inline}</script>
 <script>window.cur=0;window.go=(i)=>{window.cur=i;const lis=[...document.querySelectorAll('#ul li')];lis.forEach((li,k)=>li.style.transform='translateX('+((k-i)*${mw})+'px)');history.replaceState(null,'','?img_index='+(i+1));};</script></body></html>`; };
 // post aberto direto: cartão no meio da página (mídia 450×600 + painel 335), grade embaixo
@@ -43,7 +44,7 @@ async function run(vw) {
   });
   await ctx.route('https://www.instagram.com/**', (r) => {
     const u = new URL(r.request().url());
-    if (u.pathname.startsWith('/p/' + CODE)) return r.fulfill({ status: 200, contentType: 'text/html', body: modal(vw) });
+    if (u.pathname.startsWith('/p/' + CODE)) return r.fulfill({ status: 200, contentType: 'text/html', body: modal(vw, u.searchParams.has('late'), u.searchParams.has('gap')) });
     if (u.pathname.startsWith('/p/DQsingle123')) return r.fulfill({ status: 200, contentType: 'text/html', body: standalone });
     return r.fulfill({ status: 200, contentType: 'text/html', body: '<html><body></body></html>' });
   });
@@ -117,6 +118,29 @@ const check = (name, cond, info) => { R[name] = cond ? 'ok' : ['FALHOU', info]; 
   await p.goto(`https://www.instagram.com/p/${CODE}/?img_index=1`); await wait(900);
   const h = await host(p);
   check('janela estreita: dentro da foto, no canto', h.disp === 'block' && h.op === '1' && h.left === (h.vp.right - 44 - 12) + 'px' && h.top === (h.vp.top + 12) + 'px', h);
+  await ctx.close();
+}
+// ── 3) painel de comentários que aparece depois da mídia (post aberto pelo Direct, 29/10/2026): os botões já estavam
+// ao lado da mídia, em cima de onde o painel aparece; têm de sair de cima dele (sem espaço à direita → dentro da foto) ──
+{
+  const { ctx, p } = await run(1300);
+  await p.goto(`https://www.instagram.com/p/${CODE}/?img_index=1&late=1`); await wait(400);
+  const h0 = await host(p);
+  await wait(1200);
+  const h = await host(p);
+  check('painel atrasado: botões saem de cima dos comentários (dentro da foto)', h.disp === 'block' && h.op === '1' && h.left === (h.vp.right - 44 - 12) + 'px' && parseInt(h.left) + 44 <= h.panel.left, { h0, h });
+  await ctx.close();
+}
+// ── 4) painel que não dá para medir pelo meio (cabeçalho em cima, comentários recuados): os botões não podem ficar em
+// cima do cabeçalho do painel (como no print do André de 29/10/2026); com o lugar ocupado, vão para dentro da foto ──
+{
+  const { ctx, p } = await run(1300);
+  await p.goto(`https://www.instagram.com/p/${CODE}/?img_index=1&gap=1`); await wait(1200);
+  const h = await host(p);
+  const head = await p.evaluate(() => { const r = document.getElementById('phead').getBoundingClientRect(); return { left: Math.round(r.left), right: Math.round(r.right), bottom: Math.round(r.bottom) }; });
+  const L = parseInt(h.left), T = parseInt(h.top);
+  const over = L < head.right && L + 44 > head.left && T < head.bottom;
+  check('painel sem medida: botões não ficam em cima do cabeçalho do painel', h.disp === 'block' && h.op === '1' && !over, { h, head });
   await ctx.close();
 }
 console.log(JSON.stringify(R, null, 1));

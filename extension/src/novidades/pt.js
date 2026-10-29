@@ -1,6 +1,12 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.8.13': [
+    "Carrossel: um contador abaixo dos botões mostra qual foto você está vendo e quantas tem (ex.: 3/9), no feed e no post aberto.",
+    "Post aberto pelo Direct: os botões de salvar não ficam mais em cima dos comentários; sem espaço ao lado, vão para o canto da foto.",
+    "Carrossel com vídeo: ao passar para a foto seguinte, a barra do player some em vez de ir junto para o lado.",
+    "Perfil que você segue: o \"Baixar perfil\" fica ao lado de Seguindo / Enviar mensagem, e não lá no canto da tela.",
+  ],
   '1.8.11': [
     "Foto de perfil grande: no perfil de alguém, clique na foto (ou segure, se a pessoa tiver story) para ver em alta resolução, do tamanho original, e salvar. Dá para desligar no menu, em Ferramentas.",
   ],
