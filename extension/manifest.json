@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Salva Stories",
-  "version": "1.8.13",
+  "version": "1.8.14",
   "default_locale": "en",
   "description": "__MSG_appDesc__",
   "icons": {
@@ -47,6 +47,8 @@
         "src/novidades/en.js",
         "src/novidades/es.js",
         "src/menu.js",
+        "src/vendor/qrcode.js",
+        "src/apoio.js",
         "src/profile.js",
         "src/avatar.js",
         "src/player.js",

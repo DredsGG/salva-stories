@@ -9,7 +9,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
 ![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.8.13-d62976)
+![Version](https://img.shields.io/badge/version-1.8.14-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
@@ -184,11 +184,17 @@ End-to-end with the real extension loaded, against a simulated instagram.com and
 - `e2e-feed.mjs`: buttons on the home feed (a carousel with photo, video and photo, a single photo and a reel): `D`, `Shift+D` and a real click with the right names, the carousel counter, the player bar hiding when you swipe from the video to the next photo, moving to the next post as you scroll, hiding while scrolling, and the menu switch; plus our sidebar icon and ghost badge hiding while Instagram's "More" menu is open over them.
 - `e2e-profile-pill.mjs`: the *Download profile* button stays next to Following / Message when Instagram shows the "Suggested for you" carousel under a profile you follow.
 - `e2e-reels-sound.mjs`: sound on Reels. It's on when you enter Reels, stays on across reels, our speaker changes Instagram's own mute state, a mute holds until you leave Reels and comes back on when you return, and with the setting off nothing is touched.
+- `teste-pix.mjs` (no browser, also in the `Test` workflow): the Pix BR Code for any amount, R$ 5, R$ 10 and R$ 25 matches the reference codes character by character, decimal amounts, the CRC16 by formula and by table, and the accepted range.
+- `e2e-apoio.mjs`: the **Support ♥** box in PT, EN and ES: where it sits in the menu footer, the country step highlighted by language, focus kept inside, each QR code read back from the image and equal to its code, invalid amounts without a QR, copy buttons, `Esc` closing only the box, Back, and no network request.
 - `e2e-flick.mjs`: the story buttons only ever show at their final spot while Instagram slides to the next person, and come back before the slide finishes.
 - `e2e-lang.mjs`: first run with the browser in pt-BR, pt-PT, en-US, es-ES, es-419 and de-DE (falls back to English), then switching PT · EN · ES in the footer, tutorial, menu, *What's new* and the bug report log.
 - **Firefox** (GitHub Actions, `Test` workflow): `web-ext lint` with no errors, then real Firefox with the extension installed as temporary: tutorial, menu and footer, update check, story photo with `D`, DASH video muxed through `blob:` (checked with `ffprobe`) and *What's new*.
 
 The screenshots on this page are the real extension (v1.7.1, and v1.8.6 for the post buttons) running on that simulated Instagram, with placeholder accounts and generated images.
+
+## Support
+
+Salva Stories is free. If it helps you, there's an optional **Support ♥** item at the bottom of the menu: **Pix** for Brazil (QR code and copy-and-paste code, R$ 5 / 10 / 25 or any amount) or **[GitHub Sponsors](https://github.com/sponsors/DredsGG)** for everyone else. It only opens when you click it, adds no permission, makes no network request and tracks nothing; the QR code is drawn locally.
 
 ## Disclaimer
 
@@ -197,3 +203,5 @@ Personal project, not affiliated with or endorsed by Instagram or Meta. Download
 ## License
 
 [MIT](LICENSE) · made by [André Miller Fleck (Dreds)](https://github.com/DredsGG)
+
+The Pix QR code is drawn with [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) 1.4.4 by Kazuhiko Arase (MIT), bundled unchanged in `extension/src/vendor/qrcode.js`.

@@ -11,7 +11,7 @@ const IS_FF = !!(ext.runtime && ext.runtime.getBrowserInfo); // só o Firefox te
 const SYNC = ext.storage.sync || ext.storage.local;
 
 // muda a cada versão do service worker: a página confere e avisa se o Chrome ficou com o código antigo
-const SW_BUILD = 'ss-sw-1.8.13';
+const SW_BUILD = 'ss-sw-1.8.14';
 
 // idioma da primeira abertura: o da interface do navegador (pt, en ou es; qualquer outro → en). Regra 13.
 const UI_LANG = (() => { const l = String((ext.i18n && ext.i18n.getUILanguage && ext.i18n.getUILanguage()) || navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();

@@ -1,6 +1,9 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.8.14': [
+    "Novo botão Apoiar ♥ no rodapé do menu, opcional: Pix (Brasil) ou GitHub Sponsors (outros países). Não muda nada na extensão.",
+  ],
   '1.8.13': [
     "Carrossel: um contador abaixo dos botões mostra qual foto você está vendo e quantas tem (ex.: 3/9), no feed e no post aberto.",
     "Post aberto pelo Direct: os botões de salvar não ficam mais em cima dos comentários; sem espaço ao lado, vão para o canto da foto.",

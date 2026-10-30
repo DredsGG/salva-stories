@@ -71,6 +71,7 @@ const st = (vp) => p.evaluate((vp) => { const d = window.__salvaStoriesDebug(); 
 const R = {}; let ok = true; const check = (n, c, i) => { R[n] = c ? 'ok' : ['FALHOU', i]; if (!c) ok = false; };
 
 await p.goto('https://www.instagram.com/'); await wait(1200);
+if (process.env.DBG) { console.log(JSON.stringify(await p.evaluate(() => { const d = window.__salvaStoriesDebug(); return { posts: d.posts, post: d.post, count: d.at && d.at.count }; }))); }
 let s = await st('vp1');
 check('feed: botões à direita do 1º post, no topo da foto', s.disp === 'block' && s.op === '1' && s.left === (s.vp.right + 14) + 'px' && s.top === (s.vp.top + 16) + 'px' && s.code === 'DQabcDEFghi', s);
 check('feed carrossel: texto "foto" e botão "todas"', /foto/i.test(s.title || '') && !!s.all, s);

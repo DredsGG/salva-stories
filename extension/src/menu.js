@@ -43,6 +43,7 @@
       updDownloaded: 'O zip novo foi para a pasta Downloads. Extraia por cima da pasta da extensão: ela se recarrega sozinha em até 1 minuto.',
       updDone: (a, b) => `Salva Stories atualizado: v${a} → v${b}`, updHelp: 'Como instalar e atualizar',
       swOld: 'A parte de fundo da extensão ficou na versão antiga (o Chrome não trocou). Abra chrome://extensions e clique em ↻ no Salva Stories. É só desta vez: daqui para frente ele se atualiza sozinho.',
+      support: 'Apoiar', supportT: 'Apoiar o Salva Stories (opcional)',
       bugBtn: 'Relatar bug', bugTitle: 'Relatar um bug', bugPh: 'O que aconteceu? Ex.: o botão de baixar sumiu, o vídeo saiu sem som, o perfil parou no meio…',
       bugDiag: 'O que vai junto (nada da sua conta)', bugOpen: 'Abrir no GitHub', bugCopy: 'Copiar relatório', bugCopied: 'Copiado!', bugFail: 'Não deu para copiar',
       bugNote: 'Abrir no GitHub pede uma conta no GitHub (é grátis). Sem conta? Copie o relatório e mande para quem te passou o Salva Stories.',
@@ -76,6 +77,7 @@
       updDownloaded: 'The new zip went to your Downloads folder. Unzip it over the extension folder: it reloads itself within 1 minute.',
       updDone: (a, b) => `Salva Stories updated: v${a} → v${b}`, updHelp: 'How to install and update',
       swOld: "The extension's background part stayed on the old version (Chrome didn't swap it). Open chrome://extensions and click ↻ on Salva Stories. Only this once: from now on it updates itself.",
+      support: 'Support', supportT: 'Support Salva Stories (optional)',
       bugBtn: 'Report a bug', bugTitle: 'Report a bug', bugPh: 'What happened? E.g. the download button disappeared, the video has no sound, the profile stopped halfway…',
       bugDiag: 'What gets attached (nothing from your account)', bugOpen: 'Open on GitHub', bugCopy: 'Copy report', bugCopied: 'Copied!', bugFail: "Couldn't copy",
       bugNote: 'Opening on GitHub needs a GitHub account (free). No account? Copy the report and send it to whoever shared Salva Stories with you.',
@@ -109,6 +111,7 @@
       updDownloaded: 'El zip nuevo fue a la carpeta Descargas. Extráelo sobre la carpeta de la extensión: se recarga sola en hasta 1 minuto.',
       updDone: (a, b) => `Salva Stories actualizado: v${a} → v${b}`, updHelp: 'Cómo instalar y actualizar',
       swOld: 'La parte de fondo de la extensión quedó en la versión antigua (Chrome no la cambió). Abre chrome://extensions y haz clic en ↻ en Salva Stories. Solo esta vez: desde ahora se actualiza sola.',
+      support: 'Apoyar', supportT: 'Apoyar Salva Stories (opcional)',
       bugBtn: 'Reportar error', bugTitle: 'Reportar un error', bugPh: '¿Qué pasó? Ej.: desapareció el botón de descargar, el video salió sin sonido, el perfil se detuvo a mitad…',
       bugDiag: 'Lo que se adjunta (nada de tu cuenta)', bugOpen: 'Abrir en GitHub', bugCopy: 'Copiar informe', bugCopied: '¡Copiado!', bugFail: 'No se pudo copiar',
       bugNote: 'Abrir en GitHub requiere una cuenta de GitHub (gratis). ¿Sin cuenta? Copia el informe y envíalo a quien te pasó Salva Stories.',
@@ -276,6 +279,10 @@
   .foot .r1, .foot .r2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
   .foot .r1 .uchk { flex: 1 1 auto; min-width: 0; justify-content: center; }
   .foot .r1 .ubug { flex: 1 1 auto; min-width: 0; justify-content: center; }
+  /* Apoiar ♥ (regra 16): entre "Procurar atualização" e "feito por Dreds" */
+  .foot .r15 { display: flex; }
+  .foot .r15 .usup { flex: 1 1 auto; justify-content: center; }
+  .usup .hrt { color: #d62976; font-size: 13px; }
   .fbtn { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--card); color: var(--fg);
     font: 600 12px var(--font); cursor: pointer; white-space: nowrap; transition: background .15s; }
   .fbtn:hover { background: var(--hover); }
@@ -507,6 +514,7 @@
           <button type="button" class="fbtn ubug" title="${esc(tr('bugTitle'))}">${BUG}${esc(tr('bugBtn'))}</button>
           <button type="button" class="fi uhelp" title="${esc(tr('updHelp'))}" aria-label="${esc(tr('updHelp'))}">i</button></div>
         <div class="ust${upd.disponivel ? ' av' : ''}">${esc(updStatus())}</div>
+        ${window[Symbol.for('salvaStories.apoio')] ? `<div class="r15"><button type="button" class="fbtn usup" title="${esc(tr('supportT'))}">${esc(tr('support'))} <span class="hrt" aria-hidden="true">♥</span></button></div>` : ''}
         <div class="r2"><span class="sig">${STAR}<span>${esc(tr('madeBy'))}</span><a href="${GITHUB}" target="_blank" rel="noopener noreferrer">Dreds</a>${version ? `<span class="ver">· v${esc(version)}</span>` : ''}</span>
         <span class="flang" role="radiogroup" aria-label="${esc(tr('lang'))}" title="${esc(tr('hintT'))}">${['pt', 'en', 'es'].map((l, i) => `${i ? '<i>·</i>' : ''}<button type="button" data-l="${l}" role="radio" aria-checked="${S.lang === l}" class="${S.lang === l ? 'on' : ''}" title="${LANG_NAME[l]}">${l.toUpperCase()}</button>`).join('')}</span></div></div>`;
     panel.querySelector('.body').scrollTop = keepScroll;
@@ -523,6 +531,7 @@
     panel.querySelector('.hb').addEventListener('click', () => { const ob = window[Symbol.for('salvaStories.onboard')]; close(); if (ob) ob.tutorial(); });
     const rl = panel.querySelector('.reload'); if (rl) rl.addEventListener('click', () => location.reload());
     wireUpdBug();
+    const sup = panel.querySelector('.usup'); if (sup) sup.addEventListener('click', () => window.dispatchEvent(new CustomEvent('salva-stories:apoio')));
     for (const row of panel.querySelectorAll('.row[data-key]')) {
       const flip = () => set({ [row.dataset.key]: !S[row.dataset.key] });
       row.addEventListener('click', flip);
@@ -738,13 +747,13 @@
     if (e.altKey && !e.ctrlKey && !e.metaKey && (e.key === 's' || e.key === 'S' || e.code === 'KeyS')) {
       e.preventDefault(); e.stopPropagation();
       toggle(nav && !nav.hidden ? nav.getBoundingClientRect() : null);
-    } else if (e.key === 'Escape' && isOpen()) { close(); }
+    } else if (e.key === 'Escape' && isOpen() && !(window[Symbol.for('salvaStories.apoio')] && window[Symbol.for('salvaStories.apoio')].isOpen())) { close(); }
   }, true);
   // clique fora fecha
   addEventListener('pointerdown', (e) => {
     if (!isOpen()) return;
     const path = e.composedPath();
-    if (path.includes(host) || path.some((n) => n && n.tagName === 'SALVA-STORIES')) return; // a engrenagem do story cuida do próprio clique
+    if (path.includes(host) || path.some((n) => n && (n.tagName === 'SALVA-STORIES' || n.tagName === 'SALVA-STORIES-APOIO'))) return; // a engrenagem do story cuida do próprio clique; o quadro Apoiar fica por cima do menu
     close();
   }, true);
 
@@ -766,7 +775,7 @@
       light: box(panel.querySelector('.seg [data-theme="light"]')), folder: box(panel.querySelector('#ss-folder')),
       dreds: box(panel.querySelector('.sig a')), close: box(panel.querySelector('.head .x')), help: box(panel.querySelector('.hb')),
       follows: box(panel.querySelector('.tool[data-tool="follows"]')), player: box(panel.querySelector('.row[data-key="player"] .sw')),
-      uchk: box(panel.querySelector('.uchk')), ubug: box(panel.querySelector('.ubug')), ugo: box(panel.querySelector('.ugo')), bgh: box(panel.querySelector('.bgh')), bwhat: box(panel.querySelector('.bwhat')),
+      uchk: box(panel.querySelector('.uchk')), usup: box(panel.querySelector('.usup')), ubug: box(panel.querySelector('.ubug')), ugo: box(panel.querySelector('.ugo')), bgh: box(panel.querySelector('.bgh')), bwhat: box(panel.querySelector('.bwhat')),
     } : null,
     ghostBadge: ghostEl && !ghostEl.hidden ? box(ghostEl) : null, ghostOff: ghostEl ? ghostEl.classList.contains('off') : null, navHidden: nav ? nav.hidden : null,
   });

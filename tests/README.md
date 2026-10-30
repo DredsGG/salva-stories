@@ -71,3 +71,8 @@ Estes testes não precisam da CDN (`cdn.mjs`) nem do certificado. Usam o Chromiu
 - `PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1 node e2e-update14.mjs $PWD/ext-test`: regra 14 com a página aberta. Sem a variável, a rota do Playwright não pega o `fetch` do service worker e o teste lê o GitHub de verdade.
 - `node prints-post.mjs <pasta da extensão> <saida.png>`: print do post com os botões para a página do GitHub (conta fictícia e imagem gerada).
 - O `e2e-onboard.mjs` também precisa da variável acima desde a v1.8.6, porque o service worker confere o Release ao abrir a página.
+
+## v1.8.14: botão Apoiar
+
+- `node teste-pix.mjs ../extension`: sem navegador. O BR Code do Pix (livre, R$ 5, R$ 10, R$ 25) é igual ao de referência, caractere por caractere; valores com centavos, CRC16 e limites. Também roda no workflow `Test`.
+- `node e2e-apoio.mjs $PWD/ext-test`: o quadro "Apoiar ♥" nos 3 idiomas, com o QR lido de volta da imagem. Precisa de `npm i jsqr pngjs` além do Playwright.

@@ -1,5 +1,8 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.8.14': [
+    "Nuevo botón Apoyar ♥ en el pie del menú, opcional: Pix (Brasil) o GitHub Sponsors (otros países). No cambia nada en la extensión.",
+  ],
   '1.8.13': [
     "Carrusel: un contador debajo de los botones muestra qué foto estás viendo y cuántas hay (ej.: 3/9), en el feed y en la publicación abierta.",
     "Publicación abierta desde Direct: los botones de guardar ya no tapan los comentarios; sin espacio al lado, pasan a la esquina de la foto.",

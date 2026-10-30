@@ -12,7 +12,7 @@
   const ENUM = { lang: ['pt', 'en', 'es'], theme: ['auto', 'light', 'dark'] };
   const UPD_KEY = 'ss.update';
   // tem de bater com o SW_BUILD do sw.js desta versão: se o Chrome ficou com o service worker antigo, o menu avisa
-  const EXPECT_SW = 'ss-sw-1.8.13';
+  const EXPECT_SW = 'ss-sw-1.8.14';
   const UPD_CMDS = ['check', 'apply', 'dismiss', 'seen', 'guide', 'perm'];
   // Opera: storage.sync pode não existir (tabela do MDN) → ajustes no local
   const SYNC = () => chrome.storage.sync || chrome.storage.local;

@@ -1,5 +1,8 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.8.14': [
+    "New Support ♥ button in the menu footer, optional: Pix (Brazil) or GitHub Sponsors (other countries). It changes nothing in the extension.",
+  ],
   '1.8.13': [
     "Carousel: a counter under the buttons shows which photo you're on and how many there are (e.g. 3/9), in the feed and on an open post.",
     "Post opened from Direct: the save buttons no longer sit on top of the comments; with no room beside the post, they move to the photo's corner.",

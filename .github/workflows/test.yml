@@ -27,6 +27,9 @@ jobs:
           jq -r '.errors[] | "ERROR \(.code) \(.file // "") \(.message)"' lint.json
           test "$(jq '.summary.errors' lint.json)" = "0"
 
+      - name: Pix code (Support button)
+        run: node tests/teste-pix.mjs extension
+
       - name: Test media, certificate and hosts
         run: |
           mkdir -p media && cd media
