@@ -1,5 +1,8 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.9.1': [
+    "Internal cleanup, nothing changes for you.",
+  ],
   '1.9.0': [
     "Two new buttons in Instagram's sidebar, below the ghost: Followers and following (opens the followers analysis) and Switch accounts (with your photo).",
     "Switch accounts opens Instagram's own dialog; the extension doesn't read the account list or the logins Instagram keeps. With a download or another long task running, it warns you and waits.",
@@ -58,7 +61,7 @@
     "PT · EN · ES selector in the menu and in the tutorial; the \"Report a bug\" log also follows the chosen language.",
   ],
   '1.7.0': [
-    'Now it also works on Edge, Brave, Opera GX and Firefox.',
+    'Now it also works on Edge, Brave and Opera GX.',
     'A quick tutorial the first time. To see it again, click "?" in the menu.',
     'In Followers & following: select accounts and unfollow them slowly, or ignore several at once.',
     'After each update, this card shows what changed.',

@@ -1,5 +1,8 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.9.1': [
+    "Limpieza interna, no cambia nada para ti.",
+  ],
   '1.9.0': [
     "Dos botones nuevos en la barra lateral de Instagram, debajo del fantasma: Seguidores y seguidos (abre el análisis de seguidores) y Cambiar de cuenta (con tu foto).",
     "Cambiar de cuenta abre el diálogo del propio Instagram; la extensión no lee la lista de cuentas ni los inicios de sesión que guarda Instagram. Con una descarga u otra tarea larga en curso, avisa y espera.",
@@ -58,7 +61,7 @@
     "Selector PT · EN · ES en el menú y en el tutorial; el registro de \"Reportar error\" también sale en el idioma elegido.",
   ],
   '1.7.0': [
-    'Ahora también funciona en Edge, Brave, Opera GX y Firefox.',
+    'Ahora también funciona en Edge, Brave y Opera GX.',
     'Tutorial rápido la primera vez. Para verlo de nuevo, haz clic en "?" en el menú.',
     'En Seguidores y seguidos: marca cuentas y deja de seguirlas despacio, o ignora varias a la vez.',
     'Después de cada actualización, este cuadro muestra qué cambió.',

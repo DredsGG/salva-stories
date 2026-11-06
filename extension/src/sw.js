@@ -1,17 +1,14 @@
 // Salva Stories — fundo da extensão: valida e faz os downloads, procura atualização e se recarrega quando a pasta muda.
-// O mesmo arquivo roda como service worker nos Chromium (Chrome, Edge, Brave, Opera GX) e como event page no Firefox
-// (manifest com "service_worker" e "scripts"). Por isso nada de window/DOM aqui.
+// Roda como service worker nos Chromium (Chrome, Edge, Brave, Opera GX; Manifest V3). Por isso nada de window/DOM aqui.
 import { muxDash } from './remux.js';
 
-// browser.* (Firefox e Chrome 148+) sempre devolve promessa; no Chrome antigo, ext.* do MV3 também.
-// Aqui só se usa o estilo de promessa (sem callback), que vale nos dois.
+// browser.* (Chrome 148+) e chrome.* do MV3 devolvem promessa; aqui só se usa o estilo de promessa (sem callback).
 const ext = (globalThis.browser && globalThis.browser.runtime) ? globalThis.browser : globalThis.chrome;
-const IS_FF = !!(ext.runtime && ext.runtime.getBrowserInfo); // só o Firefox tem
 // Opera: storage.sync pode não existir (tabela do MDN) → guarda no local
 const SYNC = ext.storage.sync || ext.storage.local;
 
 // muda a cada versão do service worker: a página confere e avisa se o Chrome ficou com o código antigo
-const SW_BUILD = 'ss-sw-1.9.0';
+const SW_BUILD = 'ss-sw-1.9.1';
 
 // idioma da primeira abertura: o da interface do navegador (pt, en ou es; qualquer outro → en). Regra 13.
 const UI_LANG = (() => { const l = String((ext.i18n && ext.i18n.getUILanguage && ext.i18n.getUILanguage()) || navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
@@ -75,7 +72,7 @@ async function fetchBytes(url) {
   return new Uint8Array(await res.arrayBuffer());
 }
 
-// vídeo juntado (DASH): no Firefox (event page) sai por blob:, nos Chromium (service worker, sem createObjectURL) por data:
+// vídeo juntado (DASH): nos Chromium (service worker, sem createObjectURL) sai por data:; com createObjectURL disponível, por blob: (reserva inofensiva)
 function toDownloadUrl(bytes, mime) {
   if (typeof URL.createObjectURL === 'function') {
     const u = URL.createObjectURL(new Blob([bytes], { type: mime }));
@@ -118,7 +115,7 @@ async function runJob(job, s) {
 }
 
 ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg && msg.type === 'salva-stories:ping') { sendResponse({ build: SW_BUILD, version: ext.runtime.getManifest().version, firefox: IS_FF }); return; }
+  if (msg && msg.type === 'salva-stories:ping') { sendResponse({ build: SW_BUILD, version: ext.runtime.getManifest().version }); return; }
   if (msg && msg.type === 'salva-stories:update') {
     const run = msg.cmd === 'check' ? procurar(msg.data === 'auto') : msg.cmd === 'apply' ? aplicar() : msg.cmd === 'guide' ? abrirGuia(msg.data) : msg.cmd === 'perm' ? conferirPermissao()
       : msg.cmd === 'dismiss' ? salvarUpd({ dispensada: msg.data || null, adiadaEm: Date.now() }) : msg.cmd === 'seen' ? salvarUpd({ acabouDeAtualizar: null }) : Promise.resolve(null);
@@ -159,7 +156,7 @@ ext.runtime.onInstalled.addListener(async () => {
 
 // Sem popup desde a v1.4.0: o clique no ícone abre o menu dentro do Instagram.
 // Fora do Instagram (ou com a aba sem a extensão carregada), abre o Instagram.
-// Sem permissão de site (o Firefox deixa o usuário tirar), abre o guia na parte que devolve a permissão.
+// Sem permissão de site (o Chrome deixa o usuário limitar o acesso em Detalhes da extensão), abre o guia na parte que devolve a permissão.
 ext.action.onClicked.addListener(async (tab) => {
   const perm = await conferirPermissao();
   if (!perm.ok) { abrirGuia('#permissao'); return; }
@@ -170,7 +167,7 @@ ext.action.onClicked.addListener(async (tab) => {
   }
 });
 
-// ───────────────────────── permissão de site (Firefox: o usuário pode tirar em about:addons) ─────────────────────────
+// ───────────────────────── permissão de site (o usuário pode limitar o acesso da extensão nos Detalhes dela) ─────────────────────────
 const ORIGENS = (ext.runtime.getManifest().host_permissions || []).slice();
 async function conferirPermissao() {
   let falta = [];
@@ -239,10 +236,9 @@ async function procurar(auto) {
     const j = await r.json();
     const ultima = String(j.tag_name || '').replace(/^v/i, '');
     const zip = ((j.assets || []).find((a) => /\.zip$/i.test(a.name)) || {}).browser_download_url || null;
-    const xpi = ((j.assets || []).find((a) => /\.xpi$/i.test(a.name)) || {}).browser_download_url || null;
     // versão urgente: o André marca o Release com "URGENTE" no título (regra 14 d)
     const titulo = String(j.name || '').slice(0, 200);
-    return salvarUpd(Object.assign(base, { ultima, titulo, urgente: /urgente|urgent/i.test(titulo), etag: r.headers.get('etag') || null, notas: String(j.body || '').slice(0, 4000), pagina: j.html_url || null, zip, xpi, firefox: IS_FF, disponivel: !!ultima && cmpVer(ultima, cur) > 0, erro: null }));
+    return salvarUpd(Object.assign(base, { ultima, titulo, urgente: /urgente|urgent/i.test(titulo), etag: r.headers.get('etag') || null, notas: String(j.body || '').slice(0, 4000), pagina: j.html_url || null, zip, disponivel: !!ultima && cmpVer(ultima, cur) > 0, erro: null }));
   } catch (e) {
     return salvarUpd(Object.assign(base, { erro: String((e && e.message) || e) }));
   }
@@ -251,13 +247,6 @@ const urgentePendente = async () => { const st = (await ext.storage.local.get(UP
 
 async function aplicar() {
   const st = (await ext.storage.local.get(UPD_KEY))[UPD_KEY] || {};
-  // Firefox: abrir o .xpi assinado faz o Firefox perguntar se instala (ele também se atualiza sozinho pelo update_url)
-  if (IS_FF) {
-    const u = st.xpi && /^https:\/\/github\.com\//.test(st.xpi) ? st.xpi : (st.pagina || `https://github.com/${REPO}/releases/latest`);
-    await ext.tabs.create({ url: u, active: true });
-    await salvarUpd({ baixadoEm: Date.now() });
-    return { modo: st.xpi ? 'xpi' : 'pagina', status: 'aberto' };
-  }
   if (await tipoInstalacao() === 'normal' && ext.runtime.requestUpdateCheck) {
     const res = await ext.runtime.requestUpdateCheck().then((r) => (r && r.status) || r).catch(() => 'no_update');
     if (res === 'update_available') { setTimeout(() => ext.runtime.reload(), 1500); return { modo: 'loja', status: 'aplicando' }; }

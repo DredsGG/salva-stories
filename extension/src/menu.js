@@ -52,8 +52,8 @@
       bugDiag: 'O que vai junto (nada da sua conta)', bugOpen: 'Abrir no GitHub', bugCopy: 'Copiar relatório', bugCopied: 'Copiado!', bugFail: 'Não deu para copiar',
       bugNote: 'Abrir no GitHub pede uma conta no GitHub (é grátis). Sem conta? Copie o relatório e mande para quem te passou o Salva Stories.',
       bugWhatHead: 'O que aconteceu', bugTrimmed: 'cortado para caber; o completo vai no Copiar',
-      help: 'Como usar', updXpi: 'O Firefox vai perguntar se instala a versão nova: confirme. Ele também se atualiza sozinho.',
-      permT: 'Falta permissão de acesso', permD: 'O Firefox tirou o acesso da extensão a uma parte do Instagram. Sem ele, os botões e os downloads podem falhar.', permGo: 'Permitir acesso',
+      help: 'Como usar',
+      permT: 'Falta permissão de acesso', permD: 'O navegador limitou o acesso da extensão a uma parte do Instagram. Sem ele, os botões e os downloads podem falhar.', permGo: 'Permitir acesso',
     },
     en: {
       title: 'Salva Stories', close: 'Close', open: 'Salva Stories — settings (Alt+S)',
@@ -90,8 +90,8 @@
       bugDiag: 'What gets attached (nothing from your account)', bugOpen: 'Open on GitHub', bugCopy: 'Copy report', bugCopied: 'Copied!', bugFail: "Couldn't copy",
       bugNote: 'Opening on GitHub needs a GitHub account (free). No account? Copy the report and send it to whoever shared Salva Stories with you.',
       bugWhatHead: 'What happened', bugTrimmed: 'trimmed to fit; the full log is in Copy',
-      help: 'How to use', updXpi: 'Firefox will ask whether to install the new version: confirm. It also updates itself.',
-      permT: 'Missing site access', permD: "Firefox removed the extension's access to part of Instagram. Without it, the buttons and downloads may fail.", permGo: 'Allow access',
+      help: 'How to use',
+      permT: 'Missing site access', permD: "The browser limited the extension's access to part of Instagram. Without it, the buttons and downloads may fail.", permGo: 'Allow access',
     },
     es: {
       title: 'Salva Stories', close: 'Cerrar', open: 'Salva Stories — ajustes (Alt+S)',
@@ -128,8 +128,8 @@
       bugDiag: 'Lo que se adjunta (nada de tu cuenta)', bugOpen: 'Abrir en GitHub', bugCopy: 'Copiar informe', bugCopied: '¡Copiado!', bugFail: 'No se pudo copiar',
       bugNote: 'Abrir en GitHub requiere una cuenta de GitHub (gratis). ¿Sin cuenta? Copia el informe y envíalo a quien te pasó Salva Stories.',
       bugWhatHead: 'Qué pasó', bugTrimmed: 'recortado para que quepa; el completo va en Copiar',
-      help: 'Cómo usar', updXpi: 'Firefox preguntará si instala la versión nueva: confirma. También se actualiza solo.',
-      permT: 'Falta permiso de acceso', permD: 'Firefox quitó el acceso de la extensión a una parte de Instagram. Sin él, los botones y las descargas pueden fallar.', permGo: 'Permitir acceso',
+      help: 'Cómo usar',
+      permT: 'Falta permiso de acceso', permD: 'El navegador limitó el acceso de la extensión a una parte de Instagram. Sin él, los botones y las descargas pueden fallar.', permGo: 'Permitir acceso',
     },
   };
 
@@ -139,8 +139,7 @@
   const tr = (k, ...a) => { const v = (T[S.lang] || T.pt)[k] ?? T.pt[k]; return typeof v === 'function' ? v(...a) : v; };
   // atualização e relato de bug (regra 7 / Relatar bug, igual ao Midas, à Plateia e ao PokeIdle)
   const REPO = 'DredsGG/salva-stories';
-  let upd = {}, updBusy = null, updDownloaded = false, updXpi = false, swOk = true, bugOpen = false, bugText = '', disco = null, perm = null;
-  const IS_FF = /Firefox\//.test(navigator.userAgent);
+  let upd = {}, updBusy = null, updDownloaded = false, swOk = true, bugOpen = false, bugText = '', disco = null, perm = null;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   // ───────────── ícones ─────────────
@@ -805,7 +804,7 @@
   function cardsHtml() {
     let h = '';
     if (perm && perm.ok === false) h += `<div class="card2 warn"><b>${esc(tr('permT'))}</b><div>${esc(tr('permD'))}</div><div class="acts"><button type="button" class="b1 upermgo">${esc(tr('permGo'))}</button></div></div>`;
-    if (!swOk && !IS_FF) h += `<div class="card2 warn">${esc(tr('swOld'))}</div>`;
+    if (!swOk) h += `<div class="card2 warn">${esc(tr('swOld'))}</div>`;
     const j = upd.acabouDeAtualizar;
     if (j && j.para === version && Date.now() - (j.em || 0) < 30 * 60000) {
       h += `<div class="card2 ok"><span>${GIFT}</span><b>${esc(tr('updDone', j.de || '?', j.para))}</b><button type="button" class="x2 useen" aria-label="${esc(tr('close'))}">${X_ICON}</button></div>`;
@@ -815,7 +814,7 @@
       const items = noteItems(upd.notas);
       h += `<div class="card2 ${urg ? 'warn' : 'gold'}"><h4>${esc(tr(urg ? 'updUrgTitle' : 'updTitle'))} <small>· v${esc(upd.atual || version)} → v${esc(upd.ultima)}</small></h4>
         ${items.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
-        ${updDownloaded ? `<div class="note">${esc(tr('updDownloaded'))}</div>` : ''}${updXpi || IS_FF ? `<div class="note">${esc(tr('updXpi'))}</div>` : ''}
+        ${updDownloaded ? `<div class="note">${esc(tr('updDownloaded'))}</div>` : ''}
         <div class="acts"><button type="button" class="b1 ugo">${esc(updBusy === 'apply' ? '…' : tr('updGo'))}</button>${urg ? '' : `<button type="button" class="b2 ulater">${esc(tr('updLater'))}</button>`}
           <button type="button" class="lk uhow">${esc(tr('updHow'))}</button></div></div>`;
     }
@@ -832,8 +831,7 @@
   function bugReport(what, maxLog = 60) {
     const api = window[Symbol.for('salvaStories.api')];
     const ua = navigator.userAgent;
-    const fx = (ua.match(/Firefox\/([\d.]+)/) || [])[1];
-    const brow = fx ? `Firefox ${fx}` : /Edg\//.test(ua) ? `Edge ${(ua.match(/Edg\/([\d.]+)/) || [])[1] || '?'}` : /OPR\//.test(ua) ? `Opera ${(ua.match(/OPR\/([\d.]+)/) || [])[1] || '?'}`
+    const brow = /Edg\//.test(ua) ? `Edge ${(ua.match(/Edg\/([\d.]+)/) || [])[1] || '?'}` : /OPR\//.test(ua) ? `Opera ${(ua.match(/OPR\/([\d.]+)/) || [])[1] || '?'}`
       : `${navigator.brave ? 'Brave' : 'Chrome'} ${(ua.match(/Chrome\/([\d.]+)/) || [])[1] || '?'}`;
     const os = /Windows NT 10/.test(ua) ? 'Windows 10/11' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'macOS' : /CrOS/.test(ua) ? 'ChromeOS' : /Linux/.test(ua) ? 'Linux' : '?';
     const p = location.pathname;
@@ -953,7 +951,7 @@
     }
     if (d.kind === 'stale') { stale = true; if (isOpen()) renderPanel(); }
     if (d.kind === 'upd') { upd = d.state || {}; if (updBusy === 'check' && upd.procuradoEm && Date.now() - upd.procuradoEm < 10000) updBusy = null; refreshOpen(); }
-    if (d.kind === 'updRes') { if (d.cmd === 'apply') { updBusy = null; updDownloaded = !!(d.res && d.res.modo === 'download'); updXpi = !!(d.res && d.res.modo === 'xpi'); } if (d.cmd === 'check') updBusy = null; refreshOpen(); }
+    if (d.kind === 'updRes') { if (d.cmd === 'apply') { updBusy = null; updDownloaded = !!(d.res && d.res.modo === 'download'); } if (d.cmd === 'check') updBusy = null; refreshOpen(); }
     if (d.kind === 'perm') { perm = d.state || null; refreshOpen(); }
     if (d.kind === 'sw') { swOk = !!d.ok; refreshOpen(); }
     if (d.kind === 'disco') disco = d.state || null;

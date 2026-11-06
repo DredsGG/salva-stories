@@ -1,6 +1,9 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.9.1': [
+    "Limpeza interna, nada muda para você.",
+  ],
   '1.9.0': [
     "Dois botões novos na barra lateral do Instagram, abaixo do fantasminha: Seguidores e seguindo (abre a análise de seguidores) e Trocar de conta (com a sua foto).",
     "O Trocar de conta abre o diálogo do próprio Instagram; a extensão não lê a lista de contas nem os logins guardados pelo Instagram. Com um download ou outra tarefa longa rodando, ele avisa e espera.",
@@ -59,7 +62,7 @@
     "Seletor PT · EN · ES no menu e no tutorial; o registro do \"Relatar bug\" também sai no idioma escolhido.",
   ],
   '1.7.0': [
-    'Agora funciona também no Edge, no Brave, no Opera GX e no Firefox.',
+    'Agora funciona também no Edge, no Brave e no Opera GX.',
     'Tutorial rápido na primeira vez. Para ver de novo, clique no "?" do menu.',
     'Em Seguidores e seguindo: marque contas e deixe de seguir devagar, ou ignore várias de uma vez.',
     'A cada atualização, este quadro mostra o que mudou.',

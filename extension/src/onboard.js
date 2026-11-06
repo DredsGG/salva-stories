@@ -21,7 +21,6 @@
       updTitle: (v) => `Nova versão v${v}`, updGo: 'Atualizar', updHow: 'Como atualizar', updLater: 'Depois',
       updUrgTitle: (v) => `Atualização urgente v${v}`, updUrgNote: 'Corrige um problema grave. As funções da extensão ficam pausadas até você atualizar.', updSnooze: 'Lembrar daqui a 1 hora',
       updZip: 'O zip novo foi para Downloads. Extraia por cima da pasta da extensão: ela se recarrega sozinha em até 1 minuto.',
-      updXpi: 'O Firefox vai perguntar se instala a versão nova: confirme. Ele também se atualiza sozinho.',
       steps: [
         ['Stories e posts', 'Abra um story ou um post: os botões redondos ao lado salvam o atual ou todos (da pessoa ou do carrossel). Atalhos <kbd>D</kbd> e <kbd>Shift</kbd>+<kbd>D</kbd>. Foto no tamanho original, vídeo com som.'],
         ['Menu', 'O ícone com a seta na barra lateral do Instagram (ou <kbd>Alt</kbd>+<kbd>S</kbd>) abre os ajustes: pasta, modo fantasma, idioma e tema.'],
@@ -36,7 +35,6 @@
       updTitle: (v) => `New version v${v}`, updGo: 'Update', updHow: 'How to update', updLater: 'Later',
       updUrgTitle: (v) => `Urgent update v${v}`, updUrgNote: "Fixes a serious problem. The extension's features are paused until you update.", updSnooze: 'Remind me in 1 hour',
       updZip: 'The new zip went to Downloads. Extract it over the extension folder: it reloads itself within a minute.',
-      updXpi: 'Firefox will ask whether to install the new version: confirm. It also updates itself.',
       steps: [
         ['Stories and posts', 'Open a story or a post: the round buttons next to it save the current one or all of them (the person\'s stories or the whole carousel). Shortcuts <kbd>D</kbd> and <kbd>Shift</kbd>+<kbd>D</kbd>. Photos at original size, videos with sound.'],
         ['Menu', 'The arrow icon in Instagram\'s sidebar (or <kbd>Alt</kbd>+<kbd>S</kbd>) opens the settings: folder, ghost mode, language and theme.'],
@@ -51,7 +49,6 @@
       updTitle: (v) => `Nueva versión v${v}`, updGo: 'Actualizar', updHow: 'Cómo actualizar', updLater: 'Después',
       updUrgTitle: (v) => `Actualización urgente v${v}`, updUrgNote: 'Corrige un problema grave. Las funciones de la extensión quedan en pausa hasta que actualices.', updSnooze: 'Recordar en 1 hora',
       updZip: 'El zip nuevo fue a Descargas. Extráelo sobre la carpeta de la extensión: se recarga sola en hasta 1 minuto.',
-      updXpi: 'Firefox preguntará si instala la versión nueva: confirma. También se actualiza solo.',
       steps: [
         ['Historias y publicaciones', 'Abre una historia o una publicación: los botones redondos al lado guardan la actual o todas (de la persona o del carrusel). Atajos <kbd>D</kbd> y <kbd>Shift</kbd>+<kbd>D</kbd>. Fotos en tamaño original, videos con sonido.'],
         ['Menú', 'El ícono con la flecha en la barra lateral de Instagram (o <kbd>Alt</kbd>+<kbd>S</kbd>) abre los ajustes: carpeta, modo fantasma, idioma y tema.'],
@@ -215,7 +212,7 @@
   const updCmd = (cmd, data) => window.postMessage({ __salvaStories: 'page', kind: 'updCmd', cmd, data }, location.origin);
   const noteItems = (md) => String(md || '').replace(/^\s*#+\s*Install[\s\S]*?(\n\s*\n)(?=\S)/i, '').split(/\r?\n/)
     .map((l) => l.replace(/^\s*(#+|[-*+]|\d+\.)\s*/, '').replace(/[*_`]/g, '').trim())
-    .filter((l) => l && !/^(install|download|open .?chrome|drag the zip|chrome, edge|firefox 1)/i.test(l))
+    .filter((l) => l && !/^(install|download|open .?chrome|drag the zip|chrome, edge)/i.test(l))
     .flatMap((l) => (l.length > 170 ? l.split(/(?<=[.!?])\s+/) : [l])).filter(Boolean).slice(0, 4);
   function updateCard() {
     ensureUi(); open = 'update';
@@ -226,7 +223,7 @@
     c.innerHTML = `<div class="top"><span class="app">${svg(GIFT)}</span><span class="ttl"><b>${esc(title)}</b><small>v${esc(K().version())} → v${esc(upd.ultima)}</small></span>
         ${urg ? '' : `<button class="x" type="button" title="${esc(L.updSnooze)}" aria-label="${esc(L.updSnooze)}">${K().ICON.x}</button>`}</div>
       <div class="bd">${urg ? `<div class="note urg">${esc(L.updUrgNote)}</div>` : ''}${items.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
-        ${updDone ? `<div class="note">${esc(updDone === 'xpi' || IS_FF ? L.updXpi : L.updZip)}</div>` : ''}</div>
+        ${updDone ? `<div class="note">${esc(L.updZip)}</div>` : ''}</div>
       ${langsHtml()}
       <div class="ft"><span class="dots"></span><button class="lk how" type="button">${esc(L.updHow)}</button>
         <button class="btn pri go" type="button"${updBusy ? ' disabled' : ''}>${esc(updBusy ? '…' : L.updGo)}</button></div>`;
@@ -236,7 +233,6 @@
     wireLangs(c, updateCard);
     c.hidden = false;
   }
-  const IS_FF = /Firefox\//.test(navigator.userAgent);
   function maybeUpdate() {
     if (!ready || !K()) return;
     const v = K().version();

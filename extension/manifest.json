@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Salva Stories",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "default_locale": "en",
   "description": "__MSG_appDesc__",
   "icons": {
@@ -19,9 +19,6 @@
   },
   "background": {
     "service_worker": "src/sw.js",
-    "scripts": [
-      "src/sw.js"
-    ],
     "type": "module"
   },
   "permissions": [
@@ -70,17 +67,5 @@
     }
   ],
   "author": "Dreds",
-  "homepage_url": "https://github.com/DredsGG/salva-stories",
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "salva-stories@dredsgg",
-      "strict_min_version": "140.0",
-      "data_collection_permissions": {
-        "required": [
-          "none"
-        ]
-      },
-      "update_url": "https://raw.githubusercontent.com/DredsGG/salva-stories/main/firefox/updates.json"
-    }
-  }
+  "homepage_url": "https://github.com/DredsGG/salva-stories"
 }

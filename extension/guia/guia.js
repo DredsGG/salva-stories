@@ -1,4 +1,4 @@
-// Guia do Salva Stories: idioma (bandeiras), navegador, permissão de site (Firefox) e versão no rodapé.
+// Guia do Salva Stories: idioma (bandeiras), navegador, permissão de site e versão no rodapé.
 // Script externo: página de extensão não aceita script inline. Funciona também aberto direto do zip (sem a API da extensão).
 (() => {
   const ext = (typeof browser !== 'undefined' && browser.runtime) ? browser : (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id ? chrome : null);
@@ -24,7 +24,7 @@
 
   // passo a passo do navegador certo (detecta o atual; dá para trocar)
   const ua = navigator.userAgent;
-  const atual = /Firefox\//.test(ua) ? 'firefox' : /Edg\//.test(ua) ? 'edge' : /OPR\/|Opera/.test(ua) ? 'opera' : navigator.brave ? 'brave' : 'chrome';
+  const atual = /Edg\//.test(ua) ? 'edge' : /OPR\/|Opera/.test(ua) ? 'opera' : navigator.brave ? 'brave' : 'chrome';
   const nav = (k) => {
     document.querySelectorAll('[data-nav]').forEach((b) => b.classList.toggle('on', b.dataset.nav === k));
     document.querySelectorAll('[data-navbox]').forEach((e) => e.classList.toggle('navon', e.dataset.navbox === k));
@@ -35,14 +35,14 @@
   // versão sempre do manifest (regra 9)
   try { if (ext) document.getElementById('versao').textContent = 'v' + ext.runtime.getManifest().version; } catch (e) {}
 
-  // permissão de site: o Firefox deixa o usuário tirar. Mostra o que falta e pede de volta (precisa de clique).
+  // permissão de site: o navegador deixa o usuário limitar o acesso. Mostra o que falta e pede de volta (precisa de clique).
   const sec = document.getElementById('permissao');
   if (!ext || !ext.permissions || !sec) return;
   const origins = (ext.runtime.getManifest().host_permissions || []).slice();
   const conferir = async () => {
     const falta = [];
     for (const o of origins) { try { if (!(await ext.permissions.contains({ origins: [o] }))) falta.push(o); } catch (e) {} }
-    sec.hidden = !(falta.length || atual === 'firefox' || location.hash === '#permissao');
+    sec.hidden = !(falta.length || location.hash === '#permissao');
     sec.querySelector('.permst').hidden = !falta.length;
     sec.querySelector('.permok').hidden = !!falta.length;
     document.getElementById('permfalta').textContent = falta.join('  ');

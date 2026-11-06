@@ -8,11 +8,10 @@
 Stories, posts and whole profiles at original resolution, videos with sound, plus a video player, Direct multi-select and a followers check, all inside Instagram.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
-![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
 ![Version](https://img.shields.io/badge/version-1.9.0-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-**Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
+**Works on:** Chrome · Edge · Brave · Opera GX
 
 <img src="docs/salva-stories-story-buttons.png" width="400" alt="An open Instagram story with the two Salva Stories buttons on its right side: save this story and save all stories from this profile, plus a gear that opens the settings">&nbsp;&nbsp;<img src="docs/salva-stories-menu.png" width="266" alt="Salva Stories settings menu inside Instagram: download folder, subfolder per profile, maximum video resolution, save-all button, keyboard shortcut, ghost mode, followers tool and video player">
 
@@ -88,7 +87,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 - **Settings inside Instagram**, not in a popup: a story-ring icon in Instagram's left sidebar (or a gear in the story viewer, or `Alt+S`, or the extension icon) opens the menu.
 - **Tidy file names:** `Downloads/Instagram Stories/{user}/stories/{user}_{YYYY-MM-DD_HH-MM-SS}_{id}.jpg|mp4`, using the date it was posted. Folder and per-profile subfolder are configurable.
 - **Report a bug** and **Check for updates** in the menu footer. *Report a bug* opens a GitHub issue already filled with the version and a short diagnostic (no username, no content). *Check for updates* reads this repo's latest release right away; the extension also checks by itself when you open Instagram, when you come back to the tab (at most every 10 minutes) and every 30 minutes.
-- **Update notice on the page itself:** as soon as a new version is out, a compact *New version vX.Y.Z* card shows up by itself in the middle of the Instagram page you're on, without reloading, with what changed and an **Update** button that does the right thing for your browser (downloads the zip on Chromium, opens the signed `.xpi` on Firefox). ✕ or `Esc` only snooze it: it comes back after an hour or the next time you open Instagram, until you update.
+- **Update notice on the page itself:** as soon as a new version is out, a compact *New version vX.Y.Z* card shows up by itself in the middle of the Instagram page you're on, without reloading, with what changed and an **Update** button that does the right thing for your browser (downloads the zip). ✕ or `Esc` only snooze it: it comes back after an hour or the next time you open Instagram, until you update.
 - **Urgent updates:** when a release is marked *URGENTE* (a serious bug), the card can't be dismissed and the extension pauses until you update: downloads are refused with a notice, and long jobs (profile download, Direct, followers, unfollow) wait where they are and carry on by themselves after the update.
 - **First-run tutorial and what's new:** a short tutorial the first time (Skip / Got it; reopen it with **?** in the menu), and after each update a *What's new* card, once per version. Both also show up in the middle of the screen, never block anything and close with ✕ or `Esc`.
 - **Auto / light / dark** theme (auto follows Instagram).
@@ -107,14 +106,6 @@ Download the files from the [latest release](https://github.com/DredsGG/salva-st
 4. **To update:** extract the new version over the same folder, or use the extension's **Update** button (menu footer), which downloads the zip for you. The extension notices the new files within a minute and reloads itself and the Instagram tabs.
 
 > **Opera GX:** if the extension disappears after you close the browser, just load the folder again (a known Opera issue with unpacked extensions).
-
-### Firefox (140 or newer)
-
-1. Download **salva-stories-vX.Y.Z.xpi** (signed by Mozilla) and confirm the installation. If Firefox only saves the file, open `about:addons` → gear → **Install Add-on From File** and pick it.
-2. That's it: Firefox **updates it by itself**.
-3. Firefox lets you remove an extension's site access in `about:addons` → Salva Stories → **Permissions**. If access to Instagram is missing, the toolbar icon shows **!** and the menu shows an **Allow access** button.
-
-> No `.xpi` in the release yet? Use `about:debugging` → **This Firefox** → **Load Temporary Add-on** and pick `manifest.json` in the unzipped folder (it's removed when Firefox closes).
 
 ## Usage
 
@@ -135,9 +126,9 @@ Everything comes in **Portuguese, English and Spanish**: menu, footer, tutorial,
 
 ## Known limitations
 
-- **Desktop browsers on instagram.com only** (Chrome, Edge, Brave, Opera GX, Firefox 140+). No mobile app.
+- **Desktop browsers on instagram.com only** (Chrome, Edge, Brave and Opera GX). No mobile app.
 - **It depends on how Instagram's web app works today.** When Instagram changes its responses or layout, a feature can stop until the extension is updated (see [When Instagram changes something](#when-instagram-changes-something)).
-- **On Chromium browsers, updates need one manual step.** An extension loaded from a folder can't replace its own files, so you extract the new zip yourself. Firefox updates the signed `.xpi` by itself.
+- **Updates need one manual step.** An extension loaded from a folder can't replace its own files, so you extract the new zip yourself (the **Update** button downloads it for you).
 - **Bulk unfollow is slow by design** (at most 150 a day). Instagram may still action-block an account that unfollows a lot; use it at your own risk.
 - **"Save all" only covers the stories the viewer already loaded** for that profile.
 - **Private profiles** can only be downloaded or checked if you follow them.
@@ -155,7 +146,7 @@ flowchart LR
   end
   subgraph Ext["Extension"]
     B["bridge.js<br/>ISOLATED world"]
-    SW["sw.js<br/>service worker (Chromium) · event page (Firefox)"]
+    SW["sw.js<br/>service worker"]
     R["remux.js<br/>DASH video + audio → one MP4"]
   end
   P & M -- postMessage --> B -- runtime message --> SW
@@ -167,8 +158,8 @@ flowchart LR
 - **Finding the post on screen:** the post's data (every carousel item, in order) comes from the same responses Instagram already loads (the grid, the post pop-up or the inline JSON of `/p/{code}/`), indexed by its shortcode. The item on screen is the image inside the carousel window whose file name matches one of the item's candidates (video: React fiber; fallback: `img_index` in the URL, or on the home feed the carousel slide's own `translateX` position). On the home feed, each post is an `<article>` and its shortcode comes from the post's date link.
 - **Finding the story on screen:** the biggest `<video>`/`<img>` in the center of the viewer, matched to its media id through React fiber. When the URL already has an id, that one wins, which covers the slide animation between stories.
 - **"Save all" uses the reel the viewer already loaded, through a slow queue.** It doesn't do batch API calls, since that's what triggers Instagram's automation checks: files go one at a time with a random 0.5–1.2 s pause; the only extra lookup (`media/{id}/info`, for an item the viewer listed without its media) is capped at one every 3 s and 10 per click; above 20 files it asks first; the tab counts as busy (`data-ss-busy`) while the queue runs so the extension doesn't reload itself in the middle; on an URGENT release the queue waits.
-- **Minimal permissions:** `downloads`, `storage` and `alarms` (and `permissions.contains` to warn when Firefox site access was removed); host access to Instagram's CDN (`*.cdninstagram.com`, `*.fbcdn.net`, needed to fetch DASH tracks), to `www.instagram.com` (to reload its tabs after an update) and to `api.github.com` (to read the latest release). The service worker refuses any download URL that isn't HTTPS on the CDN hosts. No `cookies`, `tabs` or `webRequest`, and nothing about you is sent anywhere: the only outside request is that read-only release check.
-- **One package for every browser:** the manifest declares the background as both `service_worker` (Chromium) and `scripts` (Firefox), pointing to the same ES module, so `sw.js` uses no `window`/DOM and only promise-style `browser.*`/`chrome.*` calls. On Firefox the muxed DASH video is saved through a `blob:` URL; on Chromium through a `data:` URL. `browser_specific_settings.gecko` sets the add-on id `salva-stories@dredsgg`, Firefox 140+, no data collection, and the `update_url` (`firefox/updates.json`).
+- **Minimal permissions:** `downloads`, `storage` and `alarms` (and `permissions.contains` to warn when the browser's site access was limited); host access to Instagram's CDN (`*.cdninstagram.com`, `*.fbcdn.net`, needed to fetch DASH tracks), to `www.instagram.com` (to reload its tabs after an update) and to `api.github.com` (to read the latest release). The service worker refuses any download URL that isn't HTTPS on the CDN hosts. No `cookies`, `tabs` or `webRequest`, and nothing about you is sent anywhere: the only outside request is that read-only release check.
+- **One package for the four browsers:** Manifest V3 with a `service_worker` background (Chrome, Edge, Brave, Opera GX), so `sw.js` uses no `window`/DOM and only promise-style `chrome.*` calls. The muxed DASH video is saved through a `data:` URL.
 - **`remux.js`** is a small dependency-free fMP4 muxer: it copies the `moov`/`trak` boxes, renumbers `track_ID` and interleaves `moof`/`mdat` fragments by their decode time.
 
 ### When Instagram changes something
@@ -202,7 +193,6 @@ End-to-end with the real extension loaded, against a simulated instagram.com and
 - `e2e-apoio.mjs`: the **Support ♥** box in PT, EN and ES: where it sits in the menu footer, the country step highlighted by language, focus kept inside, each QR code read back from the image and equal to its code, invalid amounts without a QR, copy buttons, `Esc` closing only the box, Back, and no network request.
 - `e2e-flick.mjs`: the story buttons only ever show at their final spot while Instagram slides to the next person, and come back before the slide finishes.
 - `e2e-lang.mjs`: first run with the browser in pt-BR, pt-PT, en-US, es-ES, es-419 and de-DE (falls back to English), then switching PT · EN · ES in the footer, tutorial, menu, *What's new* and the bug report log.
-- **Firefox** (GitHub Actions, `Test` workflow): `web-ext lint` with no errors, then real Firefox with the extension installed as temporary: tutorial, menu and footer, update check, story photo with `D`, DASH video muxed through `blob:` (checked with `ffprobe`) and *What's new*.
 
 The screenshots on this page are the real extension (v1.7.1, and v1.8.6 for the post buttons) running on that simulated Instagram, with placeholder accounts and generated images.
 
