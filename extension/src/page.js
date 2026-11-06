@@ -27,6 +27,9 @@
     pt: {
       saveOne: 'Salvar este story (D)', saveOneA: 'Salvar este story',
       saveAll: 'Salvar todos os stories desta pessoa (Shift+D)', saveAllA: 'Salvar todos os stories desta pessoa',
+      qTitle: (n) => `Salvar ${n} arquivos?`, qSub: (s) => `Leva cerca de ${s}. Um arquivo por vez, com pausa entre eles, para não sobrecarregar o Instagram.`, qSave: 'Salvar', qCancel: 'Cancelar',
+      qTip: (a, b) => `Salvando ${a} de ${b}. Clique para cancelar (Esc)`, qCanceled: (a, b) => `Cancelado: ${a} de ${b} salvos`,
+      qUnsaved: (n) => `${n} não puderam ser salvos agora, tente de novo em instantes`, qSecs: (s) => s < 100 ? `${s} s` : `${Math.round(s / 60)} min`,
       ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', ghostClick: 'Clique para desligar', ghostOffA: 'Desligar o modo fantasma', ghostOffDone: 'Modo fantasma desligado: quem postou vê que você assistiu.', ghostOffT: 'Modo fantasma desligado', ghostOffSub: 'Quem postou vê que você assistiu', ghostOnClick: 'Clique para ligar', ghostOnA: 'Ligar o modo fantasma', ghostOnDone: 'Modo fantasma ligado: ninguém vê que você assistiu.', menu: 'Ajustes (Alt+S)',
       count: (i, n) => i ? `Item ${i} de ${n} do carrossel` : `Carrossel com ${n} itens`,
       speed: 'Velocidade do vídeo', speedPhoto: 'Velocidade (só em story de vídeo)', speedSet: (r) => 'Velocidade: ' + r,
@@ -41,6 +44,9 @@
     en: {
       saveOne: 'Save this story (D)', saveOneA: 'Save this story',
       saveAll: "Save all of this person's stories (Shift+D)", saveAllA: "Save all of this person's stories",
+      qTitle: (n) => `Save ${n} files?`, qSub: (s) => `It takes about ${s}. One file at a time, with a pause between them, so Instagram is not overloaded.`, qSave: 'Save', qCancel: 'Cancel',
+      qTip: (a, b) => `Saving ${a} of ${b}. Click to cancel (Esc)`, qCanceled: (a, b) => `Canceled: ${a} of ${b} saved`,
+      qUnsaved: (n) => `${n} could not be saved right now, try again in a moment`, qSecs: (s) => s < 100 ? `${s} s` : `${Math.round(s / 60)} min`,
       ghostOn: 'Ghost mode on', ghostSub: "Nobody sees that you watched", ghostClick: 'Click to turn it off', ghostOffA: 'Turn off ghost mode', ghostOffDone: 'Ghost mode off: the poster sees that you watched.', ghostOffT: 'Ghost mode off', ghostOffSub: 'The poster sees that you watched', ghostOnClick: 'Click to turn it on', ghostOnA: 'Turn on ghost mode', ghostOnDone: 'Ghost mode on: nobody sees that you watched.', menu: 'Settings (Alt+S)',
       count: (i, n) => i ? `Item ${i} of ${n} in the carousel` : `Carousel with ${n} items`,
       speed: 'Video speed', speedPhoto: 'Speed (video stories only)', speedSet: (r) => 'Speed: ' + r,
@@ -55,6 +61,9 @@
     es: {
       saveOne: 'Guardar esta historia (D)', saveOneA: 'Guardar esta historia',
       saveAll: 'Guardar todas las historias de esta persona (Shift+D)', saveAllA: 'Guardar todas las historias de esta persona',
+      qTitle: (n) => `¿Guardar ${n} archivos?`, qSub: (s) => `Tarda unos ${s}. Un archivo a la vez, con una pausa entre ellos, para no sobrecargar Instagram.`, qSave: 'Guardar', qCancel: 'Cancelar',
+      qTip: (a, b) => `Guardando ${a} de ${b}. Haz clic para cancelar (Esc)`, qCanceled: (a, b) => `Cancelado: ${a} de ${b} guardados`,
+      qUnsaved: (n) => `${n} no se pudieron guardar ahora, inténtalo de nuevo en unos instantes`, qSecs: (s) => s < 100 ? `${s} s` : `${Math.round(s / 60)} min`,
       ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', ghostClick: 'Haz clic para desactivarlo', ghostOffA: 'Desactivar el modo fantasma', ghostOffDone: 'Modo fantasma desactivado: quien publicó ve que la viste.', ghostOffT: 'Modo fantasma desactivado', ghostOffSub: 'Quien publicó ve que la viste', ghostOnClick: 'Haz clic para activarlo', ghostOnA: 'Activar el modo fantasma', ghostOnDone: 'Modo fantasma activado: nadie ve que la viste.', menu: 'Ajustes (Alt+S)',
       count: (i, n) => i ? `Elemento ${i} de ${n} del carrusel` : `Carrusel con ${n} elementos`,
       speed: 'Velocidad del video', speedPhoto: 'Velocidad (solo en historias de video)', speedSet: (r) => 'Velocidad: ' + r,
@@ -96,6 +105,9 @@
   function isMedia(o) {
     return o && (o.pk || o.id) && (o.image_versions2 || o.video_versions) && typeof o.media_type === 'number';
   }
+  // item do reel que o Instagram listou sem as versões da mídia (ainda não carregado): entra na ordem do reel, mas só o plano B
+  // (media/{id}/info, com limite) traz a mídia dele (v1.8.15, "Salvar todos").
+  const isStub = (o) => o && (o.pk || o.id) && typeof o.media_type === 'number' && !o.image_versions2 && !o.video_versions;
 
   // post do feed/perfil (foto, vídeo ou carrossel): guarda pelo código da URL, com as partes na ordem do carrossel
   function notePost(o, user) {
@@ -146,9 +158,10 @@
       if (Array.isArray(o)) { for (const v of o) walk(v, depth + 1, ctxUser); return; }
       const user = (o.user && o.user.username) || ctxUser;
       notePost(o, user);
-      if (Array.isArray(o.items) && o.items.length && o.items.every(isMedia)) {
+      if (Array.isArray(o.items) && o.items.length && o.items.every((x) => isMedia(x) || isStub(x))) {
         const pks = [];
         for (const it of o.items) {
+          if (!isMedia(it)) { const sp = String(it.pk || String(it.id).split('_')[0]); if (sp && sp !== 'undefined') pks.push(sp); continue; }
           const s = slim(it, user);
           if (!s.pk || s.pk === 'undefined') continue;
           ITEMS.set(s.pk, s);
@@ -612,27 +625,6 @@
     return job.type === 'video' ? (job.audio ? t('video') : t('videoMute')) : t('photo');
   }
 
-  async function downloadAll() {
-    harvestInline();
-    const pk = currentPk();
-    if (!pk) throw new Error(t('noStory'));
-    if (!ITEMS.has(pk)) await fetchItem(pk);
-    // Usa só o que o próprio Instagram já carregou para o visualizador (nenhuma chamada extra
-    // de API em lote — é o tipo de coisa que dispara a checagem de automação).
-    const pks = REELS.get(pk) || [pk];
-    const jobs = [];
-    for (let i = 0; i < pks.length; i++) {
-      const it = ITEMS.get(pks[i]);
-      const j = it && buildJob(it, i + 1);
-      if (j) jobs.push(j);
-    }
-    if (!jobs.length) throw new Error(t('nothing'));
-    const r = await askExtension(jobs);
-    if (!r.ok) throw new Error(r.error || t('failed'));
-    if (pks.length === 1) return t('onlyOne');
-    return t('many', r.count, jobs.length);
-  }
-
   // dados do post: o que o Instagram já carregou (modal, grade, HTML); só se faltar, o mesmo plano B dos stories (1 pedido)
   async function postData(code) {
     harvestInline();
@@ -661,16 +653,199 @@
     if (!r.ok) throw new Error(r.error || t('failed'));
     return job.type === 'video' ? (job.audio ? t('video') : t('videoMute')) : t('photo');
   }
-  async function downloadPostAll() {
+  // ───────────────────────── "Salvar todos" com fila (v1.8.15) ─────────────────────────
+  // Vale para o "salvar todos" dos stories (botão e Shift+D) e para o "salvar todas" do carrossel (post e feed).
+  // O risco com o Instagram vem da rajada (vários pedidos em poucos segundos), não do total. Por isso:
+  //  1. um arquivo por vez, com 0,5 a 1,2 s (sorteado) entre o fim de um e o início do próximo;
+  //  2. plano B (media/{id}/info) dentro de um "todos": no máximo 1 pedido a cada 3 s e 10 por clique; o que passar do teto não
+  //     é baixado e entra no aviso "N não puderam ser salvos agora";
+  //  3. acima de 20 arquivos, pergunta antes ("Salvar N arquivos? Leva cerca de X s");
+  //  4. progresso no botão (3/17); novo clique no botão (ou Shift+D) ou Esc cancela, o que já baixou fica;
+  //  5. a aba conta como ocupada (data-ss-busy) enquanto roda, para a extensão não se recarregar no meio;
+  //  6. versão URGENTE: a fila espera (como os outros trabalhos longos) e o service worker continua recusando o download.
+  const QCFG = { gapMin: 500, gapMax: 1200, planBGap: 3000, planBMax: 10, confirmOver: 20, perFile: 1500 };
+  const QNO = { recusou: true }; // a pessoa clicou em Cancelar na pergunta
+  let lastPlanB = 0; // quando saiu o último pedido de plano B de qualquer fila: cancelar e recomeçar não zera o ritmo de 3 s
+  let queue = null; // { cancel, running, done, total, saved, unsaved, planB, lastB }
+  let qConfirm = null; // { cancel() } enquanto a pergunta está aberta
+  const kitApi = () => window[Symbol.for('salvaStories.kit')];
+  const rawWait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const urgentNow = () => { const k = kitApi(); return !!(k && k.urgent && k.urgent()); };
+  const qGap = () => QCFG.gapMin + Math.random() * (QCFG.gapMax - QCFG.gapMin);
+  async function qwait(q, ms) { // espera em fatias, para o cancelamento valer na hora
+    const end = Date.now() + ms;
+    while (!q.cancel && Date.now() < end) await rawWait(Math.min(100, Math.max(1, end - Date.now())));
+  }
+  async function qhold(q) { while (!q.cancel && urgentNow()) await rawWait(250); } // versão urgente: espera até atualizar
+  const qbox = (el) => { if (!el || el.closest('[hidden]')) return null; const r = el.getBoundingClientRect(); return r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } : null; };
+
+  const Q_CSS = `
+    .scrim { position: fixed; inset: 0; width: 100vw; height: 100vh; background: var(--scrim); display: grid; place-items: center; animation: fade .15s ease; }
+    @keyframes fade { from { opacity: 0; } }
+    .box { width: min(400px, calc(100vw - 32px)); background: var(--bg); color: var(--fg); border-radius: 16px; border: 1px solid var(--sep);
+      box-shadow: var(--shadow); padding: 20px 20px 16px; display: grid; gap: 8px; outline: none; animation: pop .18s cubic-bezier(.2,.9,.3,1.2); }
+    @keyframes pop { from { opacity: 0; transform: scale(.95); } }
+    @media (prefers-reduced-motion: reduce) { .scrim, .box { animation: none; } }
+    h2 { margin: 0; font-size: 16px; font-weight: 700; }
+    p { margin: 0; font-size: 13.5px; color: var(--sub); line-height: 1.4; }
+    .row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    .btn:focus-visible { outline: 2px solid #d62976; outline-offset: 2px; }`;
+  function confirmQueue(n, secs) {
+    const kit = kitApi();
+    if (!kit || !kit.makeHost) return Promise.resolve(window.confirm(t('qTitle', n) + ' ' + t('qSub', t('qSecs', secs))));
+    return new Promise((resolve) => {
+      const ui = kit.makeHost('salva-stories-saveall', Q_CSS, '<div class="scrim"><div class="box" role="alertdialog" aria-modal="true" tabindex="-1"><h2></h2><p></p><div class="row"><button class="btn sec no"></button><button class="btn pri ok"></button></div></div></div>');
+      ui.refreshMode();
+      ui.$('h2').textContent = t('qTitle', n);
+      ui.$('p').textContent = t('qSub', t('qSecs', secs));
+      ui.$('.no').textContent = t('qCancel');
+      ui.$('.ok').textContent = t('qSave');
+      const last = document.activeElement;
+      const onTab = (e) => { // foco preso nos dois botões
+        if (e.key !== 'Tab') return;
+        const b = [ui.$('.no'), ui.$('.ok')], i = b.indexOf(ui.sh.activeElement);
+        e.preventDefault(); e.stopPropagation();
+        b[(i + (e.shiftKey ? -1 : 1) + b.length) % b.length].focus();
+      };
+      const finish = (v) => {
+        if (!qConfirm) return;
+        qConfirm = null;
+        window.removeEventListener('keydown', onTab, true);
+        ui.host.remove();
+        try { if (last && last.focus) last.focus({ preventScroll: true }); } catch (_) {}
+        resolve(v);
+      };
+      window.addEventListener('keydown', onTab, true);
+      ui.$('.ok').addEventListener('click', () => finish(true));
+      ui.$('.no').addEventListener('click', () => finish(false));
+      ui.$('.scrim').addEventListener('click', (e) => { if (e.target === e.currentTarget) finish(false); });
+      qConfirm = { cancel: () => finish(false), ui };
+      ui.$('.ok').focus({ preventScroll: true });
+    });
+  }
+  // Esc: cancela a pergunta ou a fila que está rodando (e não fecha o story do Instagram junto)
+  addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (qConfirm) { e.preventDefault(); e.stopPropagation(); qConfirm.cancel(); return; }
+    if (queue) { e.preventDefault(); e.stopPropagation(); queue.cancel = true; }
+  }, true);
+
+  // o que entra na fila de cada tipo de "todos": itens na ordem, com o job pronto ou, sem dado capturado, só o pk (plano B)
+  async function planStories() {
+    harvestInline();
+    const pk = currentPk();
+    if (!pk) throw new Error(t('noStory'));
+    // usa o que o próprio Instagram já carregou para o visualizador; o que faltar vai pelo plano B limitado
+    const pks = REELS.get(pk) || [pk];
+    const entries = [];
+    for (let i = 0; i < pks.length; i++) {
+      const it = ITEMS.get(pks[i]);
+      if (!it) { entries.push({ pk: pks[i], order: i + 1, job: null }); continue; }
+      const j = buildJob(it, i + 1);
+      if (j) entries.push({ pk: pks[i], order: i + 1, job: j });
+    }
+    if (!entries.length) throw new Error(t('nothing'));
+    return { entries, pks, summary: (a, b) => (pks.length === 1 ? t('onlyOne') : t('many', a, b)) };
+  }
+  async function planPost() {
     const { code } = curPost();
     const post = code && (await postData(code));
     if (!post) throw new Error(t('noPost'));
     const jobs = post.parts.map((_, i) => postJob(post, i)).filter(Boolean);
     if (!jobs.length) throw new Error(t('nothing'));
-    const r = await askExtension(jobs);
-    if (!r.ok) throw new Error(r.error || t('failed'));
-    return t('postMany', r.count, jobs.length);
+    return { entries: jobs.map((j, i) => ({ order: i + 1, job: j })), pks: null, summary: (a, b) => t('postMany', a, b) };
   }
+
+  async function runQueue(btn, icon, plan) {
+    if (queue) { queue.cancel = true; return; } // clique de novo (ou Shift+D) cancela; nunca monta uma segunda fila
+    const q = queue = { cancel: false, running: false, done: 0, total: 0, saved: 0, unsaved: 0, planB: 0, lastB: 0, busyOn: false };
+    let ended = 'ok', summary = '', err = null, lastErr = null;
+    btn.classList.remove('ok', 'err');
+    btn.classList.add('busy');
+    try {
+      const p = await plan();
+      if (q.cancel) throw QNO;
+      q.total = p.entries.length;
+      const missing = p.entries.filter((e) => !e.job).length;
+      if (q.total > QCFG.confirmOver) {
+        const secs = Math.round(q.total * QCFG.perFile / 1000 + Math.min(missing, QCFG.planBMax) * QCFG.planBGap / 1000);
+        if (!(await confirmQueue(q.total, secs))) throw QNO;
+      }
+      q.running = true;
+      const k = kitApi();
+      if (k && k.busy) k.busy(true); else document.documentElement.dataset.ssBusy = '1';
+      q.busyOn = true;
+      btn.classList.remove('busy'); btn.classList.add('queue');
+      const paint = () => {
+        btn.innerHTML = `<span class="pg">${q.done}/${q.total}</span>`;
+        btn.title = t('qTip', q.done, q.total); btn.setAttribute('aria-label', btn.title);
+      };
+      paint();
+      for (let i = 0; i < p.entries.length; i++) {
+        if (q.cancel) break;
+        await qhold(q);
+        if (q.cancel) break;
+        const last = i === p.entries.length - 1;
+        const e = p.entries[i];
+        let job = e.job;
+        if (!job) { // plano B: 1 pedido a cada 3 s, no máximo 10 por clique; passou do teto, o item não é baixado
+          if (q.planB >= QCFG.planBMax) { q.unsaved++; q.done++; paint(); continue; }
+          const wait = lastPlanB ? lastPlanB + QCFG.planBGap - Date.now() : 0;
+          if (wait > 0) await qwait(q, wait);
+          if (q.cancel) break;
+          await qhold(q);
+          if (q.cancel) break;
+          q.planB++;
+          lastPlanB = Date.now();
+          try {
+            const it = await fetchItem(e.pk);
+            job = it ? buildJob(it, e.order) : null;
+          } catch (x) { job = null; lastErr = (x && x.message) || lastErr; }
+          lastPlanB = Date.now();
+          if (p.pks) for (const x of p.pks) REELS.set(x, p.pks); // a resposta do plano B traz só o item dela: não deixa encolher a lista do reel
+          if (q.cancel) break;
+          if (!job) { q.unsaved++; q.done++; paint(); if (!last) await qwait(q, qGap()); continue; }
+        }
+        let r = await askExtension([job]);
+        if (!r.ok && r.error === t('urgent') && !q.cancel) { await qhold(q); if (!q.cancel) r = await askExtension([job]); } // urgente chegou entre a espera e o pedido: tenta o mesmo item de novo
+        if (r.ok) q.saved++; else { q.unsaved++; err = r.error || lastErr || err; }
+        q.done++; paint();
+        if (!last && !q.cancel) await qwait(q, qGap()); // intervalo sorteado entre o fim de um e o início do próximo
+      }
+      if (q.cancel) { ended = 'cancel'; summary = t('qCanceled', q.saved, q.total); }
+      else if (!q.saved) throw new Error(err || lastErr || t('failed'));
+      else summary = p.summary(q.saved, q.total) + (q.unsaved ? ' · ' + t('qUnsaved', q.unsaved) : '');
+    } catch (e) {
+      if (e === QNO) ended = 'no'; else { ended = 'err'; err = e; }
+    } finally {
+      if (q.busyOn) { const k = kitApi(); if (k && k.busy) k.busy(false); else document.documentElement.dataset.ssBusy = '0'; }
+      queue = null;
+    }
+    btn.classList.remove('busy', 'queue');
+    labelsLang = null; // volta os títulos do botão
+    const what = mode === 'story' ? ['story salvo: ', 'story saved: ', 'historia guardada: '] : ['post salvo: ', 'post saved: ', 'publicación guardada: '];
+    if (ended === 'err') {
+      console.warn(TAG, err);
+      { const em = String((err && err.message) || err).replace(/\d{8,}/g, '#').slice(0, 160); const w = mode === 'story' ? ['story não salvo: ', 'story not saved: ', 'historia no guardada: '] : ['post não salvo: ', 'post not saved: ', 'publicación no guardada: ']; log('warn', { pt: w[0] + em, en: w[1] + em, es: w[2] + em }); }
+      btn.classList.add('err'); btn.innerHTML = ICON_ERR;
+      toast(t('notSaved') + (err && err.message ? err.message : err));
+    } else if (ended === 'ok') {
+      btn.classList.add('ok'); btn.innerHTML = ICON_OK;
+      toast(summary, q.unsaved ? 6000 : 2600);
+      log(q.unsaved ? 'warn' : 'info', { pt: what[0] + summary, en: what[1] + summary, es: what[2] + summary });
+    } else if (ended === 'cancel') {
+      btn.innerHTML = icon;
+      toast(summary, 4000);
+      log('info', { pt: 'salvar todos cancelado (' + q.saved + ' de ' + q.total + ')', en: 'save all canceled (' + q.saved + ' of ' + q.total + ')', es: 'guardar todo cancelado (' + q.saved + ' de ' + q.total + ')' });
+    } else { btn.innerHTML = icon; return; }
+    setTimeout(() => { btn.classList.remove('ok', 'err'); if (!queue) btn.innerHTML = icon; }, 1600);
+  }
+  // depuração e testes: __salvaStoriesSaveAllDebug()
+  window.__salvaStoriesSaveAllDebug = () => ({
+    running: !!(queue && queue.running), pending: !!queue, done: queue ? queue.done : null, total: queue ? queue.total : null, saved: queue ? queue.saved : null, unsaved: queue ? queue.unsaved : null,
+    planB: queue ? queue.planB : null, toast: toastEl ? toastEl.textContent : null, busy: document.documentElement.dataset.ssBusy || '0', btnText: btnAll ? btnAll.textContent : null, btnTitle: btnAll ? btnAll.title : null,
+    confirm: qConfirm ? { title: qConfirm.ui.$('h2').textContent, sub: qConfirm.ui.$('p').textContent, ok: qbox(qConfirm.ui.$('.ok')), no: qbox(qConfirm.ui.$('.no')), okText: qConfirm.ui.$('.ok').textContent, noText: qConfirm.ui.$('.no').textContent } : null,
+  });
 
   // ───────────────────────── interface ─────────────────────────
   let mode = 'story'; // 'story' | 'photo' | 'video' (post aberto)
@@ -758,6 +933,9 @@
         button svg { pointer-events:none; } /* o ícone é trocado (ok/erro) durante o clique: o alvo é sempre o botão */
         button:focus-visible { outline:2px solid #fff; outline-offset:2px; }
         button.busy svg { animation: spin 1s linear infinite; opacity:.85; }
+        button.queue { font:700 12px/1 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; letter-spacing:-.3px; background:rgba(214,41,118,.8); border-color:rgba(255,255,255,.5); white-space:nowrap; }
+        button.queue:hover { background:#d62976; }
+        button.queue .pg { pointer-events:none; }
         button.ok { background:#1f9d55; border-color:#1f9d55; }
         button.err { background:#d93a3a; border-color:#d93a3a; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -847,7 +1025,7 @@
       host.addEventListener(ev, (e) => e.stopPropagation());
     }
     btnOne.addEventListener('click', () => run(btnOne, ICON_DL, mode === 'story' ? downloadCurrent : downloadPostCurrent));
-    btnAll.addEventListener('click', () => run(btnAll, ICON_ALL, mode === 'story' ? downloadAll : downloadPostAll));
+    btnAll.addEventListener('click', () => runQueue(btnAll, ICON_ALL, mode === 'story' ? planStories : planPost));
     // o menu (menu.js) abre ao lado da engrenagem
     btnMenu.addEventListener('click', () => {
       const r = btnMenu.getBoundingClientRect();
@@ -857,12 +1035,12 @@
   }
 
   let toastTimer;
-  function toast(msg) {
+  function toast(msg, ms) {
     if (!toastEl) return;
     toastEl.textContent = msg;
     toastEl.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms || 2600);
   }
 
   async function run(btn, icon, fn) {
@@ -1056,6 +1234,7 @@
   addEventListener('keydown', (e) => {
     if (!settings || !settings.hotkey || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key !== 'd' && e.key !== 'D') return;
+    if (qConfirm) return; // pergunta do "salvar todos" aberta: a tecla não baixa nada
     // tecla digitada dentro do menu (shadow DOM fechado: daqui de fora o alvo aparece como o próprio <salva-stories-menu>)
     const t = (e.composedPath && e.composedPath()[0]) || e.target;
     if (t && (t.tagName === 'SALVA-STORIES-MENU' || t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
@@ -1064,7 +1243,7 @@
     if (onPost && e.shiftKey && btnAll.style.display === 'none') return;
     e.preventDefault();
     e.stopPropagation();
-    if (e.shiftKey) run(btnAll, ICON_ALL, onPost ? downloadPostAll : downloadAll);
+    if (e.shiftKey) runQueue(btnAll, ICON_ALL, onPost ? planPost : planStories);
     else run(btnOne, ICON_DL, onPost ? downloadPostCurrent : downloadCurrent);
   }, true);
 

@@ -1,12 +1,13 @@
 // Regra 13: idioma da primeira abertura vem do navegador (pt, en, es; outro → en), seletor PT · EN · ES no menu e no
 // tutorial, e tudo troca junto (menu, rodapé, tutorial, novidades, registro do "Relatar bug").
 // Uso: CHROME_PATH=... node e2e-lang.mjs $PWD/ext-test
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import path from 'path';
 import fs from 'fs';
 
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const SHOT = path.join(DIR, 'shots-lang'); fs.mkdirSync(SHOT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const page = `<!doctype html><html class="__fb-dark-mode"><head><meta charset="utf-8"></head><body style="margin:0;background:#000;color:#eee;font-family:system-ui;height:100vh"><main style="margin-left:420px;padding-top:40px"></main></body></html>`;

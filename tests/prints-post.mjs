@@ -1,8 +1,9 @@
 // Print da página do GitHub: post aberto (modal) com os botões do Salva Stories ao lado. Conteúdo gerado, conta fictícia.
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import path from 'path';
 const EXT = process.argv[2], OUT = process.argv[3];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const W = 560, H = 700;
 const slide = (i) => `<li style="position:absolute;left:0;top:0;width:${W}px;height:${H}px;list-style:none;transform:translateX(${i * W}px)"><img class="g" data-i="${i}" style="width:${W}px;height:${H}px;display:block"></li>`;

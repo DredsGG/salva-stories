@@ -1,6 +1,11 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.8.15': [
+    "\"Salvar todos\" (stories) e \"Salvar todas\" (carrossel) agora baixam um arquivo por vez, com uma pausa curta entre eles, para não sobrecarregar o Instagram.",
+    "Acima de 20 arquivos, a extensão pergunta antes (\"Salvar N arquivos? Leva cerca de X s\"). Até 20, começa direto.",
+    "O progresso aparece no próprio botão (ex.: 3/17). Clique no botão de novo, ou aperte Esc, para cancelar: o que já baixou fica.",
+  ],
   '1.8.14': [
     "Novo botão Apoiar ♥ no rodapé do menu, opcional: Pix (Brasil) ou GitHub Sponsors (outros países). Não muda nada na extensão.",
   ],

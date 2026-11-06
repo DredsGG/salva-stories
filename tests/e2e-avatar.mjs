@@ -3,11 +3,12 @@
 // segurar abre. A foto grande vem do hd_profile_pic_url_info que o Instagram manda (HTML ou GraphQL); sem ele, mostra a
 // da tela com aviso. Salvar baixa em {usuário}/perfil. Esc e clique fora fecham. Chave do menu desliga.
 // Uso: node e2e-avatar.mjs $PWD/ext-test   (precisa de media/avatar-hd.jpg e media/avatar-sm.jpg)
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const HD = fs.readFileSync(path.join(DIR, 'media', 'avatar-hd.jpg'));
 const SM = fs.readFileSync(path.join(DIR, 'media', 'avatar-sm.jpg'));

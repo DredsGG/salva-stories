@@ -5,10 +5,11 @@
 // - Release "URGENTE" → quadro sem X, Esc não fecha, downloads recusados, trabalhos longos pausados,
 //   tarefa pausada não segura a recarga; Release resolvido → quadro some e tudo volta.
 // Uso: node e2e-update14.mjs $PWD/ext-test
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import path from 'path';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 let REL = null; let hits = 0;
 const page = '<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#fff"><main style="height:100vh"></main></body></html>';

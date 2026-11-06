@@ -3,10 +3,11 @@
 // (2) o menu "Mais" do Instagram, aberto por cima do nosso ícone da barra lateral e do fantasminha, esconde os dois
 // até fechar.
 // Uso: node e2e-feed.mjs $PWD/ext-test
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import path from 'path';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const CDN = 'https://127.0.0.1/v/t51/';
 const user = { username: 'pessoa.teste', pk: '999' };
@@ -117,7 +118,11 @@ check('reel no feed: texto "vídeo"', s.code === 'DQreelxyz12' && /v[ií]deo/i.t
 await clear(); await p.keyboard.press('d'); c = await calls(1);
 check('reel no feed: salva o .mp4', c.length === 1 && /perfil\/videos\/2026-10-\d\d_DQreelxyz12\.mp4$/.test(c[0]), c);
 // durante a rolagem os botões não arrastam junto (somem e voltam no lugar)
-const during = await p.evaluate(async () => { const out = []; for (let i = 0; i < 8; i++) { scrollBy(0, -30); await new Promise((r) => requestAnimationFrame(r)); const h = document.querySelector('salva-stories'); out.push(getComputedStyle(h).opacity); } return out; });
+// Janela medida em TEMPO, não em quadros: eram 8 quadros (30 px cada), que numa tela de 60 Hz são ~133 ms. No Chromium headless
+// do Windows o requestAnimationFrame roda a ~170 Hz (30 quadros em ~178 ms, medido em 05/11/2026) e 8 quadros viravam ~48 ms,
+// menos que os 33 a 70 ms que a extensão leva para esmaecer abaixo de 50% (passava em 7 de 14 rodadas). Agora: 133 ms rolando
+// 30 px por 16,7 ms (mesma distância e mesma velocidade de antes) e a mesma conferência (algum quadro abaixo de 0,5).
+const during = await p.evaluate(async () => { const out = []; const t0 = performance.now(); let last = t0; while (performance.now() - t0 < 133.3) { const now = performance.now(); scrollBy(0, -30 * Math.min(4, (now - last) / 16.667)); last = now; await new Promise((r) => requestAnimationFrame(r)); const h = document.querySelector('salva-stories'); out.push(getComputedStyle(h).opacity); } return out; });
 await wait(500);
 s = await st('vp3');
 check('rolando: some; parou: volta no lugar', during.some((o) => parseFloat(o) < 0.5) && s.op === '1' && s.top === (Math.max(8, Math.min(s.vp.top + 16, s.vp.top + 588 - 120))) + 'px', { during, s });

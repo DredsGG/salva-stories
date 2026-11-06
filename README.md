@@ -9,7 +9,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
 ![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.8.14-d62976)
+![Version](https://img.shields.io/badge/version-1.8.15-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
@@ -24,7 +24,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 **Stories**
 
-- **Two round buttons next to the open story:** *save this one* and *save all from this person*. Shortcuts: `D` and `Shift+D`.
+- **Two round buttons next to the open story:** *save this one* and *save all from this person*. Shortcuts: `D` and `Shift+D`. **Save all runs as a slow queue** (new in 1.8.15): one file at a time with a random 0.5–1.2 s pause between files, a confirmation above 20 files ("Save N files? It takes about X s"), progress on the button (3/17), and a click on the button, `Shift+D` or `Esc` cancels while keeping what was already saved. Any extra lookups (`media/{id}/info`) are capped at one every 3 s and 10 per click; items past the cap are skipped with a notice ("N could not be saved right now, try again in a moment"). The same queue serves the carousel's *save all* on posts and on the home feed.
 - **Photos at the largest size Instagram has**, not the size on screen (for example 1320×2346 when the viewer shows 720×1280).
 - **Videos with audio.** By default it saves the progressive MP4 (video + sound in one file). When the original is above 720p, it fetches the separate DASH video and audio tracks and **muxes them in the browser, with no re-encoding**. If that fails, it falls back to the 720p file.
 - **Video stories at 0.5×, 1.5× or 2×:** hover the speed button next to the story and pick from the vertical list. The speed sticks for the next stories (Instagram moves on when the video ends, so 2× really is twice as fast). Photo stories keep Instagram's own timer.
@@ -155,7 +155,7 @@ flowchart LR
 - **No extra traffic in the normal case.** `page.js` listens to the responses Instagram itself already downloads (the reels media GraphQL payload and inline JSON) and keeps the story items in memory. Only when an item isn't cached does it make a single `media/{id}/info` call.
 - **Finding the post on screen:** the post's data (every carousel item, in order) comes from the same responses Instagram already loads (the grid, the post pop-up or the inline JSON of `/p/{code}/`), indexed by its shortcode. The item on screen is the image inside the carousel window whose file name matches one of the item's candidates (video: React fiber; fallback: `img_index` in the URL, or on the home feed the carousel slide's own `translateX` position). On the home feed, each post is an `<article>` and its shortcode comes from the post's date link.
 - **Finding the story on screen:** the biggest `<video>`/`<img>` in the center of the viewer, matched to its media id through React fiber. When the URL already has an id, that one wins, which covers the slide animation between stories.
-- **"Save all" uses only the reel the viewer already loaded.** It doesn't do batch API calls, since that's what triggers Instagram's automation checks.
+- **"Save all" uses the reel the viewer already loaded, through a slow queue.** It doesn't do batch API calls, since that's what triggers Instagram's automation checks: files go one at a time with a random 0.5–1.2 s pause; the only extra lookup (`media/{id}/info`, for an item the viewer listed without its media) is capped at one every 3 s and 10 per click; above 20 files it asks first; the tab counts as busy (`data-ss-busy`) while the queue runs so the extension doesn't reload itself in the middle; on an URGENT release the queue waits.
 - **Minimal permissions:** `downloads`, `storage` and `alarms` (and `permissions.contains` to warn when Firefox site access was removed); host access to Instagram's CDN (`*.cdninstagram.com`, `*.fbcdn.net`, needed to fetch DASH tracks), to `www.instagram.com` (to reload its tabs after an update) and to `api.github.com` (to read the latest release). The service worker refuses any download URL that isn't HTTPS on the CDN hosts. No `cookies`, `tabs` or `webRequest`, and nothing about you is sent anywhere: the only outside request is that read-only release check.
 - **One package for every browser:** the manifest declares the background as both `service_worker` (Chromium) and `scripts` (Firefox), pointing to the same ES module, so `sw.js` uses no `window`/DOM and only promise-style `browser.*`/`chrome.*` calls. On Firefox the muxed DASH video is saved through a `blob:` URL; on Chromium through a `data:` URL. `browser_specific_settings.gecko` sets the add-on id `salva-stories@dredsgg`, Firefox 140+, no data collection, and the `update_url` (`firefox/updates.json`).
 - **`remux.js`** is a small dependency-free fMP4 muxer: it copies the `moov`/`trak` boxes, renumbers `track_ID` and interleaves `moof`/`mdat` fragments by their decode time.
@@ -171,7 +171,9 @@ Open the console on instagram.com and run `__salvaStoriesDebug()`. It shows how 
 
 ## Tests
 
-End-to-end with the real extension loaded, against a simulated instagram.com and CDN. Setup is in [`tests/README.md`](tests/README.md).
+End-to-end with the real extension loaded, against a simulated instagram.com and CDN. Setup is in [`tests/README.md`](tests/README.md); `node tests/suite.mjs 3` runs everything three times in a row, and every test ends in `TUDO PASSOU` or `FALHOU`.
+
+- `e2e-save-all.mjs`: the *Save all* queue. A 25-item reel (confirmation, Cancel downloads nothing, Save downloads 25 without duplicates, 24 measured gaps all ≥ 0.5 s and not constant, progress on the button, `data-ss-busy` 1 while running and 0 after, `Esc` stops it and keeps what was saved, a second click or `Shift+D` cancels without starting another queue), an 8-item reel (starts without asking), 15 items with no captured data (at most 10 lookups, never two within 3 s, notice for the rest), an URGENT release (queue waits and resumes; the service worker still refuses the single `D`), a 10-photo carousel (same queue, `_01`–`_10`) and the confirmation in EN and ES.
 
 - `e2e.mjs`, stories: photo at the largest candidate with the right name, 1080p DASH video muxed with audio (checked with `ffprobe`), video without sound, `Shift+D` saving three, max-resolution off, ghost mode blocking only when on, and the settings menu.
 - `e2e-v15.mjs`, everything else, in light and dark: ghost badge outside stories, a 30-post profile with carousels saved as 34 files in the right folders, the player (pause that survives the page trying to resume it, ±10 s, 2×, sound, volume, download), Direct (all 40 chats selected, 2 marked unread, 2 deleted after one confirmation), two followers checks with unfollowers and new followers, bulk ignore and unfollow, and the update notice and bug report.

@@ -3,11 +3,12 @@
 // um clique na página), continua ao passar de reel, o nosso alto-falante muda o estado do Instagram, mutar é
 // respeitado até sair do Reels, voltar ao Reels liga de novo, e o ajuste desligado não mexe em nada.
 // Uso: node e2e-reels-sound.mjs $PWD/ext-test   (precisa de media/long.webm)
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const WEBM = fs.readFileSync(path.join(DIR, 'media', 'long.webm'));
 const reel = (i) => `<div class="rl" style="height:100vh;display:grid;place-items:center;scroll-snap-align:start"><div style="position:relative;width:480px;height:800px">
@@ -45,7 +46,11 @@ const click = async (x, y) => { await p.mouse.move(x, y); await p.mouse.down(); 
 await p.goto('https://www.instagram.com/reels/AAAA/'); await wait(1500);
 let s = await st();
 check('antes de qualquer clique na página: não força som (o navegador não deixa)', s.muted === true, s);
-await click(640, 300); await wait(900); // um clique qualquer na página (ativação do usuário)
+await click(640, 300); // um clique qualquer na página (ativação do usuário)
+// Espera pela condição, não por um tempo fixo. Medido em 05/11/2026 (Windows, Chromium 153, 5 de 5 rodadas): da ativação até ligar o som
+// leva ~1,25 s (a extensão só age com o reel mudo e tocando há 700 ms, em passos de 400 ms, mais o clique no botão do Instagram).
+// A espera fixa de 0,9 s era menor que isso. Teto de 3,5 s; a conferência de estado abaixo é a mesma de antes.
+for (let i = 0; i < 35; i++) { await wait(100); s = await st(); if (s.id === 'v1' && s.muted === false && s.igMuted === false) break; }
 s = await st();
 check('depois do clique: som ligado pelo botão do Instagram', s.id === 'v1' && s.muted === false && s.igMuted === false, s);
 await p.evaluate(() => document.getElementById('sc').scrollTo(0, innerHeight)); await wait(900);

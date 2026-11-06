@@ -1,8 +1,9 @@
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const ctx = await chromium.launchPersistentContext(path.join(DIR, 'prl-' + Date.now()), { executablePath: process.env.CHROME_PATH || undefined, headless: true,
   args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`, '--headless=new'] });

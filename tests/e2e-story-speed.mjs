@@ -4,11 +4,12 @@
 // (2) fantasminha sempre à vista (aceso = modo fantasma ligado, apagado = desligado); clique liga/desliga, no story e na
 // barra lateral da página inicial.
 // Uso: node e2e-story-speed.mjs $PWD/ext-test   (precisa de media/long.webm)
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const WEBM = fs.readFileSync(path.join(DIR, 'media', 'long.webm'));
 const CDN = 'https://127.0.0.1/v/t51/';

@@ -2,10 +2,11 @@
 // Os botões não podem aparecer em posição intermediária: somem enquanto o card se mexe e voltam só no lugar final,
 // antes do fim da desaceleração (curva parecida com a do Instagram: 0,8 s, quase parado nos últimos ~0,3 s).
 // Uso: CHROME_PATH=... node e2e-flick.mjs $PWD/ext-test
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import path from 'path';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const CDN = 'https://127.0.0.1/v/t51/';
 const user = { username: 'example.profile', pk: '999' };

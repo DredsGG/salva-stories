@@ -1,5 +1,10 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.8.15': [
+    "\"Guardar todos\" (historias) y \"Guardar todas\" (carrusel) ahora descargan un archivo a la vez, con una pausa corta entre ellos, para no sobrecargar Instagram.",
+    "Con más de 20 archivos, la extensión pregunta antes (\"¿Guardar N archivos? Tarda unos X s\"). Hasta 20, empieza directamente.",
+    "El progreso aparece en el propio botón (p. ej. 3/17). Vuelve a hacer clic en el botón, o pulsa Esc, para cancelar: lo que ya se descargó se queda.",
+  ],
   '1.8.14': [
     "Nuevo botón Apoyar ♥ en el pie del menú, opcional: Pix (Brasil) o GitHub Sponsors (otros países). No cambia nada en la extensión.",
   ],

@@ -1,11 +1,12 @@
 // Testes da v1.5.0: ícone/fantasma fora dos stories, baixar perfil, player, seleção no Direct, seguidores.
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
 const EXT = process.argv[2];
 const ONLY = process.argv[3] || 'all';
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const DL = path.join(DIR, 'dl15');
 const SHOT = path.join(DIR, 'shots15');
 fs.rmSync(DL, { recursive: true, force: true }); fs.mkdirSync(DL, { recursive: true }); fs.mkdirSync(SHOT, { recursive: true });
@@ -180,6 +181,9 @@ await ctx.route('https://api.github.com/**', (r) => { ghHits++; return r.fulfill
 await ctx.route('https://github.com/**', (r) => r.fulfill({ status: 200, contentType: 'application/zip', body: Buffer.from('PK\x05\x06' + '\0'.repeat(18), 'binary') }));
 let [sw] = ctx.serviceWorkers(); if (!sw) sw = await ctx.waitForEvent('serviceworker');
 await wait(800);
+// tutorial de primeiro uso (desde a 1.7.1) já visto, como nos outros testes: sem isso o quadro "Como usar" abre por cima do painel de seguidores
+// e os cliques do "Deixar de seguir" caíam nele (medido em 05/11/2026: 45 marcadas, 0 pedidos).
+await sw.evaluate(() => chrome.storage.local.set({ 'ss.onboard': { tutorial: 'visto', visto: chrome.runtime.getManifest().version } }));
 await sw.evaluate(() => { self.__calls = []; const orig = chrome.downloads.download.bind(chrome.downloads); chrome.downloads.download = (o, cb) => { self.__calls.push(o.filename); return orig(o, cb); }; });
 const p = await ctx.newPage();
 const logs = []; p.on('console', (m) => { if (/Salva|Error|error/.test(m.text())) logs.push(m.text().slice(0, 200)); }); p.on('pageerror', (e) => logs.push('PAGEERR ' + e.message));
@@ -205,6 +209,9 @@ if (ONLY === 'all' || ONLY === 'menu') {
 
 // 2) baixar perfil
 const dbgOf = (fn) => p.evaluate((fn) => window[fn](), fn);
+// fecha pelo X o quadro que o Instagram simulado (e a versão 9.9.9 do GitHub simulado) põe no meio da tela: o aviso de versão nova (regra 14)
+// aparece sozinho e cobre o painel; uma pessoa fecharia no X, e o X só adia por 1 h.
+const dismissCards = async () => { for (let i = 0; i < 3; i++) { const o = await dbgOf('__salvaStoriesOnboardDebug'); if (!o || !o.open || !o.at || !o.at.close) return; await p.mouse.click(o.at.close.x, o.at.close.y); await wait(350); } };
 const clickAt = async (pt) => { if (!pt) throw new Error('sem posição'); await p.mouse.click(pt.x, pt.y); };
 if (ONLY === 'all' || ONLY === 'profile') {
   await p.goto('https://www.instagram.com/pessoa.teste/'); await wait(1500);
@@ -305,11 +312,19 @@ if (ONLY === 'all' || ONLY === 'follows') {
   let m = await dbgOf('__salvaStoriesMenuDebug');
   await p.mouse.click(m.slot.x + 24, m.slot.y + 24); await wait(600);
   m = await dbgOf('__salvaStoriesMenuDebug');
+  // Desde a 1.8.14 o rodapé do menu ganhou a linha "Apoiar ♥" e o corpo rolável ficou mais baixo: em 860 px de janela o item
+  // "Seguidores e seguindo" fica atrás do rodapé (y=849, medido em 05/11/2026). Uma pessoa rolaria o menu; o teste também (roda do mouse).
+  for (let i = 0; i < 10 && m.at && m.at.follows && m.at.follows.y > 700; i++) {
+    await p.mouse.move(300, 400); await p.mouse.wheel(0, 300); await wait(250);
+    m = await dbgOf('__salvaStoriesMenuDebug');
+  }
   if (m.at && m.at.follows) { await p.mouse.click(m.at.follows.x, m.at.follows.y); } else { await p.evaluate(() => window.dispatchEvent(new CustomEvent('salva-stories:follows'))); out.followsViaEvent = true; }
   await wait(700);
   let d = await dbgOf('__salvaStoriesFollowsDebug');
   out.followsOpen = d.open;
   await p.screenshot({ path: path.join(SHOT, `follows-intro-${mode}.png`) });
+  await dismissCards();
+  d = await dbgOf('__salvaStoriesFollowsDebug');
   await clickAt(d.at.go);
   const t0 = Date.now();
   await wait(3500);
@@ -359,13 +374,20 @@ if (ONLY === 'all' || ONLY === 'follows') {
   await p.screenshot({ path: path.join(SHOT, `unfollow-select-${mode}.png`) });
   await clickAt(d.at.uall); await wait(300);
   d = await dbgOf('__salvaStoriesFollowsDebug'); out.unfAll = d.selected;
+  await dismissCards(); d = await dbgOf('__salvaStoriesFollowsDebug');
   await clickAt(d.at.ugo); await wait(500);
   await p.screenshot({ path: path.join(SHOT, `unfollow-confirm-${mode}.png`) });
   d = await dbgOf('__salvaStoriesFollowsDebug');
   await clickAt(d.at.dlgOk); await wait(1500);
   d = await dbgOf('__salvaStoriesFollowsDebug'); out.unfBusyDuring = d.busyFlag;
   await p.screenshot({ path: path.join(SHOT, `unfollow-running-${mode}.png`) });
-  const t0 = Date.now(); while (Date.now() - t0 < 120000) { d = await dbgOf('__salvaStoriesFollowsDebug'); if (d.unf && d.unf.state === 'idle') break; await wait(500); }
+  // O ritmo de verdade é de 8 a 16 s por conta e 3 a 5 min de pausa a cada 10: 45 contas levam mais de 6 min, mais que a espera de 120 s de antes
+  // (que nunca chegava ao fim). O teste confere que começa (pedido ao Instagram feito, ocupado = 1), manda parar pelo botão e confere que termina (ocupado = 0).
+  let t0 = Date.now(); while (Date.now() - t0 < 30000 && (await p.evaluate(() => window.unfCalls.length)) < 1) await wait(300);
+  d = await dbgOf('__salvaStoriesFollowsDebug');
+  out.unfRunning = { state: d.unf && d.unf.state, busy: d.busyFlag, calls: await p.evaluate(() => window.unfCalls.length) };
+  await clickAt(d.at.ustop);
+  t0 = Date.now(); while (Date.now() - t0 < 40000) { d = await dbgOf('__salvaStoriesFollowsDebug'); if (d.unf && d.unf.state === 'idle') break; await wait(300); }
   out.unfResult = { unf: d.unf, unfollowed: d.unfollowed, busyAfter: d.busyFlag, calls: (await p.evaluate(() => window.unfCalls.length)) };
   await wait(500);
   await p.screenshot({ path: path.join(SHOT, `unfollow-done-${mode}.png`) });
@@ -414,3 +436,28 @@ if (ONLY === 'all' || ONLY === 'upd') {
 out.logs = logs.slice(0, 30);
 console.log(JSON.stringify(out, null, 1));
 await ctx.close();
+// Veredito (desde 05/11/2026; antes o teste só despejava o JSON acima e "passava" se não travasse). Só na rodada completa.
+if (ONLY === 'all') {
+  const o = out, sample = o.profileSample || [];
+  const must = {
+    'menu: abre e o fantasma da barra aparece, ligado e desligado': o.menuOpen === true && !!o.ghostBadge && !!o.ghostBadgeAfterOff,
+    'menu: "Seguidores e seguindo" existe': !!o.followsTool,
+    'perfil: botão na linha certa, 1 chip': !!o.profilePill && o.profileChips === 1,
+    'perfil: baixou os 34 arquivos (30 posts + carrosséis), todos concluídos': o.profileFiles === 34 && sample.length > 0 && sample.every((x) => / \| complete$/.test(x)) && o.gqlPages === 2,
+    'player: aparece, pausa, avança 10 s, volta, tira o mudo': o.playerShown === true && o.p0.paused === false && o.pAfterPause.paused === true && o.pAfterFwd.t - o.pAfterPause.t > 8 && o.pAfterBack.t < o.pAfterFwd.t && o.pAfterUnmute.muted === false,
+    'player: baixa o vídeo e some ao sair': !!o.playerDownload && / complete$/.test(o.playerDownload[0] || '') && o.playerHiddenAfterLeave === true,
+    'Direct: "Todas" seleciona as 40, "Nenhuma" zera, 2 marcadas': o.inboxAllSelected === 40 && o.inboxAfterNone === 0 && o.inboxTwoSelected === 2,
+    'Direct: ação em 2 conversas': Array.isArray(o.inboxActions1) && o.inboxActions1.length === 2,
+    'seguidores: abre e analisa 120 seguidores e 130 seguindo, 2 vezes igual': o.followsOpen === true && o.follows1.nFol === 120 && o.follows1.nFing === 130 && o.follows2.nFol === 120 && o.follows2.nFing === 130,
+    'seguidores: guardou no armazenamento e não chamou media/info': o.stored.fol === 120 && o.stored.fing === 130 && o.apiHits.info === 0,
+    'seguidores: avatares carregados': o.avatarsNotBack.img > 0 && o.avatarsNotBack.loaded === o.avatarsNotBack.img,
+    'deixar de seguir: 2 marcadas na mão, 45 em "selecionar todas"': o.unfManual === 2 && o.unfAll === 45,
+    'deixar de seguir: começa (ocupado 1, pedido feito) e para pelo botão (ocupado 0)': o.unfBusyDuring === '1' && o.unfRunning.busy === '1' && o.unfRunning.calls >= 1 && o.unfResult.unf.state === 'idle' && o.unfResult.busyAfter === '0' && o.unfResult.unfollowed === o.unfResult.calls && o.unfResult.unfollowed >= 1,
+    'atualização: fundo na versão certa e versão nova achada': o.swOk === true && o.upd.disponivel === true && o.upd.ultima === '9.9.9',
+    'Relatar bug: a URL leva o diagnóstico': o.bugHasLog === true && o.bugUrlLen > 200,
+    'sem erro no console da página': Array.isArray(o.logs) && o.logs.length === 0,
+  };
+  const bad = Object.entries(must).filter(([, v]) => !v).map(([k]) => k);
+  console.log(bad.length ? 'FALHOU: ' + bad.join(' | ') : 'TUDO PASSOU');
+  process.exit(bad.length ? 1 : 0);
+}

@@ -3,10 +3,11 @@
 // Shift+D salva o carrossel inteiro na ordem, nomes iguais ao "Baixar perfil", post único (sem "todas"),
 // post aberto direto pela URL (cartão no meio da página), janela estreita (botões dentro da foto) e o desligar no menu.
 // Uso: node e2e-post.mjs $PWD/ext-test
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import path from 'path';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const CDN = 'https://127.0.0.1/v/t51/';
 const user = { username: 'pessoa.teste', pk: '999' };

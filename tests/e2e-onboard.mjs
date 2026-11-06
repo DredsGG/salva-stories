@@ -1,11 +1,12 @@
 // Tutorial de primeiro uso e quadro de novidades (regra 12): instalação nova, atualização simulada, "?" do menu, Esc.
 // Uso: CHROME_PATH=... node e2e-onboard.mjs $PWD/ext-test   (instagram.com simulado por rota; não precisa da CDN)
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import path from 'path';
 import fs from 'fs';
 
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const SHOT = path.join(DIR, 'shots-onboard'); fs.mkdirSync(SHOT, { recursive: true });
 const LANG = process.env.UI_LANG || 'pt';
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));

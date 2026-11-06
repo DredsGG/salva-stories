@@ -1,5 +1,6 @@
+import { fileURLToPath } from 'url';
 import https from 'https'; import fs from 'fs'; import path from 'path';
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const file = { 'foto_n.jpg': ['big.jpg', 'image/jpeg'], 'prog.mp4': ['prog.mp4', 'video/mp4'], 'hqv.mp4': ['hq-stream0.mp4', 'video/mp4'], 'hqa.mp4': ['hq-stream1.mp4', 'video/mp4'], 'silent.mp4': ['silent.mp4', 'video/mp4'], 'long.mp4': ['long.webm', 'video/webm'] };
 https.createServer({ key: fs.readFileSync(DIR + '/key.pem'), cert: fs.readFileSync(DIR + '/cert.pem') }, (req, res) => {
   const u = new URL(req.url, 'https://x'); const name = u.pathname.split('/').pop(); const f = file[name];

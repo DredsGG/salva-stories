@@ -1,78 +1,34 @@
 # Testes do Salva Stories
 
-E2E num Chromium com a extensão carregada; instagram.com e a CDN são simulados.
+E2E num Chromium com a extensão carregada; instagram.com e CDN simulados.
 
 ## Preparação (uma vez)
 
-1. Rode `npm i playwright`.
-2. Gere a mídia de teste em `media/` com o ffmpeg:
-   - `prog.mp4`: 720x1280, com áudio.
-   - `silent.mp4`: sem áudio.
-   - `hq-stream0.mp4` / `hq-stream1.mp4`: `ffmpeg ... -f dash -single_file 1 -dash_segment_type mp4 hq.mpd` (1080x1920 + áudio).
-   - `big.jpg` (1320x2346) e `small.jpg` (720x1280).
-   - `avatar-hd.jpg` (1080x1080) e `avatar-sm.jpg` (150x150), para o `e2e-avatar.mjs`: `ffmpeg -f lavfi -i color=c=0xc83c78:s=1080x1080 -frames:v 1 media/avatar-hd.jpg` (e o mesmo com `s=150x150` para o pequeno).
-   - `long.webm`, um vídeo de 40 s para o player. É WebM porque o Chromium do Playwright não toca H.264:
-     ```
-     ffmpeg -f lavfi -i testsrc2=size=480x480:rate=24 -f lavfi -i sine=frequency=440 -t 40 -c:v libvpx -b:v 400k -c:a libopus media/long.webm
-     ```
-3. Crie o certificado:
-   ```
-   openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem -days 2 -subj "/CN=cdn"
-   ```
-4. Copie a extensão para `ext-test/` e, só na cópia, aceite `127.0.0.1` no regex `CDN` do `src/sw.js`.
+1. `npm i playwright@1.63.0 jsqr pngjs` (jsqr e pngjs só para o `e2e-apoio`).
+2. Mídia de teste em `media/` (ffmpeg):
+   - `prog.mp4` (720x1280 com áudio), `silent.mp4` (sem áudio), `long.webm` (360x640, 40 s, com áudio; os testes de Reels e velocidade)
+   - `hq-stream0.mp4` / `hq-stream1.mp4`: `ffmpeg ... -f dash -single_file 1 -dash_segment_type mp4 hq.mpd` (1080x1920 + áudio)
+   - `big.jpg` 1320x2346, `small.jpg` 720x1280 (`ffmpeg -f lavfi -i testsrc2=size=1320x2346 -frames:v 1 big.jpg`)
+   - `avatar-hd.jpg` e `avatar-sm.jpg` já vêm na pasta.
 
-## Rodar
+## Rodar a suíte (a cada versão)
 
 ```
-node cdn.mjs
+node preparar.mjs            # copia ../instalada para ext-test/ (aceita 127.0.0.1 só na cópia) e gera key.pem/cert.pem
+node cdn.mjs &               # CDN simulada, porta 443
+node suite.mjs 3             # 3 rodadas seguidas, para no primeiro que falhar; saída completa de cada teste em logs/
+SAVE_ALL=1 node suite.mjs 3  # igual, incluindo o e2e-save-all (a partir da 1.8.15)
+node suite.mjs 1 e2e-feed    # só um teste (pelo começo do nome)
 ```
-Deixe rodando (porta 443, com suporte a Range para o player poder pular). Depois:
 
-- `node e2e.mjs $PWD/ext-test` testa os stories: foto, vídeo em alta (DASH), sem som, salvar todos, 720p, modo fantasma e menu.
-- `node e2e-v15.mjs $PWD/ext-test [menu|profile|player|inbox|follows|all]` testa as novidades da v1.5.0:
-  - **fantasma**: indicador fora dos stories.
-  - **perfil**: baixar perfil com 30 posts e carrossel (34 arquivos em `perfil/fotos` e `perfil/videos`).
-  - **player**: pausar, ±10 s, velocidade 2×, som, volume e baixar.
-  - **direct**: seleção e "Não lida" em 3 conversas; excluir 2 com a confirmação.
-  - **seguidores**: duas análises, com quem deixou de seguir e novos seguidores.
-- Use `MODE=light` para o tema claro. As capturas vão para `shots15/`.
+Cada teste tem de terminar com `TUDO PASSOU` (os `e2e.mjs`, `e2e-v15.mjs` e todos os outros têm veredito desde 2026-11-05). `e2e-repo` na lista do `suite.mjs` é o `e2e.mjs`.
 
-## Chromium
+Flags necessárias no Chromium 141+: `--ignore-certificate-errors` e `--disable-features=LocalNetworkAccessChecks,...` (senão o pedido para 127.0.0.1 fica parado no prompt de rede local).
 
-- Use `CHROME_PATH=...` para escolher o Chromium.
-- No Chromium 141+, são necessárias as flags `--ignore-certificate-errors` e `--disable-features=LocalNetworkAccessChecks,...`. Sem elas, o pedido para 127.0.0.1 fica parado no prompt de rede local.
+## No Windows, dentro do app Claude (MSIX)
 
-## Novidades da v1.6.0
+O Chromium do Playwright só abre pelo caminho **real** (`%LOCALAPPDATA%\Packages\Claude_<id>\LocalCache\Local\ms-playwright\...`); pelo caminho virtual (`%LOCALAPPDATA%\ms-playwright\...`) o `spawn` falha com `spawn UNKNOWN`. O `suite.mjs` já define `PLAYWRIGHT_BROWSERS_PATH` (testes com `channel: 'chromium'`) e `CHROME_PATH` (testes com `executablePath`). Rodando um teste solto, defina as duas variáveis. Sem `CHROME_PATH`, o Playwright usa o headless shell, que não carrega extensão. Detalhes e as outras causas: vault, `02-projetos/extensoes/salva-stories/salva-stories.md` (seção de testes).
 
-- Na cópia de teste, acelere o "deixar de seguir":
-  ```
-  sed -i 's/GAP = \[8000, 16000\], EVERY = 10, PAUSE = \[180, 300\]/GAP = [150, 300], EVERY = 10, PAUSE = [1, 2]/' ext-test/src/follows.js
-  ```
-  O ritmo real é 8–16 s por conta, com pausa de 3–5 min a cada 10.
-- O `e2e-v15.mjs` cobre também a v1.6.0:
-  - `follows`: fotos carregando, seleção manual e "Selecionar todas", uma confirmação e a função `PolarisSharedAPI.unfollowUser` simulada;
-  - `upd`: aviso de atualização, "Atualizar" baixando o zip e "Relatar bug" com o endereço preenchido.
-- `node reload.mjs $PWD/ext-test` grava uma versão nova no manifest da cópia com uma aba "ocupada" por 70 s e mede quando o service worker se recarrega (deve ser só depois dos 70 s).
-  - No modo `--load-extension` o Chrome desativa a extensão depois do `runtime.reload()`. É normal desse modo; carregada pela tela do Chrome, ela volta na versão nova.
-- O GitHub simulado não intercepta o `fetch` do service worker. Por isso o teste `upd` grava o estado da atualização direto no `chrome.storage`, e a procura real no GitHub também roda.
+## Novo na 1.8.15
 
-## Novidades da v1.7.2 à v1.8.13
-
-Estes testes não precisam da CDN (`cdn.mjs`) nem do certificado. Usam o Chromium do Playwright com `channel: 'chromium'`, porque o headless shell não carrega extensão.
-
-- `node e2e-flick.mjs $PWD/ext-test`: na troca de pessoa nos stories, os botões só aparecem na posição final e voltam antes de a animação acabar.
-- `node e2e-post.mjs $PWD/ext-test`: botões no post aberto (carrossel foto, vídeo e foto), troca sem mexer, `D`, `Shift+D`, post único, post direto, rolar até a grade, janela estreita e desligar no menu.
-- `node e2e-profile-pill.mjs $PWD/ext-test` (v1.8.13): "Baixar perfil" na linha de Seguindo / Enviar mensagem, também com o carrossel "Sugestões para você" aberto embaixo. O `e2e-post.mjs` ganhou o painel de comentários que aparece depois e o que não dá para medir (botões vão para o canto da foto) e o `e2e-feed.mjs`, o contador do carrossel e a barra do player sumindo ao passar do vídeo para a foto.
-- `node e2e-avatar.mjs $PWD/ext-test` (v1.8.11): foto de perfil grande. Sem story, clique abre em 1080 sem navegar; salvar com pasta e nome certos; Esc e clique fora fecham; com story (dados pelo GraphQL), segurar abre e o story não abre, clique curto abre o story; próprio perfil; perfil sem o dado em alta (aviso); chave do menu. Precisa do `media/avatar-hd.jpg` e `media/avatar-sm.jpg`.
-- `node e2e-story-speed.mjs $PWD/ext-test` (v1.8.9/1.8.10): velocidade nos stories de vídeo (lista vertical no hover, 2× aplicado e reaplicado, apagado em foto, vale no próximo vídeo e depois de recarregar, chave do menu) e o fantasminha ligando e desligando o modo fantasma no story e na barra lateral. Precisa do `media/long.webm`.
-- `node e2e-feed.mjs $PWD/ext-test` (v1.8.8): botões no feed da página inicial (carrossel foto, vídeo e foto, foto única e reel), `D`, `Shift+D`, clique, troca de post ao rolar, desligar no menu; e o nosso ícone da barra e o fantasminha somem com o menu "Mais" do Instagram aberto por cima.
-- `node e2e-reels.mjs $PWD/ext-test`: player num Reels simulado com clique humano (aperta, 120 ms, solta). Precisa do `media/long.webm`.
-- `node e2e-reels-sound.mjs $PWD/ext-test` (v1.8.7): som no Reels. O som já vem ligado, continua ao passar de reel, mutar vale até sair do Reels e o ajuste desligado não mexe em nada. Precisa do `media/long.webm`.
-- `PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1 node e2e-update14.mjs $PWD/ext-test`: regra 14 com a página aberta. Sem a variável, a rota do Playwright não pega o `fetch` do service worker e o teste lê o GitHub de verdade.
-- `node prints-post.mjs <pasta da extensão> <saida.png>`: print do post com os botões para a página do GitHub (conta fictícia e imagem gerada).
-- O `e2e-onboard.mjs` também precisa da variável acima desde a v1.8.6, porque o service worker confere o Release ao abrir a página.
-
-## v1.8.14: botão Apoiar
-
-- `node teste-pix.mjs ../extension`: sem navegador. O BR Code do Pix (livre, R$ 5, R$ 10, R$ 25) é igual ao de referência, caractere por caractere; valores com centavos, CRC16 e limites. Também roda no workflow `Test`.
-- `node e2e-apoio.mjs $PWD/ext-test`: o quadro "Apoiar ♥" nos 3 idiomas, com o QR lido de volta da imagem. Precisa de `npm i jsqr pngjs` além do Playwright.
+`e2e-save-all.mjs`: "Salvar todos" com fila (25 itens com confirmação, Cancelar, Esc, segundo clique, intervalo medido, progresso no botão, ocupado 1/0, reel de 8 sem confirmação, 15 sem dado capturado com plano B limitado, URGENTE, carrossel de 10 e os 3 idiomas). `ONLY=4 node e2e-save-all.mjs ext-test` roda só o bloco 4.

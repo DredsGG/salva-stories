@@ -3,13 +3,14 @@
 // clique fora, foco preso, QR lido de volta da imagem igual ao código, R$ 5/10/25/livre iguais à referência do vault,
 // "Outro valor", copiar (clipboard), escolha lembrada, nenhuma chamada de rede e prints nos 3 idiomas.
 // Uso: node e2e-apoio.mjs $PWD/ext-test   (precisa de jsqr e pngjs)
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 import jsQR from 'jsqr';
 import { PNG } from 'pngjs';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const SHOT = path.join(DIR, 'shots-apoio'); fs.mkdirSync(SHOT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const REF = {

@@ -1,11 +1,12 @@
 // Player no Reels (v1.8.1): ao passar para o próximo reel com o mouse parado em cima da barra, pausar e mutar
 // têm de agir no vídeo que está na tela, não no anterior; e a barra não pode ficar "travada" sem aparecer.
 // Uso: node e2e-reels.mjs $PWD/ext-test
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const MP4 = fs.readFileSync(path.join(DIR, 'media', 'long.webm'));
 const page = `<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#000">

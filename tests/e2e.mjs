@@ -1,11 +1,12 @@
 // E2E da extensão Salva Stories num Chromium real, com o instagram.com e a CDN simulados por rota.
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const M = (f) => path.join(DIR, 'media', f);
 const DL = path.join(DIR, 'downloads');
 fs.rmSync(DL, { recursive: true, force: true });
@@ -171,3 +172,24 @@ results.served = served;
 results.logs = logs.filter((l) => /Salva/.test(l));
 console.log(JSON.stringify(results, null, 1));
 await ctx.close();
+// Veredito (desde 05/11/2026; antes o teste só despejava o JSON acima para leitura): cada item tem de bater com o esperado.
+const done = (d) => !!d && d.state === 'complete' && !d.error;
+const must = {
+  'botão do story aparece': results.hostVisible === true,
+  'D salva a foto (concluída, jpeg)': done(results.photo[0]) && results.photo[0].mime === 'image/jpeg',
+  'vídeo em alta (DASH juntado) concluído': done(results.videoHQ[0]) && results.videoHQ[0].mime === 'video/mp4',
+  'vídeo sem som concluído': done(results.silent[0]),
+  'Shift+D salva 3 arquivos concluídos': results.all.length === 3 && results.all.every((x) => / complete$/.test(x)),
+  'vídeo 720p (maxQuality desligado) concluído': done(results.video720[0]),
+  'modo fantasma: desligado deixa passar, ligado bloqueia': results.ghost.hitsWithGhostOff === 1 && results.ghost.hitsAfterGhostOn === 1,
+  'menu abre pela engrenagem e mostra a versão': results.menu.openedByGear === true && /^\d+\.\d+\.\d+$/.test(results.menu.version || ''),
+  'chave do fantasma no menu grava no storage': results.menu.ghostShown === true && results.menu.ghostAfterSwitch === false,
+  'digitar no campo da pasta não baixa': results.menu.typingDidNotDownload === true,
+  'Alt+S fecha o menu': results.menu.closedByAltS === true,
+  'sete downloads pedidos ao navegador': results.calls.length === 7,
+  'foto no tamanho original (1320x2346)': results.files.some((f) => /video,1320,2346/.test(f)),
+  'vídeo HQ 1080x1920 com áudio': results.files.some((f) => /1080,1920/.test(f) && /audio/.test(f)),
+};
+const bad = Object.entries(must).filter(([, v]) => !v).map(([k]) => k);
+console.log(bad.length ? 'FALHOU: ' + bad.join(' | ') : 'TUDO PASSOU');
+process.exit(bad.length ? 1 : 0);

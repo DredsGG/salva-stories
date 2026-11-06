@@ -1,11 +1,12 @@
 // Testes da v1.5.0: ícone/fantasma fora dos stories, baixar perfil, player, seleção no Direct, seguidores.
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
 const EXT = process.argv[2];
 const ONLY = process.argv[3] || 'all';
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const DL = path.join(DIR, 'dl15');
 const SHOT = path.join(DIR, 'shotsgh');
 fs.rmSync(DL, { recursive: true, force: true }); fs.mkdirSync(DL, { recursive: true }); fs.mkdirSync(SHOT, { recursive: true });

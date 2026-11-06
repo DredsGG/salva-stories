@@ -2,10 +2,11 @@
 // você" com vários "Seguir" (que vai além da tela); o botão tem de ficar na linha de cima (Seguindo / Enviar mensagem),
 // e não ir parar no canto da direita (print do André de 29/10/2026).
 // Uso: node e2e-profile-pill.mjs $PWD/ext-test
+import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import path from 'path';
 const EXT = process.argv[2];
-const DIR = path.dirname(new URL(import.meta.url).pathname);
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const card = (i) => `<li style="list-style:none;flex:0 0 138px;height:200px;border:1px solid #333;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:end;padding-bottom:12px"><span>pessoa${i}</span><button style="width:114px;height:30px;background:#4a5df9;color:#fff;border:0;border-radius:8px">Seguir</button></li>`;
 const page = (following) => `<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#0c1014;color:#fff;font:14px sans-serif">
