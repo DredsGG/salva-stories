@@ -1,5 +1,10 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.9.0': [
+    "Two new buttons in Instagram's sidebar, below the ghost: Followers and following (opens the followers analysis) and Switch accounts (with your photo).",
+    "Switch accounts opens Instagram's own dialog; the extension doesn't read the account list or the logins Instagram keeps. With a download or another long task running, it warns you and waits.",
+    "Without the sidebar (narrow window), the buttons move to the corner, next to the floating button. To hide both: menu → Tools → Sidebar buttons.",
+  ],
   '1.8.15': [
     "\"Save all\" (stories) and \"Save all\" (carousel) now download one file at a time, with a short pause between them, so Instagram is not overloaded.",
     "Above 20 files the extension asks first (\"Save N files? It takes about X s\"). Up to 20 it starts right away.",

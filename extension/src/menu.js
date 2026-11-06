@@ -38,6 +38,10 @@
       profileBtn: 'Botão "baixar perfil"', profileBtnD: 'Na página de um perfil, baixa todos os posts organizados em pastas',
       inboxTools: 'Seleção no direct', inboxToolsD: 'Selecionar várias conversas e agir em todas de uma vez',
       ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', ghostClick: 'Clique para desligar', ghostOffA: 'Desligar o modo fantasma', ghostOffT: 'Modo fantasma desligado', ghostOffSub: 'Quem postou vê que você assistiu', ghostOnClick: 'Clique para ligar', ghostOnA: 'Ligar o modo fantasma', open2: 'Abrir',
+      sideBtns: 'Botões na barra lateral', sideBtnsD: 'Seguidores e seguindo, e Trocar de conta, abaixo do fantasminha',
+      folT: 'Seguidores e seguindo', folSub: 'Quem não te segue de volta, mútuos e mais', folClick: 'Clique para abrir',
+      swT: 'Trocar de conta', swSub: 'Abre o "Trocar de conta" do Instagram', swClick: 'Na troca, a página recarrega',
+      swBusy: 'Termine ou cancele o que está rodando antes de trocar', swMissing: 'Não achei o Trocar de conta do Instagram',
       updCheck: 'Procurar atualização', updChecking: 'Procurando…', updLatest: 'Você está na versão mais nova', updFail: 'Não deu para procurar agora',
       updAvail: (v) => `v${v} disponível`, updTitle: 'Atualização disponível', updUrgTitle: 'Atualização urgente: a extensão está pausada até atualizar', updGo: 'Atualizar', updLater: 'Depois', updHow: 'Como atualizar, passo a passo',
       updDownloaded: 'O zip novo foi para a pasta Downloads. Extraia por cima da pasta da extensão: ela se recarrega sozinha em até 1 minuto.',
@@ -72,6 +76,10 @@
       profileBtn: '"Download profile" button', profileBtnD: "On a profile page, downloads every post into tidy folders",
       inboxTools: 'Direct selection', inboxToolsD: 'Select several chats and act on all of them at once',
       ghostOn: 'Ghost mode on', ghostSub: 'Nobody sees that you watched', ghostClick: 'Click to turn it off', ghostOffA: 'Turn off ghost mode', ghostOffT: 'Ghost mode off', ghostOffSub: 'The poster sees that you watched', ghostOnClick: 'Click to turn it on', ghostOnA: 'Turn on ghost mode', open2: 'Open',
+      sideBtns: 'Sidebar buttons', sideBtnsD: 'Followers and following, and Switch accounts, below the ghost',
+      folT: 'Followers and following', folSub: "Who doesn't follow you back, mutuals and more", folClick: 'Click to open',
+      swT: 'Switch accounts', swSub: 'Opens Instagram\'s "Switch accounts"', swClick: 'The page reloads when you switch',
+      swBusy: 'Finish or cancel what is running before switching', swMissing: "Couldn't find Instagram's Switch accounts",
       updCheck: 'Check for updates', updChecking: 'Checking…', updLatest: "You're on the latest version", updFail: "Couldn't check right now",
       updAvail: (v) => `v${v} available`, updTitle: 'Update available', updUrgTitle: 'Urgent update: the extension is paused until you update', updGo: 'Update', updLater: 'Later', updHow: 'How to update, step by step',
       updDownloaded: 'The new zip went to your Downloads folder. Unzip it over the extension folder: it reloads itself within 1 minute.',
@@ -106,6 +114,10 @@
       profileBtn: 'Botón "descargar perfil"', profileBtnD: 'En un perfil, descarga todas las publicaciones en carpetas ordenadas',
       inboxTools: 'Selección en el direct', inboxToolsD: 'Selecciona varios chats y actúa en todos a la vez',
       ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', ghostClick: 'Haz clic para desactivarlo', ghostOffA: 'Desactivar el modo fantasma', ghostOffT: 'Modo fantasma desactivado', ghostOffSub: 'Quien publicó ve que la viste', ghostOnClick: 'Haz clic para activarlo', ghostOnA: 'Activar el modo fantasma', open2: 'Abrir',
+      sideBtns: 'Botones en la barra lateral', sideBtnsD: 'Seguidores y seguidos, y Cambiar de cuenta, debajo del fantasma',
+      folT: 'Seguidores y seguidos', folSub: 'Quién no te sigue, mutuos y más', folClick: 'Haz clic para abrir',
+      swT: 'Cambiar de cuenta', swSub: 'Abre el "Cambiar de cuenta" de Instagram', swClick: 'Al cambiar, la página se recarga',
+      swBusy: 'Termina o cancela lo que se está ejecutando antes de cambiar', swMissing: 'No encontré el Cambiar de cuenta de Instagram',
       updCheck: 'Buscar actualización', updChecking: 'Buscando…', updLatest: 'Tienes la versión más nueva', updFail: 'No se pudo buscar ahora',
       updAvail: (v) => `v${v} disponible`, updTitle: 'Actualización disponible', updUrgTitle: 'Actualización urgente: la extensión está en pausa hasta actualizar', updGo: 'Actualizar', updLater: 'Después', updHow: 'Cómo actualizar, paso a paso',
       updDownloaded: 'El zip nuevo fue a la carpeta Descargas. Extráelo sobre la carpeta de la extensión: se recarga sola en hasta 1 minuto.',
@@ -121,7 +133,7 @@
     },
   };
 
-  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, reelsSound: true, storySpeed: true, avatarZoom: true, postBtn: true, profileBtn: true, inboxTools: true };
+  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, reelsSound: true, storySpeed: true, avatarZoom: true, postBtn: true, profileBtn: true, inboxTools: true, sideBtns: true };
   let version = '';
   let stale = false;
   const tr = (k, ...a) => { const v = (T[S.lang] || T.pt)[k] ?? T.pt[k]; return typeof v === 'function' ? v(...a) : v; };
@@ -146,6 +158,10 @@
   };
   const GHOST = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a7 7 0 0 0-7 7v10.6l2.33-1.75 2.34 1.75L12 18.85l2.33 1.75 2.34-1.75L19 20.6V10a7 7 0 0 0-7-7z"/><circle cx="9.5" cy="10.5" r="1.25" fill="currentColor" stroke="none"/><circle cx="14.5" cy="10.5" r="1.25" fill="currentColor" stroke="none"/></svg>';
   const PEOPLE = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>';
+  // botões da coluna da barra (1.9.0): duas pessoas (Seguidores) e duas setinhas de troca sobre a foto da conta atual
+  const PEOPLE2 = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.3"/><path d="M3 19.5c.6-3.2 3-5 6-5s5.4 1.8 6 5"/><path d="M15.2 5.4a3.1 3.1 0 0 1 0 6.2"/><path d="M17.6 14.7c1.9.6 3.1 2.2 3.4 4.8"/></svg>';
+  const SWAP = '<svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.5h9.5M10 3l2.5 2.5L10 8"/><path d="M13 10.5H3.5M6 8l-2.5 2.5L6 13"/></svg>';
+  const PERSON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg>';
   const CHEVRON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
   const REFRESH = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/></svg>';
   const BUG = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="8" width="10" height="12" rx="5"/><path d="M12 12v8M9 5l1.5 2M15 5l-1.5 2M3 13h4M17 13h4M4 19l3-2M20 19l-3-2M4 7l3 2M20 7l-3 2"/></svg>';
@@ -192,11 +208,31 @@
   .ghost.off svg { filter: none; animation: none; opacity: .6; }
   .ghost.off:hover svg { opacity: .8; }
   .ghost.off .gtip b { background: none; color: #fff; }
-  .ghost:focus-visible .gc { outline: 2px solid var(--navfg, #fff); outline-offset: 2px; }
-  .ghost .gc { position: relative; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--navfg, #fff);
+  .ghost:focus-visible .gc, .side:focus-visible .gc { outline: 2px solid var(--navfg, #fff); outline-offset: 2px; }
+  .ghost .gc, .side .gc { position: relative; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--navfg, #fff);
     background: rgba(150,47,191,.12); box-shadow: 0 2px 12px rgba(150,47,191,.35); }
-  .ghost .gc::before { content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 1.5px; background: var(--grad);
+  .ghost .gc::before, .side .gc::before { content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 1.5px; background: var(--grad);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  /* Seguidores e Trocar de conta (1.9.0): mesmo tamanho, círculo e balão do fantasminha */
+  .side { position: fixed; z-index: 2147483000; width: 48px; height: 48px; display: grid; place-items: center; cursor: pointer; user-select: none; outline: none; }
+  .side:hover .gc { background: rgba(150,47,191,.24); }
+  .side:active .gc { transform: scale(.94); }
+  .side .gc svg { filter: drop-shadow(0 0 4px rgba(214,41,118,.45)); }
+  .side .av { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; display: block; }
+  .side .avf { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; }
+  .side .swp { position: absolute; right: -3px; bottom: -3px; width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--grad); box-shadow: 0 0 0 2px var(--navbg, #000); }
+  .side .swp svg { filter: none; }
+  .side.flip .gtip { left: auto; right: calc(100% + 10px); transform: translate(6px,-50%); }
+  .side.flip .gtip::after { right: auto; left: 100%; border-right-color: transparent; border-left-color: rgba(18,12,24,.96); }
+  .side:hover .gtip { opacity: 1; transform: translate(0,-50%); }
+  .side.wait .gc { opacity: .6; }
+  .side.toasting .gtip { opacity: 0 !important; } /* o aviso fica no lugar do balão */
+  .stoast { position: fixed; z-index: 2147483002; max-width: 300px; padding: 9px 13px; border-radius: 10px; background: rgba(18,12,24,.97); color: #fff;
+    font: 600 13px/1.35 var(--font); box-shadow: 0 6px 22px rgba(0,0,0,.45), 0 0 0 1px rgba(250,126,30,.55); pointer-events: none;
+    opacity: 0; transform: translateX(-4px); transition: opacity .18s, transform .18s; }
+  .stoast.show { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .stoast { transition: none; } }
   .ghost svg { filter: drop-shadow(0 0 4px rgba(214,41,118,.6)); animation: float 3.2s ease-in-out infinite; }
   @keyframes float { 0%,100% { transform: translateY(1px); opacity: .95; } 50% { transform: translateY(-2px); opacity: .7; } }
   @media (prefers-reduced-motion: reduce) { .ghost svg { animation: none; } }
@@ -332,7 +368,7 @@
   `;
 
   // ───────────── montagem ─────────────
-  let host, root, nav, navTip, panel, ghostEl;
+  let host, root, nav, navTip, panel, ghostEl, folEl, accEl, toastEl;
   let anchorMode = 'none'; // 'sidebar' | 'fab' | 'none'
 
   function ensure() {
@@ -344,6 +380,9 @@
       <button class="nav" type="button" hidden>${NAV_ICON}</button>
       <div class="navtip"></div>
       <div class="ghost" role="button" tabindex="0" hidden><div class="gc">${GHOST}</div><div class="gtip"><b></b><span></span><i></i></div></div>
+      <div class="side sfol" role="button" tabindex="0" hidden><div class="gc">${PEOPLE2}</div><div class="gtip"><b></b><span></span><i></i></div></div>
+      <div class="side sacc" role="button" tabindex="0" hidden><div class="gc"><span class="avf">${PERSON}</span><span class="swp">${SWAP}</span></div><div class="gtip"><b></b><span></span><i></i></div></div>
+      <div class="stoast" role="status" aria-live="polite"></div>
       <div class="panel" role="dialog" aria-modal="false" hidden></div>
     </div>`;
     root = sh.querySelector('.root');
@@ -351,6 +390,15 @@
     navTip = sh.querySelector('.navtip');
     panel = sh.querySelector('.panel');
     ghostEl = sh.querySelector('.ghost');
+    folEl = sh.querySelector('.sfol');
+    accEl = sh.querySelector('.sacc');
+    toastEl = sh.querySelector('.stoast');
+    const press = (el, fn) => {
+      el.addEventListener('click', fn);
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!e.repeat) fn(); } });
+    };
+    press(folEl, () => { hideToast(); if (isOpen()) close(); window.dispatchEvent(new CustomEvent('salva-stories:follows')); });
+    press(accEl, () => { openIgSwitcher(); });
     // nada do menu chega aos atalhos do Instagram
     for (const ev of ['keydown', 'keyup', 'keypress', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend', 'wheel']) {
       host.addEventListener(ev, (e) => e.stopPropagation());
@@ -399,17 +447,19 @@
       .filter((r) => r.width >= 18 && r.width <= 30 && Math.abs(r.left + r.width / 2 - cx) < 3 && r.top >= hr.top - 1)
       .sort((a, b) => a.top - b.top);
     if (icons.length < 2) return null;
-    let last = icons[0], gap = 0;
+    let last = icons[0], gap = 0, below = null;
     for (let i = 1; i < icons.length; i++) {
       const g = icons[i].top - icons[i - 1].top;
       if (g < 20) continue;
-      if (gap && g > gap * 1.6) break; // começou o grupo de baixo (Configurações…)
+      if (gap && g > gap * 1.6) { below = icons[i]; break; } // começou o grupo de baixo (Configurações…)
       gap = gap || g; last = icons[i];
     }
     if (!gap) return null;
     const top = last.top + gap;
     if (top + 48 > innerHeight - 140) return null; // sem espaço antes do grupo de baixo
-    return { x: cx - 24, y: top + last.height / 2 - 24 };
+    // limit: até onde a coluna está livre (o grupo de baixo, com a mesma folga de meio item que ele tem acima)
+    const limit = below ? below.top - 12 : innerHeight - 92;
+    return { x: cx - 24, y: top + last.height / 2 - 24, limit };
   }
 
   // Um menu do Instagram por cima do nosso lugar (o "Mais" abre no canto de baixo da barra, por cima do nosso
@@ -429,7 +479,7 @@
     ensure();
     applyMode();
     const onStories = location.pathname.startsWith('/stories/');
-    if (onStories) { nav.hidden = true; ghostEl.hidden = true; anchorMode = 'none'; return; } // no story, engrenagem e fantasma ficam na pilha de botões
+    if (onStories) { nav.hidden = true; ghostEl.hidden = true; folEl.hidden = true; accEl.hidden = true; hideToast(); anchorMode = 'none'; return; } // no story, engrenagem e fantasma ficam na pilha de botões
     const slot = sidebarSlot();
     if (slot) {
       anchorMode = 'sidebar';
@@ -459,17 +509,192 @@
       ghostEl.querySelector('.gtip i').textContent = tr(S.ghost ? 'ghostClick' : 'ghostOnClick');
       ghostEl.classList.toggle('flip', anchorMode === 'fab');
     }
+    placeSide(slot, home, nl, nt);
     nav.title = anchorMode === 'fab' ? tr('open') : '';
     nav.setAttribute('aria-label', tr('open'));
     nav.classList.toggle('on', isOpen());
     nav.classList.toggle('upd', !!(upd.disponivel && upd.ultima) || !swOk);
   }
 
+  // ───────────── Seguidores e Trocar de conta na coluna da barra (1.9.0) ─────────────
+  // Na barra lateral: logo abaixo do fantasminha (Seguidores, depois Trocar de conta), se couberem antes do grupo de baixo
+  // (o "Mais"). Sem barra (botão flutuante), ou sem espaço na coluna: na pilha do canto, acima do fantasminha.
+  // Somem sob um menu do Instagram pela mesma regra do ícone e do fantasminha (1.8.8).
+  let sideCorner = false;
+  function placeSide(slot, home, nl, nt) {
+    const on = S.sideBtns !== false;
+    let pos;
+    sideCorner = false;
+    if (anchorMode === 'sidebar') {
+      const y1 = nt + 104, y2 = nt + 156;
+      if (slot && y2 + 48 <= slot.limit) pos = [[nl, y1], [nl, y2]];
+      else { sideCorner = true; const x = innerWidth - 72, b = innerHeight - 144; pos = [[x, b], [x, b - 56]]; }
+    } else pos = [[nl, nt - 112], [nl, nt - 168]];
+    const flip = anchorMode !== 'sidebar' || sideCorner;
+    const chk = anchorMode === 'sidebar' && !sideCorner ? home : null;
+    [[folEl, 'fol'], [accEl, 'sw']].forEach(([el, k], i) => {
+      const [x, y] = pos[i];
+      sidePos.set(el, [x, y]);
+      el.hidden = !on || y < 8 || (!!chk && (nav.hidden || coveredAt(x + 24, y + 24, chk)));
+      el.style.left = Math.round(x) + 'px';
+      el.style.top = Math.round(y) + 'px';
+      el.classList.toggle('flip', flip);
+      el.setAttribute('aria-label', tr(k + 'T'));
+      el.querySelector('.gtip b').textContent = tr(k + 'T');
+      el.querySelector('.gtip span').textContent = tr(k + 'Sub');
+      el.querySelector('.gtip i').textContent = tr(k + 'Click');
+    });
+    if (on) setAvatar(myAvatar());
+    if (folEl.hidden && accEl.hidden) hideToast();
+  }
+
+  // ícone "Início" da barra do Instagram (lateral ou a de baixo): referência de coluna ou de linha da barra.
+  // Só o que está alinhado a ele conta como item da barra (o avatar de um post ou o "mais" de uma legenda não).
+  function homeIcon() {
+    return [...document.querySelectorAll('a[href="/"] svg')].map((el) => el.getBoundingClientRect())
+      .filter((r) => r.width >= 18 && r.width <= 30).sort((a, b) => b.top - a.top)[0] || null;
+  }
+  function inBar(r, h) {
+    if (!h || !r.width) return false;
+    if (h.left < 140) return Math.abs(r.left + r.width / 2 - (h.left + h.width / 2)) < 4; // barra lateral: mesma coluna
+    if (h.top > innerHeight - 120) return Math.abs(r.top + r.height / 2 - (h.top + h.height / 2)) < 4; // barra de baixo: mesma linha
+    return false;
+  }
+
+  // foto da conta atual: a do link do próprio perfil na barra (o alt é "Foto do perfil de fulano" e o link vai para
+  // /fulano/). Só o DOM da página: nada do armazenamento do Instagram.
+  const AV_RE = /(?:perfil de|profile picture of|foto del perfil de)\s+@?([A-Za-z0-9._]{1,30})|^@?([A-Za-z0-9._]{1,30})['’]s profile picture/i;
+  function myAvatar() {
+    const h = homeIcon();
+    for (const img of document.querySelectorAll('a[href] img[alt]')) {
+      const m = img.alt.match(AV_RE); if (!m) continue;
+      const u = (m[1] || m[2]).toLowerCase();
+      if ((img.closest('a').getAttribute('href') || '').replace(/\//g, '').toLowerCase() !== u) continue;
+      const r = img.getBoundingClientRect();
+      if (r.width < 18 || r.width > 32 || !inBar(r, h)) continue;
+      const src = img.currentSrc || img.src;
+      if (/^https:\/\//.test(src) && !badSrc.has(src)) return src;
+    }
+    return null;
+  }
+  let avSrc = null;
+  const badSrc = new Set(); // foto que não carregou: não tenta de novo a mesma
+  function setAvatar(src) {
+    if (!src || src === avSrc) return;
+    avSrc = src;
+    const slot = accEl.querySelector('.avf, .av');
+    const img = document.createElement('img');
+    img.className = 'av'; img.alt = ''; img.decoding = 'async'; img.src = src;
+    img.addEventListener('error', () => { badSrc.add(src); if (img.isConnected) { img.replaceWith(Object.assign(document.createElement('span'), { className: 'avf', innerHTML: PERSON })); avSrc = null; } });
+    slot.replaceWith(img);
+  }
+
+  // aviso curto ao lado do botão (trabalho longo rodando, item do Instagram não achado)
+  let toastT = 0;
+  const sidePos = new Map(); // última posição de cada botão (ele pode estar escondido sob um menu na hora do aviso)
+  function showToast(el, msg) {
+    toastEl.textContent = msg;
+    let r = el.getBoundingClientRect();
+    if (!r.width && sidePos.has(el)) { const [x, y] = sidePos.get(el); r = { left: x, top: y, right: x + 48, width: 48, height: 48 }; }
+    const w = toastEl.offsetWidth, h = toastEl.offsetHeight;
+    const right = !el.classList.contains('flip') && r.right + 10 + w <= innerWidth - 8;
+    toastEl.style.left = Math.round(right ? r.right + 10 : Math.max(8, r.left - 10 - w)) + 'px';
+    toastEl.style.top = Math.round(Math.min(Math.max(8, r.top + r.height / 2 - h / 2), innerHeight - h - 8)) + 'px';
+    toastEl.classList.add('show');
+    for (const b of [folEl, accEl]) b.classList.toggle('toasting', b === el);
+    clearTimeout(toastT); toastT = setTimeout(hideToast, 4500);
+  }
+  function hideToast() { if (!toastEl) return; toastEl.classList.remove('show'); folEl.classList.remove('toasting'); accEl.classList.remove('toasting'); }
+  const logMsg = (level, msg) => { try { const a = window[Symbol.for('salvaStories.api')]; if (a && a.log) a.log(level, msg); } catch (_) {} };
+
+  // Trocar de conta = o diálogo do PRÓPRIO Instagram, pelo mesmo caminho de quem usa: "Mais" → "Trocar de conta".
+  // A lista de contas e a troca ficam com o Instagram (ele guarda a credencial de login junto da lista; a extensão
+  // nunca lê esse armazenamento). O menu "Mais" abre transparente, para não piscar, e só o diálogo aparece.
+  // O idioma do Instagram pode ser outro que o da extensão: pt, en, es e mais fr, de, it.
+  const MORE_SVG = /^(configurações|definições|settings|configuración|ajustes|paramètres|einstellungen|impostazioni)$/i;
+  const MORE_TXT = /(mais|more|más|plus|mehr|altro)$/i;
+  const SWITCH_RE = /^(trocar de conta|mudar de conta|alternar conta|switch accounts?|cambiar de cuenta|cambiar cuenta|changer de compte|konto wechseln|cambia account)$/i;
+  // trabalho longo da extensão (fila do Salvar todos, Baixar perfil, Direct, seguidores, deixar de seguir): a troca recarrega
+  // a página e mataria o trabalho, mesmo pausado por uma versão URGENTE; a pessoa termina ou cancela antes
+  const busyNow = () => (parseInt(document.documentElement.dataset.ssBusy || '0', 10) || 0) > 0;
+  const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+  function findMore() {
+    if (anchorMode !== 'sidebar') return null; // sem barra lateral, o Instagram não tem o "Mais"
+    const h = homeIcon();
+    const els = [...document.querySelectorAll('a, [role="link"], [role="button"]')].filter((e) => inBar(e.getBoundingClientRect(), h));
+    return els.find((e) => [...e.querySelectorAll('svg[aria-label]')].some((sv) => MORE_SVG.test(sv.getAttribute('aria-label').trim())))
+      || els.find((e) => MORE_TXT.test((e.textContent || '').trim())) || null;
+  }
+  function findSwitchItem() {
+    return [...document.querySelectorAll('[role="dialog"] [role="button"], [role="dialog"] [role="menuitem"], [role="dialog"] a, [role="menu"] [role="menuitem"], [role="menu"] [role="button"]')]
+      .find((e) => SWITCH_RE.test((e.textContent || '').trim())) || null;
+  }
+  let switching = false;
+  async function openIgSwitcher() {
+    if (switching) return;
+    if (busyNow()) {
+      showToast(accEl, tr('swBusy'));
+      logMsg('info', { pt: 'trocar de conta: bloqueado, trabalho longo rodando', en: 'switch accounts: blocked, long task running', es: 'cambiar de cuenta: bloqueado, tarea larga en curso' });
+      return;
+    }
+    if (isOpen()) close();
+    hideToast();
+    const hidden = new Map();
+    const restore = () => { for (const [d, op] of hidden) if (d.isConnected) d.style.opacity = op; hidden.clear(); };
+    let item = findSwitchItem(); // o "Mais" já estava aberto pela pessoa
+    let more = null, mo = null, done = false;
+    switching = true; accEl.classList.add('wait');
+    try {
+      if (!item) {
+        more = findMore();
+        if (!more) return missing('more');
+        // esconde só o menu novo que abre junto da barra (um diálogo alheio no meio da tela fica como está)
+        const before = new Set(document.querySelectorAll('[role="dialog"], [role="menu"]'));
+        const hide = () => {
+          for (const d of document.querySelectorAll('[role="dialog"], [role="menu"]')) {
+            if (before.has(d) || hidden.has(d)) continue;
+            const r = d.getBoundingClientRect();
+            if (r.width && r.left >= 300) continue;
+            hidden.set(d, d.style.opacity); d.style.setProperty('opacity', '0', 'important');
+          }
+        };
+        mo = new MutationObserver(hide);
+        mo.observe(document.body, { childList: true, subtree: true });
+        more.click(); hide();
+        for (let t = 0; t < 40 && !(item = findSwitchItem()); t++) await pause(50); // até 2 s
+        if (!item) {
+          // fecha o "Mais" que abrimos; se ele ainda não abriu (lento), espera mais 1,5 s para fechar quando abrir
+          let closed = false;
+          const closeIfOpen = () => { if (!closed && [...hidden.keys()].some((d) => d.isConnected)) { closed = true; more.click(); } };
+          closeIfOpen();
+          for (let t = 0; t < 30 && !closed; t++) { await pause(50); closeIfOpen(); }
+          mo.disconnect(); mo = null;
+          await pause(250); restore();
+          return missing('item');
+        }
+        mo.disconnect(); mo = null; // o diálogo de troca que vem agora não é escondido
+      }
+      item.click();
+      done = true;
+      // o "Mais" fecha sozinho; se ficar, volta a aparecer. Até lá, novo clique não abre outro.
+      setTimeout(() => { restore(); switching = false; accEl.classList.remove('wait'); }, 400);
+      logMsg('info', { pt: 'trocar de conta: diálogo do Instagram aberto', en: "switch accounts: Instagram's dialog opened", es: 'cambiar de cuenta: diálogo de Instagram abierto' });
+    } finally {
+      if (mo) mo.disconnect();
+      if (!done) { restore(); switching = false; accEl.classList.remove('wait'); }
+    }
+  }
+  function missing(what) {
+    showToast(accEl, tr('swMissing'));
+    const w = what === 'more' ? { pt: 'o menu "Mais"', en: 'the "More" menu', es: 'el menú "Más"' } : { pt: 'o item "Trocar de conta"', en: 'the "Switch accounts" item', es: 'el elemento "Cambiar de cuenta"' };
+    logMsg('warn', { pt: `trocar de conta: não achei ${w.pt} do Instagram`, en: `switch accounts: couldn't find ${w.en} on Instagram`, es: `cambiar de cuenta: no encontré ${w.es} de Instagram` });
+  }
+
   // ───────────── painel ─────────────
   const isOpen = () => panel && !panel.hidden;
   let lastAnchor = null;
 
-  const LABEL = { perUser: 'perUser', maxQuality: 'maxQ', showAll: 'all', hotkey: 'hotkey', ghost: 'ghost', player: 'player', reelsSound: 'reelsSound', storySpeed: 'storySpeed', avatarZoom: 'avatarZoom', postBtn: 'postBtn', profileBtn: 'profileBtn', inboxTools: 'inboxTools' };
+  const LABEL = { perUser: 'perUser', maxQuality: 'maxQ', showAll: 'all', hotkey: 'hotkey', ghost: 'ghost', player: 'player', reelsSound: 'reelsSound', storySpeed: 'storySpeed', avatarZoom: 'avatarZoom', postBtn: 'postBtn', profileBtn: 'profileBtn', inboxTools: 'inboxTools', sideBtns: 'sideBtns' };
   // linha com chave liga/desliga (a descrição pode ter <kbd>, por isso não passa por esc)
   function sw(key) {
     const k = LABEL[key];
@@ -499,6 +724,7 @@
         <div class="sec">${esc(tr('secTools'))}</div>
         <div class="tool" role="button" tabindex="0" data-tool="follows"><span class="ti">${PEOPLE}</span>
           <span class="txt"><span class="t">${esc(tr('follows'))}</span><span class="d">${esc(tr('followsD'))}</span></span><span class="go">${CHEVRON}</span></div>
+        ${sw('sideBtns')}
         ${sw('player')}${sw('reelsSound')}${sw('storySpeed')}${sw('postBtn')}${sw('profileBtn')}${sw('avatarZoom')}${sw('inboxTools')}
         <div class="sec">${esc(tr('secLook'))}</div>
         <div class="row static"><span class="txt"><span class="t">${esc(tr('lang'))}</span></span>
@@ -619,7 +845,7 @@
       disco ? `Auto-reload: checked ${Math.round((Date.now() - (disco.em || 0)) / 60000)} min ago · disk v${disco.noDisco || '?'} · running v${disco.rodando || '?'} · ${disco.estado || '?'}` : 'Auto-reload: no check yet',
       `Browser: ${brow} · ${os} · UI ${S.lang} · ${navigator.language}${perm && perm.ok === false ? ' · site access MISSING' : ''}`,
       `Page: ${page} · theme ${S.theme} (${mode()})`,
-      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, reelsSound ${on('reelsSound')}, storySpeed ${on('storySpeed')}, avatarZoom ${on('avatarZoom')}, postBtn ${on('postBtn')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
+      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, reelsSound ${on('reelsSound')}, storySpeed ${on('storySpeed')}, avatarZoom ${on('avatarZoom')}, postBtn ${on('postBtn')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, sideBtns ${on('sideBtns')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
       api && api.itemCount ? `Cache: ${api.itemCount()} items` : '',
     ].filter(Boolean).join('\n');
     const logs = api && api.logs ? api.logs() : [];
@@ -777,6 +1003,8 @@
       follows: box(panel.querySelector('.tool[data-tool="follows"]')), player: box(panel.querySelector('.row[data-key="player"] .sw')),
       uchk: box(panel.querySelector('.uchk')), usup: box(panel.querySelector('.usup')), ubug: box(panel.querySelector('.ubug')), ugo: box(panel.querySelector('.ugo')), bgh: box(panel.querySelector('.bgh')), bwhat: box(panel.querySelector('.bwhat')),
     } : null,
-    ghostBadge: ghostEl && !ghostEl.hidden ? box(ghostEl) : null, ghostOff: ghostEl ? ghostEl.classList.contains('off') : null, navHidden: nav ? nav.hidden : null,
+    ghostBadge: ghostEl && !ghostEl.hidden ? box(ghostEl) : null,
+    side: folEl ? { fol: folEl.hidden ? null : box(folEl), acc: accEl.hidden ? null : box(accEl), corner: sideCorner, flip: folEl.classList.contains('flip'), avatar: !!accEl.querySelector('img.av'), toast: toastEl.classList.contains('show') ? toastEl.textContent : null, tipFol: folEl.querySelector('.gtip b').textContent, tipAcc: accEl.querySelector('.gtip b').textContent, switching } : null,
+    sideRow: isOpen() ? box(panel.querySelector('.row[data-key="sideBtns"] .sw')) : null, ghostOff: ghostEl ? ghostEl.classList.contains('off') : null, navHidden: nav ? nav.hidden : null,
   });
 })();

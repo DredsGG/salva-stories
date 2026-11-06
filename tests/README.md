@@ -32,3 +32,7 @@ O Chromium do Playwright só abre pelo caminho **real** (`%LOCALAPPDATA%\Package
 ## Novo na 1.8.15
 
 `e2e-save-all.mjs`: "Salvar todos" com fila (25 itens com confirmação, Cancelar, Esc, segundo clique, intervalo medido, progresso no botão, ocupado 1/0, reel de 8 sem confirmação, 15 sem dado capturado com plano B limitado, URGENTE, carrossel de 10 e os 3 idiomas). `ONLY=4 node e2e-save-all.mjs ext-test` roda só o bloco 4.
+
+## Novo na 1.9.0
+
+`e2e-sidebar-buttons.mjs` (entra na suíte normal): botões Seguidores e seguindo / Trocar de conta na coluna da barra lateral. Confere ordem e alinhamento dos 4 itens (ícone, fantasminha, Seguidores, Trocar conta), balões em pt/en/es, foto da conta lida do DOM, Seguidores abrindo a janela, Trocar conta abrindo o diálogo simulado do Instagram pelo "Mais" sem o menu ser pintado, nenhuma leitura de `one_tap_storage_version`/nonce, bloqueio com `data-ss-busy` = 1, item ou "Mais" ausente (aviso + log), "Mais" da pessoa por cima, chave do menu, janela baixa (botões no canto), janela estreita (pilha do flutuante), story e dados de seguidores separados por id da conta (`ss.follows.<id>`, `.day`). Imprime as chaves de storage antes e depois. Prints em `shots-sidebar/`.

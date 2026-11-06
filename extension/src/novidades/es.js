@@ -1,5 +1,10 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.9.0': [
+    "Dos botones nuevos en la barra lateral de Instagram, debajo del fantasma: Seguidores y seguidos (abre el análisis de seguidores) y Cambiar de cuenta (con tu foto).",
+    "Cambiar de cuenta abre el diálogo del propio Instagram; la extensión no lee la lista de cuentas ni los inicios de sesión que guarda Instagram. Con una descarga u otra tarea larga en curso, avisa y espera.",
+    "Sin barra lateral (ventana estrecha), los botones van a la esquina, junto al botón flotante. Para ocultar los dos: menú → Herramientas → Botones en la barra lateral.",
+  ],
   '1.8.15': [
     "\"Guardar todos\" (historias) y \"Guardar todas\" (carrusel) ahora descargan un archivo a la vez, con una pausa corta entre ellos, para no sobrecargar Instagram.",
     "Con más de 20 archivos, la extensión pregunta antes (\"¿Guardar N archivos? Tarda unos X s\"). Hasta 20, empieza directamente.",

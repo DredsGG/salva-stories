@@ -9,7 +9,7 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
 ![Firefox](https://img.shields.io/badge/Firefox-140%2B-FF7139?logo=firefoxbrowser&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.8.15-d62976)
+![Version](https://img.shields.io/badge/version-1.9.0-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX · Firefox 140+
@@ -72,6 +72,16 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 - Who doesn't follow you back, who you don't follow back, mutuals, and, from the second check on, **who unfollowed you** and **new followers**. Search, hide verified, sort, ignore list and CSV export.
 - **Unfollow or ignore in bulk:** check accounts one by one or *Select all*, then **Unfollow (N)** or **Ignore (N)**, with a single confirmation. Unfollowing goes through Instagram's own function, slowly on purpose: 8–16 s between accounts, a 3–5 min pause every 10 and at most 150 a day. It stops on any block or after 3 failures in a row.
 - Safe scanning: only Instagram's `friendships` lists, 1.5–3 s per page with a pause every 15 pages, a full stop on any block or checkpoint, and an incomplete list is never saved. Results stay on your computer.
+- **Kept per account:** the scan, the ignore list and the daily unfollow limit are stored under each account's id, so switching accounts never mixes them up.
+
+**Sidebar buttons** (new in 1.9.0)
+
+<img src="docs/salva-stories-sidebar-buttons.png" width="540" alt="Instagram's left sidebar with the Salva Stories icon, the ghost badge, a two-people Followers button and a Switch accounts button showing the current profile photo with two small arrows, its tooltip open, and a Switch accounts dialog listing two placeholder accounts, example.account_a (checked) and example.account_b">
+
+- Below the ghost badge in Instagram's left sidebar: **Followers and following** (opens the followers tool) and **Switch accounts** (your current profile photo with two small arrows). Same round style as the ghost badge, with a tooltip on hover.
+- **Switch accounts opens Instagram's own dialog**, the same way you would (*More* → *Switch accounts*), without the *More* menu flashing on screen. The account list and the switch itself stay with Instagram: the extension never reads Instagram's saved logins and keeps no list of your accounts. The page reloads when you switch, as it does on Instagram.
+- While a long job is running (Save all, profile download, Direct, followers check or unfollow), it shows *Finish or cancel what is running before switching* and doesn't open anything.
+- Without room in the sidebar they move to the bottom-right corner; without a sidebar (narrow window) they join the floating button's stack. They hide under Instagram's menus and in the story viewer. Turn both off in the menu → **Tools** → **Sidebar buttons**.
 
 **Everywhere**
 
@@ -115,7 +125,8 @@ Download the files from the [latest release](https://github.com/DredsGG/salva-st
 | Profile | Click **Download profile**, pick how many posts and the types, then **Download**. Keep the tab open until it finishes. Click the profile picture (hold it if there's a story) to see it full size and save it. |
 | Post or reel with video | Hover the video to show the player; the last button downloads it. |
 | Direct | Click the select button, check conversations (or **All**) and pick an action in the bottom bar. |
-| Followers | Open the menu → **Tools** → **Followers & following** → scan. Run it again later to see who unfollowed you. |
+| Followers | Click the two-people button in the sidebar (or the menu → **Tools** → **Followers & following**) → scan. Run it again later to see who unfollowed you. |
+| Switch accounts | Click your photo with the arrows in the sidebar: Instagram's *Switch accounts* dialog opens. |
 | Settings | The story-ring icon in Instagram's sidebar, the gear in stories, `Alt+S` or the extension icon. **?** reopens the tutorial. |
 
 ## Languages
@@ -131,7 +142,7 @@ Everything comes in **Portuguese, English and Spanish**: menu, footer, tutorial,
 - **"Save all" only covers the stories the viewer already loaded** for that profile.
 - **Private profiles** can only be downloaded or checked if you follow them.
 - **Big accounts are slow on purpose:** profile downloads and followers checks keep a human-like pace, and the followers check stops on the first block or checkpoint.
-- **Direct actions need Instagram in Portuguese, English or Spanish**, because they click Instagram's own menu items by their text.
+- **Direct actions need Instagram in Portuguese, English or Spanish**, because they click Instagram's own menu items by their text. The *Switch accounts* button also finds Instagram's menu item by its text (Portuguese, English, Spanish, French, German or Italian), and needs the sidebar: in a narrow window, where Instagram has no *More* menu, it only shows a notice.
 - The profile download folder is always named `perfil`, whatever the interface language.
 
 ## How it works
@@ -173,6 +184,7 @@ Open the console on instagram.com and run `__salvaStoriesDebug()`. It shows how 
 
 End-to-end with the real extension loaded, against a simulated instagram.com and CDN. Setup is in [`tests/README.md`](tests/README.md); `node tests/suite.mjs 3` runs everything three times in a row, and every test ends in `TUDO PASSOU` or `FALHOU`.
 
+- `e2e-sidebar-buttons.mjs`: the sidebar buttons, with placeholder accounts. Order and alignment of the four items, tooltips in PT/EN/ES, the photo of the current account (and not someone else's in a narrow window), Followers opening the tool with the saved scan, Switch accounts opening a simulated Instagram dialog through *More* without the menu ever being painted (also with a slow menu, a double click and an unrelated dialog that must stay visible), no read of Instagram's saved logins (watched from before any script, plus a scan of the source), the busy notice, the missing-item notice and log, Instagram's *More* menu over the buttons, the menu switch, a short window (corner), a narrow window (floating stack), the story viewer, a broken photo that isn't refetched, and followers data kept per account.
 - `e2e-save-all.mjs`: the *Save all* queue. A 25-item reel (confirmation, Cancel downloads nothing, Save downloads 25 without duplicates, 24 measured gaps all ≥ 0.5 s and not constant, progress on the button, `data-ss-busy` 1 while running and 0 after, `Esc` stops it and keeps what was saved, a second click or `Shift+D` cancels without starting another queue), an 8-item reel (starts without asking), 15 items with no captured data (at most 10 lookups, never two within 3 s, notice for the rest), an URGENT release (queue waits and resumes; the service worker still refuses the single `D`), a 10-photo carousel (same queue, `_01`–`_10`) and the confirmation in EN and ES.
 
 - `e2e.mjs`, stories: photo at the largest candidate with the right name, 1080p DASH video muxed with audio (checked with `ffprobe`), video without sound, `Shift+D` saving three, max-resolution off, ghost mode blocking only when on, and the settings menu.

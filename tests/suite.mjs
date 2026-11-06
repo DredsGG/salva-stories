@@ -12,7 +12,7 @@ const LISTA = [
   ['e2e-profile-pill', 'e2e-profile-pill.mjs'], ['e2e-avatar', 'e2e-avatar.mjs'], ['e2e-story-speed', 'e2e-story-speed.mjs'],
   ['e2e-reels', 'e2e-reels.mjs'], ['e2e-reels-sound', 'e2e-reels-sound.mjs'], ['e2e-update14', 'e2e-update14.mjs'],
   ['e2e-onboard', 'e2e-onboard.mjs'], ['e2e-lang', 'e2e-lang.mjs'], ['e2e-apoio', 'e2e-apoio.mjs'], ['teste-pix', 'teste-pix.mjs'],
-  ['e2e-v15 all', 'e2e-v15.mjs', 'all'], ['e2e-save-all', 'e2e-save-all.mjs'],
+  ['e2e-v15 all', 'e2e-v15.mjs', 'all'], ['e2e-sidebar-buttons', 'e2e-sidebar-buttons.mjs'], ['e2e-save-all', 'e2e-save-all.mjs'],
 ];
 const rodadas = Number(process.argv[2]) || 1;
 const only = process.argv.slice(3);
