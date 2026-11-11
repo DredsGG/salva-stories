@@ -36,3 +36,7 @@ O Chromium do Playwright só abre pelo caminho **real** (`%LOCALAPPDATA%\Package
 ## Novo na 1.9.0
 
 `e2e-sidebar-buttons.mjs` (entra na suíte normal): botões Seguidores e seguindo / Trocar de conta na coluna da barra lateral. Confere ordem e alinhamento dos 4 itens (ícone, fantasminha, Seguidores, Trocar conta), balões em pt/en/es, foto da conta lida do DOM, Seguidores abrindo a janela, Trocar conta abrindo o diálogo simulado do Instagram pelo "Mais" sem o menu ser pintado, nenhuma leitura de `one_tap_storage_version`/nonce, bloqueio com `data-ss-busy` = 1, item ou "Mais" ausente (aviso + log), "Mais" da pessoa por cima, chave do menu, janela baixa (botões no canto), janela estreita (pilha do flutuante), story e dados de seguidores separados por id da conta (`ss.follows.<id>`, `.day`). Imprime as chaves de storage antes e depois. Prints em `shots-sidebar/`.
+
+## Novo na 1.10.0
+
+`e2e-auto-reels.mjs` (Reels simulado como o medido ao vivo; precisa de `media/short.webm`, 3 s: `ffmpeg -f lavfi -i testsrc2=size=480x800:rate=15 -f lavfi -i sine=frequency=330 -t 3 -c:v libvpx -b:v 150k -c:a libopus media/short.webm`), `e2e-story-race.mjs` (o D e o botão salvam o item do momento do aperto; foco devolvido à página) e `e2e-log-i18n.mjs` (registro inteiro nos 3 idiomas). Os três entram na `suite.mjs`. `prints-auto-reels.mjs` gera o print do README.

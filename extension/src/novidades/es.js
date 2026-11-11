@@ -1,5 +1,14 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.10.0': [
+    "Auto Reels: en Reels, cuando un reel termina, pasa solo al siguiente. Se activa con el botón Auto de la barra del reproductor (solo en Reels) o con el interruptor Auto Reels del menú, en Herramientas. Empieza desactivado.",
+    "No pasa con el reel en pausa, comentarios abiertos, mientras escribes, con el mouse en la barra del reproductor o con la pestaña oculta. Un reel de foto pasa tras unos 8 segundos.",
+  ],
+  '1.9.2': [
+    "La D guarda la historia que estaba en pantalla al pulsar, aunque la siguiente entre justo después (igual con el botón de guardar y en las publicaciones).",
+    "Tras hacer clic en un botón de guardar, las flechas ← → de Instagram vuelven a pasar las historias.",
+    "El registro de \"Reportar error\" sale entero en el idioma elegido, con el número dentro de la frase.",
+  ],
   '1.9.1': [
     "Limpieza interna, no cambia nada para ti.",
   ],

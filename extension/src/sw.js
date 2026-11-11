@@ -8,11 +8,11 @@ const ext = (globalThis.browser && globalThis.browser.runtime) ? globalThis.brow
 const SYNC = ext.storage.sync || ext.storage.local;
 
 // muda a cada versão do service worker: a página confere e avisa se o Chrome ficou com o código antigo
-const SW_BUILD = 'ss-sw-1.9.1';
+const SW_BUILD = 'ss-sw-1.10.0';
 
 // idioma da primeira abertura: o da interface do navegador (pt, en ou es; qualquer outro → en). Regra 13.
 const UI_LANG = (() => { const l = String((ext.i18n && ext.i18n.getUILanguage && ext.i18n.getUILanguage()) || navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();
-const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: UI_LANG, theme: 'auto', player: true, reelsSound: true, storySpeed: true, avatarZoom: true, postBtn: true, profileBtn: true, inboxTools: true, sideBtns: true };
+const DEFAULTS = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: UI_LANG, theme: 'auto', player: true, reelsSound: true, autoReels: false, storySpeed: true, avatarZoom: true, postBtn: true, profileBtn: true, inboxTools: true, sideBtns: true };
 const ERR = {
   pt: { video: 'trilha de vídeo inválida', audio: 'trilha de áudio inválida', host: 'endereço de mídia fora do Instagram', refused: 'download recusado', none: 'nada baixado', urgent: 'atualização urgente pendente: atualize a extensão para voltar a baixar' },
   en: { video: 'invalid video track', audio: 'invalid audio track', host: 'media address outside Instagram', refused: 'download refused', none: 'nothing downloaded', urgent: 'urgent update pending: update the extension to download again' },
@@ -20,6 +20,9 @@ const ERR = {
 };
 let lang = UI_LANG;
 const tr = (k) => (ERR[lang] || ERR.pt)[k];
+// erro com o texto nos 3 idiomas (regra 13): a página escolhe o idioma do registro
+const allOf = (k) => ({ pt: ERR.pt[k], en: ERR.en[k], es: ERR.es[k] });
+const kerr = (k) => Object.assign(new Error(tr(k)), { all: allOf(k) });
 const CDN = /(^|\.)(cdninstagram\.com|fbcdn\.net)$/i;
 
 function safeUrl(u) {
@@ -61,8 +64,8 @@ function filenameFor(job, s) {
 
 async function download(opts) {
   let id;
-  try { id = await ext.downloads.download(Object.assign({ conflictAction: 'uniquify', saveAs: false }, opts)); } catch (e) { throw new Error((e && e.message) || tr('refused')); }
-  if (id === undefined) throw new Error(tr('refused'));
+  try { id = await ext.downloads.download(Object.assign({ conflictAction: 'uniquify', saveAs: false }, opts)); } catch (e) { throw (e && e.message ? e : kerr('refused')); }
+  if (id === undefined) throw kerr('refused');
   return id;
 }
 
@@ -91,10 +94,10 @@ function toDataUrl(bytes, mime) {
 // DASH: vídeo e áudio vêm em arquivos separados; junta sem recodificar.
 async function downloadDash(videoUrl, audioUrl, filename) {
   const v = safeUrl(videoUrl);
-  if (!v) throw new Error(tr('video'));
+  if (!v) throw kerr('video');
   if (!audioUrl) return download({ url: v, filename }); // vídeo sem som: o arquivo de vídeo já basta
   const a = safeUrl(audioUrl);
-  if (!a) throw new Error(tr('audio'));
+  if (!a) throw kerr('audio');
   const [vb, ab] = await Promise.all([fetchBytes(v), fetchBytes(a)]);
   return download({ url: toDownloadUrl(muxDash(vb, ab), 'video/mp4'), filename });
 }
@@ -102,7 +105,7 @@ async function downloadDash(videoUrl, audioUrl, filename) {
 async function runJob(job, s) {
   const filename = filenameFor(job, s);
   const url = safeUrl(job.url);
-  if (!url) throw new Error(tr('host'));
+  if (!url) throw kerr('host');
   if (job.kind === 'dash') return downloadDash(job.url, job.audioUrl, filename);
   if (job.hq && s.maxQuality) {
     try {
@@ -128,7 +131,7 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const s = await SYNC.get(DEFAULTS);
     lang = s.lang || UI_LANG;
     // regra 14 d: versão urgente pendente → a extensão fica pausada até atualizar
-    if (await urgentePendente()) { sendResponse({ ok: false, count: 0, error: tr('urgent') }); return; }
+    if (await urgentePendente()) { sendResponse({ ok: false, count: 0, error: tr('urgent'), errorAll: allOf('urgent') }); return; }
     const jobs = Array.isArray(msg.jobs) ? msg.jobs.slice(0, 60) : []; // o perfil manda em lotes
     let count = 0;
     const errors = [];
@@ -137,11 +140,12 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         await runJob(job, s);
         count++;
       } catch (e) {
-        errors.push(e.message || String(e));
+        errors.push(e);
       }
       if (jobs.length > 1) await new Promise((r) => setTimeout(r, 600 + Math.random() * 600)); // espaça os pedidos à CDN
     }
-    sendResponse(count ? { ok: true, count, errors } : { ok: false, error: errors[0] || tr('none') });
+    const emsg = (x) => (x && x.message) || String(x);
+    sendResponse(count ? { ok: true, count, errors: errors.map(emsg) } : { ok: false, error: errors[0] ? emsg(errors[0]) : tr('none'), errorAll: errors[0] ? (errors[0].all || null) : allOf('none') });
   })();
   return true;
 });

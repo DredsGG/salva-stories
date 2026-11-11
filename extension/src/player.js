@@ -10,11 +10,11 @@
 
   const T = {
     pt: { play: 'Reproduzir', pause: 'Pausar', back: 'Voltar 10 s', fwd: 'Avançar 10 s', speed: 'Velocidade', mute: 'Sem som', unmute: 'Com som', vol: 'Volume',
-      dl: 'Baixar vídeo', saving: 'Baixando o vídeo…', saved: 'Vídeo salvo em', noId: 'Não achei este vídeo nos dados do Instagram. Abra o post e tente de novo.', fail: 'Falhou:', normal: 'Normal' },
+      auto: 'Auto', autoOn: 'Auto Reels ligado: passa sozinho para o próximo reel quando este acabar. Clique para desligar', autoOff: 'Auto Reels desligado: clique para passar sozinho para o próximo reel quando este acabar', dl: 'Baixar vídeo', saving: 'Baixando o vídeo…', saved: 'Vídeo salvo em', noId: 'Não achei este vídeo nos dados do Instagram. Abra o post e tente de novo.', fail: 'Falhou:', normal: 'Normal' },
     en: { play: 'Play', pause: 'Pause', back: 'Back 10 s', fwd: 'Forward 10 s', speed: 'Speed', mute: 'Mute', unmute: 'Unmute', vol: 'Volume',
-      dl: 'Download video', saving: 'Downloading the video…', saved: 'Video saved to', noId: "Couldn't find this video in Instagram's data. Open the post and try again.", fail: 'Failed:', normal: 'Normal' },
+      auto: 'Auto', autoOn: 'Auto Reels on: moves to the next reel by itself when this one ends. Click to turn off', autoOff: 'Auto Reels off: click to move to the next reel by itself when this one ends', dl: 'Download video', saving: 'Downloading the video…', saved: 'Video saved to', noId: "Couldn't find this video in Instagram's data. Open the post and try again.", fail: 'Failed:', normal: 'Normal' },
     es: { play: 'Reproducir', pause: 'Pausar', back: 'Atrás 10 s', fwd: 'Adelantar 10 s', speed: 'Velocidad', mute: 'Silenciar', unmute: 'Activar sonido', vol: 'Volumen',
-      dl: 'Descargar video', saving: 'Descargando el video…', saved: 'Video guardado en', noId: 'No encontré este video en los datos de Instagram. Abre la publicación e inténtalo de nuevo.', fail: 'Falló:', normal: 'Normal' },
+      auto: 'Auto', autoOn: 'Auto Reels activado: pasa solo al siguiente reel cuando este termina. Clic para desactivar', autoOff: 'Auto Reels desactivado: clic para pasar solo al siguiente reel cuando este termina', dl: 'Descargar video', saving: 'Descargando el video…', saved: 'Video guardado en', noId: 'No encontré este video en los datos de Instagram. Abre la publicación e inténtalo de nuevo.', fail: 'Falló:', normal: 'Normal' },
   };
   let t = (k) => k;
 
@@ -50,6 +50,8 @@
   .sp { flex: 1; min-width: 4px; }
   .spd { width: auto; min-width: 42px; padding: 0 9px; border-radius: 99px; font: 800 12.5px var(--font); font-variant-numeric: tabular-nums; }
   .spd.on { background: linear-gradient(135deg,#962fbf,#d62976 55%,#fa7e1e); }
+  .au { width: auto; min-width: 42px; padding: 0 9px; border-radius: 99px; font: 800 12.5px var(--font); opacity: .6; }
+  .au.on { background: linear-gradient(135deg,#962fbf,#d62976 55%,#fa7e1e); opacity: 1; }
   .volg { display: flex; align-items: center; }
   .vs { width: 0; opacity: 0; transition: width .18s, opacity .18s; height: 34px; display: flex; align-items: center; }
   /* o controle de volume abre para a esquerda: o alto-falante fica parado debaixo do mouse (antes ele era empurrado e o clique caía no controle) */
@@ -90,6 +92,7 @@
           <button class="b fw" type="button">${I.fwd}</button>
           <span class="time"><span class="cu">0:00</span><span class="dur"> / 0:00</span></span>
           <span class="sp"></span>
+          <button class="b au" type="button" hidden>Auto</button>
           <button class="b spd" type="button">1×</button>
           <span class="volg"><span class="vs"><span class="vt"><i></i><b></b></span></span><button class="b mu" type="button"></button></span>
           <button class="b dl" type="button">${K().ICON.dl}</button>
@@ -123,6 +126,7 @@
     // qualquer pressionar dentro da barra: qual botão recebeu
     bar.addEventListener('pointerdown', (e) => { const b = e.target && e.target.closest && e.target.closest('button, .seek, .vt'); diag('down bar', { on: b ? String(b.className).slice(0, 20) : String((e.target && e.target.className) || '?').slice(0, 20) }); }, true);
     onTap($('.spd'), (e) => { e.stopPropagation(); toggleSpeedMenu(); });
+    onTap($('.au'), () => { autoReels = !autoReels; paintAuto(); window.postMessage({ __salvaStories: 'page', kind: 'set', patch: { autoReels } }, location.origin); }); // o mesmo ajuste da chave do menu
     onTap($('.dl'), download);
     // linha do tempo
     const seek = $('.seek');
@@ -270,6 +274,82 @@
     setTimeout(() => { if (v) reelsUserMuted = v.muted; }, 300);
   }, true);
 
+  // ───────── Auto Reels (v1.10.0): no Reels, quando o reel acaba, passa sozinho para o próximo ─────────
+  // Medido ao vivo em 11/11/2026 (ver pesquisa/2026-11-11-auto-reels): o <video> do Reels NÃO tem loop. No fim sai pause → ended e o próprio
+  // Instagram volta ao 0 e toca em ~20 ms. O caminho dele para o próximo reel é o botão div[role=button] "Navegar para o próximo reel";
+  // rolar o contêiner por conta própria fica de fora (nunca rola, nunca em loop). Só em /reels/ (não em /reel/<código> aberto sozinho, nem no feed).
+  let autoReels = false, autoLock = null, autoAt = 0, autoWarnAt = 0, photoKey = null, photoSince = 0;
+  const onReelsTab = () => /^\/reels\//.test(location.pathname);
+  const NEXT_RE = /(próxim|proxim|next|siguiente)/i, PREV_RE = /(anterior|previous|prev)/i;
+  function nextButton() {
+    for (const el of document.querySelectorAll('[role="button"][aria-label], button[aria-label]')) {
+      const lab = el.getAttribute('aria-label') || '';
+      if (!/reel/i.test(lab) || !NEXT_RE.test(lab) || PREV_RE.test(lab)) continue;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height || r.bottom < 0 || r.top > innerHeight) continue;
+      return el;
+    }
+    return null;
+  }
+  const dialogOpen = () => { for (const d of document.querySelectorAll('[role="dialog"]')) { const r = d.getBoundingClientRect(); if (r.width > 0 && r.height > 0) return true; } return false; };
+  const typing = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable || a.getAttribute('role') === 'textbox'); };
+  // as condições de "pode passar agora": ligado, na aba do Reels, aba à vista, sem diálogo (comentários), sem campo de texto com foco, mouse fora da barra
+  const autoOk = () => autoReels && onReelsTab() && !document.hidden && !dialogOpen() && !typing() && !overBar && !pointerOnBar() && !autoLock;
+  function advance(from) {
+    const b = nextButton();
+    if (!b) {
+      if (Date.now() - autoWarnAt > 30000) { autoWarnAt = Date.now(); API() && API().log('warn', { pt: 'auto reels: não achei o botão de próximo reel do Instagram, não passou', en: "auto reels: couldn't find Instagram's next-reel button, did not move on", es: 'auto reels: no encontré el botón de siguiente reel de Instagram, no pasó' }); }
+      return false;
+    }
+    autoLock = { from, at: Date.now() }; autoAt = Date.now(); // um por vez: só solta quando o reel da tela troca (ou em 2,5 s)
+    b.click();
+    return true;
+  }
+  // uma volta inteira do reel da tela (evento ended, ou o currentTime voltando do fim para perto de 0): passa uma vez por volta
+  function lap(v) {
+    if (v.__ssLapAt && Date.now() - v.__ssLapAt < 1500) return; // ended + volta do currentTime = a mesma volta
+    v.__ssLapAt = Date.now();
+    setTimeout(() => { // o Instagram volta ao 0 e toca em ~20 ms; se ficou parado (pausa), não é para passar
+      if (activeReel() !== v || v.paused || v.__ssHold || Date.now() - autoAt < 1000) return;
+      if (autoOk()) advance(v);
+    }, 150);
+  }
+  document.addEventListener('ended', (e) => { const v = e.target; if (v && v.tagName === 'VIDEO' && autoReels && onReelsTab()) lap(v); }, true);
+  function activePhoto() {
+    for (const el of document.elementsFromPoint(innerWidth / 2, innerHeight / 2)) {
+      if (el.tagName !== 'IMG') continue;
+      const r = el.getBoundingClientRect();
+      if (r.width >= 200 && r.height >= 200) return el;
+    }
+    return null;
+  }
+  setInterval(() => {
+    if (!autoReels || !onReelsTab()) { photoKey = null; return; }
+    if (autoLock && (activeReel() !== autoLock.from || Date.now() - autoLock.at > 2500)) autoLock = null;
+    const v = activeReel();
+    if (v) {
+      photoKey = null;
+      const d = v.duration, prev = v.__ssT;
+      v.__ssT = v.currentTime;
+      if (prev !== undefined && isFinite(d) && d > 0 && !dragging && prev - v.currentTime > d / 2 && v.currentTime < 1.5) lap(v);
+      return;
+    }
+    // reel sem vídeo (foto): passa depois de ~8 s com as mesmas condições, contadas sem parar
+    const img = activePhoto();
+    if (!img) { photoKey = null; return; }
+    const key = img.currentSrc || img.src;
+    if (key !== photoKey || !autoOk()) { photoKey = key; photoSince = Date.now(); return; }
+    if (Date.now() - photoSince >= 8000) { photoSince = Date.now(); advance(img); }
+  }, 250);
+  function paintAuto() {
+    if (!ui) return;
+    const b = ui.$('.au');
+    b.hidden = !onReelsTab();
+    b.classList.toggle('on', autoReels);
+    b.setAttribute('aria-pressed', String(autoReels));
+    b.title = autoReels ? t('autoOn') : t('autoOff');
+  }
+
   function setMuted(v, m) {
     if (onReels()) { reelsUserMuted = m; audioTouchedAt = Date.now(); }
     if (!igSetMuted(v, m)) v.muted = m;
@@ -324,6 +404,7 @@
     $('.spd').textContent = rateLabel(v.playbackRate || 1);
     $('.spd').title = t('speed');
     $('.spd').classList.toggle('on', Math.abs((v.playbackRate || 1) - 1) > 0.01);
+    paintAuto();
     const vol = v.muted ? 0 : v.volume;
     $('.vt i').style.width = (vol * 100) + '%'; $('.vt b').style.left = (vol * 100) + '%';
     const ok = isFinite(d) && d > 0;
@@ -496,12 +577,12 @@
       if (!job) throw new Error(t('noId'));
       job.sub = 'videos';
       const r = await API().askExtension([job]);
-      if (!r || !r.ok) throw new Error((r && r.error) || '?');
+      if (!r || !r.ok) throw Object.assign(new Error((r && r.error) || '?'), { all: (r && r.errorAll) || null });
       const s = API().settings() || {};
       ui.toast(`${t('saved')} Downloads/${s.folder || 'Instagram Stories'}/${s.perUser === false ? '' : job.user + '/'}videos`);
       API().log('info', { pt: 'player: vídeo baixado', en: 'player: video saved', es: 'player: video descargado' });
     } catch (e) {
-      { const em = String(e.message).slice(0, 160), nf = e.message === t('noId'); API().log('error', { pt: 'player: ' + (nf ? 'vídeo não achado nos dados' : em), en: 'player: ' + (nf ? 'video not found in the data' : em), es: 'player: ' + (nf ? 'video no encontrado en los datos' : em) }); }
+      { const em = String(e.message).slice(0, 160), nf = e.message === t('noId'), a = e.all || {}; API().log('error', { pt: 'player: ' + (nf ? 'vídeo não achado nos dados' : (a.pt || em).slice(0, 160)), en: 'player: ' + (nf ? 'video not found in the data' : (a.en || em).slice(0, 160)), es: 'player: ' + (nf ? 'video no encontrado en los datos' : (a.es || em).slice(0, 160)) }); }
       ui.toast(e.message === t('noId') ? e.message : `${t('fail')} ${e.message}`);
     } finally {
       btn.classList.remove('busy');
@@ -511,7 +592,7 @@
   // liga/desliga pelo menu (Ferramentas → Player)
   const watch = () => {
     if (!API() || !K()) return setTimeout(watch, 50);
-    const apply = (s) => { enabled = s.player !== false; reelsSound = s.reelsSound !== false; if (!enabled) hide(true); if (ui) ui.refreshMode(); };
+    const apply = (s) => { enabled = s.player !== false; reelsSound = s.reelsSound !== false; autoReels = s.autoReels === true; paintAuto(); if (!enabled) hide(true); if (ui) ui.refreshMode(); };
     API().whenSettings().then(() => apply(API().settings() || {}));
     K().onSettings(apply);
   };
@@ -519,5 +600,5 @@
   const __box = (el) => { if (!el || el.hidden) return null; const r = el.getBoundingClientRect(); return r.width ? { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } : null; };
   window.__salvaStoriesPlayerDiag = () => DIAG.slice();
   window.__salvaStoriesPlayerDebug = () => ({ shown: !!(ui && ui.$('.bar2').classList.contains('show')),
-    at: ui ? { pp: __box(ui.$('.pp')), back: __box(ui.$('.bk')), fwd: __box(ui.$('.fw')), speed: __box(ui.$('.spd')), mute: __box(ui.$('.mu')), dl: __box(ui.$('.dl')), seek: __box(ui.$('.seek')), rates: ui.$$('.menu button').map((b) => ({ r: b.dataset.r, ...(__box(b) || {}) })) } : null, enabled, reelsSound, reelsUserMuted, onReels: onReels(), igToggle: !!igAudioToggle(activeReel()), overBar, curVisible: cur ? (() => { const r = cur.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; })() : null, cur: cur ? { src: (cur.currentSrc || '').slice(0, 30), hold: !!cur.__ssHold, paused: cur.paused, rate: cur.playbackRate, muted: cur.muted, vol: cur.volume } : null, pref });
+    at: ui ? { pp: __box(ui.$('.pp')), back: __box(ui.$('.bk')), fwd: __box(ui.$('.fw')), speed: __box(ui.$('.spd')), mute: __box(ui.$('.mu')), dl: __box(ui.$('.dl')), seek: __box(ui.$('.seek')), rates: ui.$$('.menu button').map((b) => ({ r: b.dataset.r, ...(__box(b) || {}) })) } : null, enabled, reelsSound, reelsUserMuted, onReels: onReels(), autoReels, autoBtn: ui ? __box(ui.$('.au')) : null, autoTitle: ui ? ui.$('.au').title : null, autoOn: ui ? ui.$('.au').classList.contains('on') : null, autoHidden: ui ? ui.$('.au').hidden : null, autoLock: !!autoLock, igToggle: !!igAudioToggle(activeReel()), overBar, curVisible: cur ? (() => { const r = cur.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; })() : null, cur: cur ? { src: (cur.currentSrc || '').slice(0, 30), hold: !!cur.__ssHold, paused: cur.paused, rate: cur.playbackRate, muted: cur.muted, vol: cur.volume } : null, pref });
 })();

@@ -184,7 +184,7 @@
     btn.disabled = true;
     try {
       const r = await API().askExtension([job]);
-      if (!r || !r.ok) throw new Error((r && r.error) || 'erro');
+      if (!r || !r.ok) throw Object.assign(new Error((r && r.error) || 'error'), { all: (r && r.errorAll) || null });
       const s = API().settings() || {};
       ui.toast(t('saved', `${s.folder || 'Instagram Stories'}/${s.perUser === false ? '' : cur.user + '/'}perfil`));
     } catch (e) {

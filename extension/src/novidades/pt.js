@@ -1,6 +1,15 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.10.0': [
+    "Auto Reels: no Reels, quando o reel acaba, passa sozinho para o próximo. Liga e desliga pelo botão Auto na barra do player (só no Reels) ou pela chave Auto Reels no menu, em Ferramentas. Vem desligado.",
+    "Não passa com o reel pausado, comentários abertos, texto sendo digitado, o mouse na barra do player ou a aba escondida. Reel de foto passa depois de uns 8 segundos.",
+  ],
+  '1.9.2': [
+    "O D salva o story que estava na tela na hora do aperto, mesmo se o próximo entrar logo depois (e o mesmo no botão de salvar e nos posts).",
+    "Depois de clicar num botão de salvar, as setas ← → do Instagram voltam a passar o story.",
+    "O registro do \"Relatar bug\" sai todo no idioma escolhido, com o número dentro da frase.",
+  ],
   '1.9.1': [
     "Limpeza interna, nada muda para você.",
   ],

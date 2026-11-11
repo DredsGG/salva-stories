@@ -8,7 +8,7 @@
 Stories, posts and whole profiles at original resolution, videos with sound, plus a video player, Direct multi-select and a followers check, all inside Instagram.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.9.0-d62976)
+![Version](https://img.shields.io/badge/version-1.10.0-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX
@@ -72,6 +72,15 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 - **Unfollow or ignore in bulk:** check accounts one by one or *Select all*, then **Unfollow (N)** or **Ignore (N)**, with a single confirmation. Unfollowing goes through Instagram's own function, slowly on purpose: 8–16 s between accounts, a 3–5 min pause every 10 and at most 150 a day. It stops on any block or after 3 failures in a row.
 - Safe scanning: only Instagram's `friendships` lists, 1.5–3 s per page with a pause every 15 pages, a full stop on any block or checkpoint, and an incomplete list is never saved. Results stay on your computer.
 - **Kept per account:** the scan, the ignore list and the daily unfollow limit are stored under each account's id, so switching accounts never mixes them up.
+
+**Auto Reels** (new in 1.10.0)
+
+<img src="docs/salva-stories-auto-reels.png" width="380" alt="A Reels page with the Salva Stories player bar and the lit Auto button next to the speed button">
+
+- In Reels (`/reels/`), when a reel finishes it moves to the next one by itself. Turn it on with the **Auto** button on the player bar (lit = on) or the **Auto Reels** switch in the menu, under Tools: same setting, saved, **off by default**.
+- It goes through Instagram's own *next reel* button, never by scrolling the page, once per lap and one reel at a time. It measured as follows on the live site: the Reels `<video>` has no `loop`; at the end it fires `ended` and Instagram restarts it.
+- It does not move while the reel is paused, comments or another dialog are open, a text field has focus, the mouse is on the player bar or the tab is hidden. A reel that is a photo moves on after about 8 seconds. If Instagram's button can't be found it doesn't move and writes that in the log.
+- It works with *Sound on in Reels* (sound stays on), the player speed (2× just ends sooner) and the pause that holds.
 
 **Sidebar buttons** (new in 1.9.0)
 
@@ -175,6 +184,9 @@ Open the console on instagram.com and run `__salvaStoriesDebug()`. It shows how 
 
 End-to-end with the real extension loaded, against a simulated instagram.com and CDN. Setup is in [`tests/README.md`](tests/README.md); `node tests/suite.mjs 3` runs everything three times in a row, and every test ends in `TUDO PASSOU` or `FALHOU`.
 
+- `e2e-auto-reels.mjs`: Auto Reels on a simulated Reels page (no `loop`, `ended`, Instagram's own next button with scroll-snap): off by default and off doesn't move; on moves one reel per lap and never two at once; paused (by Instagram and by our holding pause), open dialog, focused text field, mouse on the player bar and hidden tab don't move; a photo moves after about 8 s; without the next button it doesn't move or scroll and logs once in PT/EN/ES; nothing happens on `/reel/<code>` or outside Reels; the Auto button and the menu switch are the same saved setting; tooltips in PT/EN/ES; sound stays on.
+- `e2e-story-race.mjs`: `D` and the save button save the item that was on screen when pressed (story changes 0/50/150/400 ms after the key, 0/50/150/400 ms before it, 900 ms before, between pointer down and up; post carousel), and focus returns to the page after a click so Instagram's arrow keys keep working.
+- `e2e-log-i18n.mjs`: the log that goes in *Report a bug* comes entirely in each language, with the numbers inside the sentence, with the screen in PT and in ES.
 - `e2e-sidebar-buttons.mjs`: the sidebar buttons, with placeholder accounts. Order and alignment of the four items, tooltips in PT/EN/ES, the photo of the current account (and not someone else's in a narrow window), Followers opening the tool with the saved scan, Switch accounts opening a simulated Instagram dialog through *More* without the menu ever being painted (also with a slow menu, a double click and an unrelated dialog that must stay visible), no read of Instagram's saved logins (watched from before any script, plus a scan of the source), the busy notice, the missing-item notice and log, Instagram's *More* menu over the buttons, the menu switch, a short window (corner), a narrow window (floating stack), the story viewer, a broken photo that isn't refetched, and followers data kept per account.
 - `e2e-save-all.mjs`: the *Save all* queue. A 25-item reel (confirmation, Cancel downloads nothing, Save downloads 25 without duplicates, 24 measured gaps all ≥ 0.5 s and not constant, progress on the button, `data-ss-busy` 1 while running and 0 after, `Esc` stops it and keeps what was saved, a second click or `Shift+D` cancels without starting another queue), an 8-item reel (starts without asking), 15 items with no captured data (at most 10 lookups, never two within 3 s, notice for the rest), an URGENT release (queue waits and resumes; the service worker still refuses the single `D`), a 10-photo carousel (same queue, `_01`–`_10`) and the confirmation in EN and ES.
 

@@ -1,5 +1,14 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.10.0': [
+    "Auto Reels: in Reels, when a reel ends it moves to the next one by itself. Toggle it with the Auto button on the player bar (Reels only) or the Auto Reels switch in the menu, under Tools. It starts off.",
+    "It does not move while the reel is paused, comments are open, you are typing, the mouse is on the player bar or the tab is hidden. A photo reel moves on after about 8 seconds.",
+  ],
+  '1.9.2': [
+    "D saves the story that was on screen at the moment you pressed it, even if the next one comes in right after (same for the save button and for posts).",
+    "After clicking a save button, Instagram's ← → arrows move through the stories again.",
+    "The Report a bug log now comes entirely in the chosen language, with the number inside the sentence.",
+  ],
   '1.9.1': [
     "Internal cleanup, nothing changes for you.",
   ],

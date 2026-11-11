@@ -76,11 +76,27 @@
       noPost: 'no encontré los datos de la publicación (recarga la página)', urgent: 'actualización urgente pendiente: actualiza la extensión para volver a descargar', postMany: (a, b) => `${a} de ${b} del carrusel guardados`,
     },
   };
-  function t(key, ...args) {
-    const d = I18N[(settings && settings.lang) || NAV_LANG] || I18N.en;
+  function tl(lang, key, ...args) {
+    const d = I18N[lang] || I18N.en;
     const v = d[key] !== undefined ? d[key] : I18N.pt[key];
     return typeof v === 'function' ? v(...args) : v;
   }
+  const curLang = () => (settings && settings.lang) || NAV_LANG;
+  function t(key, ...args) { return tl((settings && settings.lang) || NAV_LANG, key, ...args); }
+  // Regra 13: aviso e registro saem inteiros em cada idioma, com o número dentro da frase (nada de pedaço em outro idioma).
+  // Mensagem = lista de pares [chave, ...argumentos]; erro com .all = { pt, en, es }.
+  const LANGS = ['pt', 'en', 'es'];
+  const tAll = (key, ...args) => ({ pt: tl('pt', key, ...args), en: tl('en', key, ...args), es: tl('es', key, ...args) });
+  const descText = (lang, d) => d.filter(Boolean).map((x) => tl(lang, ...x)).join(' · ');
+  const descAll = (d) => ({ pt: descText('pt', d), en: descText('en', d), es: descText('es', d) });
+  function terr(key, ...args) { const e = new Error(t(key, ...args)); e.all = tAll(key, ...args); return e; }
+  function rerr(r, fk) { const e = new Error(r && r.error ? r.error : t(fk)); e.all = (r && r.errorAll) || (r && r.error ? null : tAll(fk)); return e; }
+  const clean = (m) => String(m).replace(/\d{8,}/g, '#').slice(0, 160);
+  function emAll(e) { const m = clean((e && e.message) || e), a = e && e.all; return a ? { pt: clean(a.pt), en: clean(a.en), es: clean(a.es) } : { pt: m, en: m, es: m }; }
+  const PFX = { story: { ok: { pt: 'story salvo: ', en: 'story saved: ', es: 'historia guardada: ' }, no: { pt: 'story não salvo: ', en: 'story not saved: ', es: 'historia no guardada: ' } },
+    post: { ok: { pt: 'post salvo: ', en: 'post saved: ', es: 'publicación guardada: ' }, no: { pt: 'post não salvo: ', en: 'post not saved: ', es: 'publicación no guardada: ' } } };
+  function logOk(kind, desc, level) { const m = descAll(desc), p = PFX[kind].ok; log(level || 'info', { pt: p.pt + m.pt, en: p.en + m.en, es: p.es + m.es }); }
+  function logFail(kind, e) { const m = emAll(e), p = PFX[kind].no; log('warn', { pt: p.pt + m.pt, en: p.en + m.en, es: p.es + m.es }); }
   function applySettings(s) {
     settings = Object.assign({}, DEFAULTS, s || {});
     settingsResolve();
@@ -602,27 +618,59 @@
   function askExtension(jobs) {
     // regra 14 d: versão urgente pendente → nada é baixado até atualizar
     const kit = window[Symbol.for('salvaStories.kit')];
-    if (kit && kit.urgent && kit.urgent()) return Promise.resolve({ ok: false, count: 0, error: t('urgent') });
+    if (kit && kit.urgent && kit.urgent()) return Promise.resolve({ ok: false, count: 0, error: t('urgent'), errorAll: tAll('urgent') });
     return new Promise((resolve) => {
       const id = ++reqId;
       pending.set(id, resolve);
       window.postMessage({ __salvaStories: 'page', kind: 'download', id, jobs }, location.origin);
-      setTimeout(() => { if (pending.has(id)) { pending.delete(id); resolve({ ok: false, error: t('noReply') }); } }, 120000);
+      setTimeout(() => { if (pending.has(id)) { pending.delete(id); resolve({ ok: false, error: t('noReply'), errorAll: tAll('noReply') }); } }, 120000);
     });
   }
   window.postMessage({ __salvaStories: 'page', kind: 'hello' }, location.origin);
 
-  async function downloadCurrent() {
+  // Retrato do item na hora do aperto (v1.9.2). Visto ao vivo em 07/11/2026: o D no fim do 5º story (foto) salvou o 6º (vídeo), que
+  // entrou na tela um instante antes do aperto. Duas regras: (1) o item é lido na hora do keydown / do pointerdown do botão e é esse
+  // que baixa, mesmo que o story troque no meio do caminho; (2) se o story trocou há menos de SNAP_WINDOW ms, vale o anterior: a
+  // animação de entrada do próximo dura ~0,5 s (medido ao vivo em 27/10/2026, ver o comentário de posição dos botões), e quem aperta
+  // durante ela ainda está olhando o story que acabou de sair.
+  const SNAP_WINDOW = 500;
+  let pkTrack = { pk: null, prev: null, since: 0 };
+  function trackStory() {
+    if (!location.pathname.startsWith('/stories/')) { if (pkTrack.pk) pkTrack = { pk: null, prev: null, since: 0 }; return null; }
+    const cur = currentPk();
+    if (cur && cur !== pkTrack.pk) pkTrack = { pk: cur, prev: pkTrack.pk, since: performance.now() };
+    return pkTrack;
+  }
+  setInterval(trackStory, 40);
+  function snapStory() {
     harvestInline();
-    const pk = currentPk();
-    if (!pk) throw new Error(t('noStory'));
+    const tr = trackStory();
+    if (!tr) return currentPk();
+    return tr.prev && performance.now() - tr.since < SNAP_WINDOW ? tr.prev : tr.pk;
+  }
+  // post/feed: qual post e qual parte do carrossel estavam na tela no aperto
+  function snapPost() {
+    harvestInline();
+    const cp = curPost();
+    if (!cp.code) return null;
+    const pk = codeToPk(cp.code);
+    const post = POSTS.get(cp.code) || (pk && POST_PK.has(pk) ? POSTS.get(POST_PK.get(pk)) : null);
+    return { code: cp.code, idx: post ? postIndex(post, cp.pv && cp.pv.vpEl) : null };
+  }
+  let btnSnap = null; // retrato do pointerdown do botão "salvar este"
+  const takeSnap = (kind) => { const s = btnSnap && performance.now() - btnSnap.at < 1500 && btnSnap.kind === kind ? btnSnap.v : null; btnSnap = null; return s; };
+
+  async function downloadCurrent(snap) {
+    harvestInline();
+    const pk = snap || currentPk();
+    if (!pk) throw terr('noStory');
     const item = await getItem(pk);
-    if (!item) throw new Error(t('noData') + ' ' + pk);
+    if (!item) { const e = terr('noData'); e.message += ' ' + pk; for (const l of LANGS) e.all[l] += ' ' + pk; throw e; }
     const job = buildJob(item, 1);
-    if (!job) throw new Error(t('noMedia'));
+    if (!job) throw terr('noMedia');
     const r = await askExtension([job]);
-    if (!r.ok) throw new Error(r.error || t('failed'));
-    return job.type === 'video' ? (job.audio ? t('video') : t('videoMute')) : t('photo');
+    if (!r.ok) throw rerr(r, 'failed');
+    return job.type === 'video' ? (job.audio ? [['video']] : [['videoMute']]) : [['photo']];
   }
 
   // dados do post: o que o Instagram já carregou (modal, grade, HTML); só se faltar, o mesmo plano B dos stories (1 pedido)
@@ -643,15 +691,15 @@
     job.sub = 'perfil/' + (job.type === 'video' ? 'videos' : 'fotos');
     return job;
   }
-  async function downloadPostCurrent() {
-    const { code, pv } = curPost();
+  async function downloadPostCurrent(snap) {
+    const { code, pv } = snap ? { code: snap.code, pv: null } : curPost();
     const post = code && (await postData(code));
-    if (!post) throw new Error(t('noPost'));
-    const job = postJob(post, postIndex(post, pv && pv.vpEl));
-    if (!job) throw new Error(t('noMedia'));
+    if (!post) throw terr('noPost');
+    const job = postJob(post, snap && snap.idx != null ? snap.idx : postIndex(post, pv && pv.vpEl));
+    if (!job) throw terr('noMedia');
     const r = await askExtension([job]);
-    if (!r.ok) throw new Error(r.error || t('failed'));
-    return job.type === 'video' ? (job.audio ? t('video') : t('videoMute')) : t('photo');
+    if (!r.ok) throw rerr(r, 'failed');
+    return job.type === 'video' ? (job.audio ? [['video']] : [['videoMute']]) : [['photo']];
   }
   // ───────────────────────── "Salvar todos" com fila (v1.8.15) ─────────────────────────
   // Vale para o "salvar todos" dos stories (botão e Shift+D) e para o "salvar todas" do carrossel (post e feed).
@@ -734,7 +782,7 @@
   async function planStories() {
     harvestInline();
     const pk = currentPk();
-    if (!pk) throw new Error(t('noStory'));
+    if (!pk) throw terr('noStory');
     // usa o que o próprio Instagram já carregou para o visualizador; o que faltar vai pelo plano B limitado
     const pks = REELS.get(pk) || [pk];
     const entries = [];
@@ -744,16 +792,16 @@
       const j = buildJob(it, i + 1);
       if (j) entries.push({ pk: pks[i], order: i + 1, job: j });
     }
-    if (!entries.length) throw new Error(t('nothing'));
-    return { entries, pks, summary: (a, b) => (pks.length === 1 ? t('onlyOne') : t('many', a, b)) };
+    if (!entries.length) throw terr('nothing');
+    return { entries, pks, summary: (a, b) => (pks.length === 1 ? ['onlyOne'] : ['many', a, b]) };
   }
   async function planPost() {
     const { code } = curPost();
     const post = code && (await postData(code));
-    if (!post) throw new Error(t('noPost'));
+    if (!post) throw terr('noPost');
     const jobs = post.parts.map((_, i) => postJob(post, i)).filter(Boolean);
-    if (!jobs.length) throw new Error(t('nothing'));
-    return { entries: jobs.map((j, i) => ({ order: i + 1, job: j })), pks: null, summary: (a, b) => t('postMany', a, b) };
+    if (!jobs.length) throw terr('nothing');
+    return { entries: jobs.map((j, i) => ({ order: i + 1, job: j })), pks: null, summary: (a, b) => ['postMany', a, b] };
   }
 
   async function runQueue(btn, icon, plan) {
@@ -800,7 +848,7 @@
           try {
             const it = await fetchItem(e.pk);
             job = it ? buildJob(it, e.order) : null;
-          } catch (x) { job = null; lastErr = (x && x.message) || lastErr; }
+          } catch (x) { job = null; lastErr = x || lastErr; }
           lastPlanB = Date.now();
           if (p.pks) for (const x of p.pks) REELS.set(x, p.pks); // a resposta do plano B traz só o item dela: não deixa encolher a lista do reel
           if (q.cancel) break;
@@ -808,13 +856,13 @@
         }
         let r = await askExtension([job]);
         if (!r.ok && r.error === t('urgent') && !q.cancel) { await qhold(q); if (!q.cancel) r = await askExtension([job]); } // urgente chegou entre a espera e o pedido: tenta o mesmo item de novo
-        if (r.ok) q.saved++; else { q.unsaved++; err = r.error || lastErr || err; }
+        if (r.ok) q.saved++; else { q.unsaved++; err = (r.error ? rerr(r, 'failed') : null) || lastErr || err; }
         q.done++; paint();
         if (!last && !q.cancel) await qwait(q, qGap()); // intervalo sorteado entre o fim de um e o início do próximo
       }
-      if (q.cancel) { ended = 'cancel'; summary = t('qCanceled', q.saved, q.total); }
-      else if (!q.saved) throw new Error(err || lastErr || t('failed'));
-      else summary = p.summary(q.saved, q.total) + (q.unsaved ? ' · ' + t('qUnsaved', q.unsaved) : '');
+      if (q.cancel) { ended = 'cancel'; summary = [['qCanceled', q.saved, q.total]]; }
+      else if (!q.saved) throw err || lastErr || terr('failed');
+      else summary = [p.summary(q.saved, q.total), q.unsaved ? ['qUnsaved', q.unsaved] : null];
     } catch (e) {
       if (e === QNO) ended = 'no'; else { ended = 'err'; err = e; }
     } finally {
@@ -823,19 +871,19 @@
     }
     btn.classList.remove('busy', 'queue');
     labelsLang = null; // volta os títulos do botão
-    const what = mode === 'story' ? ['story salvo: ', 'story saved: ', 'historia guardada: '] : ['post salvo: ', 'post saved: ', 'publicación guardada: '];
+    const kind = mode === 'story' ? 'story' : 'post';
     if (ended === 'err') {
       console.warn(TAG, err);
-      { const em = String((err && err.message) || err).replace(/\d{8,}/g, '#').slice(0, 160); const w = mode === 'story' ? ['story não salvo: ', 'story not saved: ', 'historia no guardada: '] : ['post não salvo: ', 'post not saved: ', 'publicación no guardada: ']; log('warn', { pt: w[0] + em, en: w[1] + em, es: w[2] + em }); }
+      logFail(kind, err);
       btn.classList.add('err'); btn.innerHTML = ICON_ERR;
       toast(t('notSaved') + (err && err.message ? err.message : err));
     } else if (ended === 'ok') {
       btn.classList.add('ok'); btn.innerHTML = ICON_OK;
-      toast(summary, q.unsaved ? 6000 : 2600);
-      log(q.unsaved ? 'warn' : 'info', { pt: what[0] + summary, en: what[1] + summary, es: what[2] + summary });
+      toast(descText(curLang(), summary), q.unsaved ? 6000 : 2600);
+      logOk(kind, summary, q.unsaved ? 'warn' : 'info');
     } else if (ended === 'cancel') {
       btn.innerHTML = icon;
-      toast(summary, 4000);
+      toast(descText(curLang(), summary), 4000);
       log('info', { pt: 'salvar todos cancelado (' + q.saved + ' de ' + q.total + ')', en: 'save all canceled (' + q.saved + ' of ' + q.total + ')', es: 'guardar todo cancelado (' + q.saved + ' de ' + q.total + ')' });
     } else { btn.innerHTML = icon; return; }
     setTimeout(() => { btn.classList.remove('ok', 'err'); if (!queue) btn.innerHTML = icon; }, 1600);
@@ -1024,7 +1072,11 @@
     for (const ev of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend', 'keydown']) {
       host.addEventListener(ev, (e) => e.stopPropagation());
     }
-    btnOne.addEventListener('click', () => run(btnOne, ICON_DL, mode === 'story' ? downloadCurrent : downloadPostCurrent));
+    btnOne.addEventListener('pointerdown', () => { btnSnap = { at: performance.now(), kind: mode === 'story' ? 'story' : 'post', v: mode === 'story' ? snapStory() : snapPost() }; });
+    btnOne.addEventListener('click', () => { const kind = mode === 'story' ? 'story' : 'post'; const s = takeSnap(kind) || (kind === 'story' ? snapStory() : snapPost()); run(btnOne, ICON_DL, () => (kind === 'story' ? downloadCurrent(s) : downloadPostCurrent(s))); });
+    // depois do clique do mouse num botão nosso, o foco volta para a página: os eventos de teclado do shadow não chegam ao Instagram
+    // (a gente os segura), então com o foco no botão as setas ← → deixavam de passar o story (visto ao vivo em 07/11/2026). O da engrenagem fica: abre o menu.
+    shadow.addEventListener('click', (e) => { if (e.detail > 0) setTimeout(() => { const a = shadow.activeElement; if (a && a !== btnMenu && a.blur) a.blur(); }, 0); }, true);
     btnAll.addEventListener('click', () => runQueue(btnAll, ICON_ALL, mode === 'story' ? planStories : planPost));
     // o menu (menu.js) abre ao lado da engrenagem
     btnMenu.addEventListener('click', () => {
@@ -1048,14 +1100,13 @@
     btn.classList.remove('ok', 'err');
     btn.classList.add('busy');
     try {
-      const msg = await fn();
+      const desc = await fn();
       btn.classList.remove('busy'); btn.classList.add('ok'); btn.innerHTML = ICON_OK;
-      toast(msg);
-      if (mode === 'story') log('info', { pt: 'story salvo: ' + msg, en: 'story saved: ' + msg, es: 'historia guardada: ' + msg });
-      else log('info', { pt: 'post salvo: ' + msg, en: 'post saved: ' + msg, es: 'publicación guardada: ' + msg });
+      toast(descText(curLang(), desc));
+      logOk(mode === 'story' ? 'story' : 'post', desc);
     } catch (e) {
       console.warn(TAG, e);
-      { const em = String((e && e.message) || e).replace(/\d{8,}/g, '#').slice(0, 160); const w = mode === 'story' ? ['story não salvo: ', 'story not saved: ', 'historia no guardada: '] : ['post não salvo: ', 'post not saved: ', 'publicación no guardada: ']; log('error', { pt: w[0] + em, en: w[1] + em, es: w[2] + em }); }
+      logFail(mode === 'story' ? 'story' : 'post', e);
       btn.classList.remove('busy'); btn.classList.add('err'); btn.innerHTML = ICON_ERR;
       toast(t('notSaved') + (e && e.message ? e.message : e));
     }
@@ -1244,7 +1295,7 @@
     e.preventDefault();
     e.stopPropagation();
     if (e.shiftKey) runQueue(btnAll, ICON_ALL, onPost ? planPost : planStories);
-    else run(btnOne, ICON_DL, onPost ? downloadPostCurrent : downloadCurrent);
+    else { const s = onPost ? snapPost() : snapStory(); run(btnOne, ICON_DL, () => (onPost ? downloadPostCurrent(s) : downloadCurrent(s))); }
   }, true);
 
   // ───────────────────────── API para os outros módulos (mesmo mundo MAIN) ─────────────────────────
@@ -1256,7 +1307,7 @@
       settings: () => settings,
       whenSettings: () => settingsReady,
       appId, csrf, fiberOf, pkFromFiber, log, logs: () => LOG.slice(), itemCount: () => ITEMS.size, ITEMS_HAS: (pk) => ITEMS.has(String(pk)),
-      lang: () => (settings && settings.lang) || NAV_LANG,
+      lang: () => (settings && settings.lang) || NAV_LANG, tAll,
       avatar: (user) => { harvestInline(); return AVATARS.get(String(user || '').toLowerCase()) || null; },
       avatarCount: () => AVATARS.size,
     }),

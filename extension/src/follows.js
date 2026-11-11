@@ -314,8 +314,12 @@
     } catch (e) {
       if (e.message === 'stop') { scan = null; toast(t('canceled')); }
       else { scan.state = 'error'; scan.msg = e instanceof Throttled ? t('partial') : e instanceof Blocked ? e.message : t('err', e.message); }
-      { const st = e.message === 'stop', kind = e instanceof Throttled ? 'throttle ' : e instanceof Blocked ? 'block ' : '', em = String(e.message).slice(0, 120);
-        API().log(st ? 'info' : 'warn', { pt: 'seguidores: análise ' + (st ? 'parada' : 'falhou: ' + kind + em), en: 'followers: scan ' + (st ? 'stopped' : 'failed: ' + kind + em), es: 'seguidores: análisis ' + (st ? 'detenido' : 'falló: ' + kind + em) }); }
+      { const st = e.message === 'stop', em = String(e.message).slice(0, 120);
+        const why = e instanceof Blocked ? { pt: 'bloqueio ou verificação do Instagram', en: 'Instagram block or check', es: 'bloqueo o verificación de Instagram' }
+          : e instanceof Throttled ? { pt: 'limite de pedidos do Instagram (' + em + ')', en: 'Instagram rate limit (' + em + ')', es: 'límite de solicitudes de Instagram (' + em + ')' }
+          : e.message === t('login') ? { pt: 'sem login no Instagram', en: 'not logged in to Instagram', es: 'sin sesión en Instagram' }
+          : e.message === t('tooBig') ? { pt: 'conta grande demais', en: 'account too big', es: 'cuenta demasiado grande' } : { pt: em, en: em, es: em };
+        API().log(st ? 'info' : 'warn', { pt: 'seguidores: análise ' + (st ? 'parada' : 'falhou: ' + why.pt), en: 'followers: scan ' + (st ? 'stopped' : 'failed: ' + why.en), es: 'seguidores: análisis ' + (st ? 'detenido' : 'falló: ' + why.es) }); }
     } finally {
       K().busy(false);
     }

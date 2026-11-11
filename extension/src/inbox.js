@@ -395,7 +395,11 @@
       p.querySelector('.bar i').style.width = '100%';
       p.querySelector('.st').textContent = stop ? t('stopped') + ' ' + t('done', done, skipped) : t('done', done, skipped);
       ui.toast(p.querySelector('.st').textContent);
-      { const r = Object.entries(res).map(([k, v]) => `${k} ${v}`).join(', '); API().log(skipped ? 'warn' : 'info', { pt: `direct: ação ${action} em ${keys.length}: ${r}`, en: `direct: action ${action} on ${keys.length}: ${r}`, es: `direct: acción ${action} en ${keys.length}: ${r}` }); }
+      { const L = { pt: { a: { unread: 'marcar como não lida', read: 'marcar como lida', pin: 'fixar', mute: 'silenciar', del: 'excluir' }, r: { ok: 'ok', gone: 'sumiu', nomenu: 'sem menu', skip: 'sem a ação', blocked: 'bloqueio', err: 'erro' } },
+          en: { a: { unread: 'mark as unread', read: 'mark as read', pin: 'pin', mute: 'mute', del: 'delete' }, r: { ok: 'ok', gone: 'gone', nomenu: 'no menu', skip: 'action not found', blocked: 'blocked', err: 'error' } },
+          es: { a: { unread: 'marcar como no leída', read: 'marcar como leída', pin: 'fijar', mute: 'silenciar', del: 'eliminar' }, r: { ok: 'ok', gone: 'desapareció', nomenu: 'sin menú', skip: 'sin la acción', blocked: 'bloqueo', err: 'error' } } };
+        const R = (l) => Object.entries(res).map(([k, v]) => `${L[l].r[k.split(':')[0]] || k} ${v}`).join(', ');
+        API().log(skipped ? 'warn' : 'info', { pt: `direct: ação ${L.pt.a[action] || action} em ${keys.length}: ${R('pt')}`, en: `direct: action ${L.en.a[action] || action} on ${keys.length}: ${R('en')}`, es: `direct: acción ${L.es.a[action] || action} en ${keys.length}: ${R('es')}` }); }
     } finally {
       K().busy(false);
       busy = false; stop = false;
