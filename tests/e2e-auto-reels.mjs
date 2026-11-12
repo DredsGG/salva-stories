@@ -94,7 +94,8 @@ const PAGES = { base: page(false, false), photo: page(true, false), nobtn: page(
   await p.mouse.click(640, 300); await setAuto(true); await wait(800);
   const idle = async (ms) => { const a = await st(); await wait(ms); const b = await st(); return { a, b, moved: b.idx !== a.idx || b.next !== a.next }; };
   const avanca = async (ms = 5200) => { const a = await st(); const t0 = Date.now(); while (Date.now() - t0 < ms) { if ((await st()).idx > a.idx) return true; await wait(150); } return false; };
-  const volta = async () => { await p.evaluate(() => { const sc = document.getElementById('sc'); sc.scrollTo(0, 0); }); await wait(900); };
+  // volta ao reel 1 e recomeça do 0: sem zerar, o reel 1 podia acabar (e passar, certo) antes do passo seguinte começar (corrida vista em 12/11/2026)
+  const volta = async () => { await p.evaluate(() => { const sc = document.getElementById('sc'); sc.scrollTo(0, 0); document.getElementById('v1').currentTime = 0; }); await wait(900); };
 
   // pausado pelo Instagram
   await p.evaluate(() => document.getElementById('v1').pause());
@@ -108,18 +109,26 @@ const PAGES = { base: page(false, false), photo: page(true, false), nobtn: page(
   await p.mouse.move(640, 400); await wait(500); await p.mouse.move(650, 420); await wait(600);
   let d = await pd();
   check('a barra do player mostra o botão Auto no Reels', !!d.autoBtn && d.autoHidden === false, d);
-  await p.mouse.click(d.at.pp.x, d.at.pp.y); await wait(500);
+  // volta ao reel 1, do 0, logo antes do clique: do volta() de cima até aqui passam ~3,7 s, mais que uma volta de 3 s, e o
+  // reel 1 podia acabar e passar antes da pausa (vista na 2ª rodada da suíte em 12/11/2026). Confere que está no reel 1
+  // antes de clicar; o clique cai ~1,5 s dentro da volta.
+  for (let k = 0; k < 3; k++) { await volta(); if ((await st()).idx === 1) break; }
+  await p.mouse.move(640, 400); await wait(250); await p.mouse.move(645, 410); await wait(300); d = await pd();
+  const dBefore = d; await p.mouse.click(d.at.pp.x, d.at.pp.y); await wait(500);
+  const afterClick = await p.evaluate(() => ({ v1paused: document.getElementById('v1').paused, idx: window.activeIdx(), pd: window.__salvaStoriesPlayerDebug().cur }));
   await p.mouse.move(900, 100); await wait(3000); // mouse fora, a barra some
   r = await idle(7000);
   const held = await p.evaluate(() => document.getElementById('v1').paused);
-  check('pausado (pela pausa que segura do player): não passa em 7 s', held && !r.moved && r.b.idx === 1, { held, r });
+  check('pausado (pela pausa que segura do player): não passa em 7 s', held && !r.moved && r.b.idx === 1, { held, r, afterClick, pp: dBefore.at && dBefore.at.pp, shown: dBefore.shown });
   d = await pd(); await p.mouse.move(640, 400); await wait(400); d = await pd();
   await p.mouse.click(d.at.pp.x, d.at.pp.y); await wait(600); // despausa
   await p.mouse.move(900, 100);
 
-  // comentários (diálogo) abertos
-  await volta(); await wait(500);
+  // comentários (diálogo) abertos. O diálogo abre ANTES do volta(): voltar o vídeo ao 0 com ele tocando conta como fim de
+  // volta (é assim que o Instagram repete o reel), e o Auto Reels passava antes de o diálogo abrir (12/11/2026)
   await p.evaluate(() => window.openDialog());
+  for (let k = 0; k < 3; k++) { await volta(); if ((await st()).idx === 1) break; }
+  await wait(500);
   r = await idle(7000);
   check('diálogo (comentários) aberto: não passa em 7 s', !r.moved && r.b.idx === 1, r);
   await p.evaluate(() => window.closeDialog());

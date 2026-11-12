@@ -430,7 +430,30 @@
     const top = els[0];
     const dlg = (e) => e && e.closest && e.closest('[role="dialog"]');
     if (top && dlg(top) !== dlg(v)) return null;
+    if (!onTop(v, top)) return null;
     return v;
+  }
+  // O vídeo é o que está por cima no ponto? O de cima (tirando o que é nosso) tem de ser o vídeo ou ficar no mesmo
+  // contêiner de mídia dele: o menor ancestral do vídeo que contém o de cima tem o tamanho do vídeo (medido em
+  // 12/11/2026: no feed e no Reels, a camada de cima é um DIV do tamanho exato do vídeo, 8 níveis acima). O fundo escuro
+  // de um diálogo do Instagram ("Compartilhar", "Trocar de conta") cobre a tela inteira e fica FORA do role=dialog: sem
+  // isto, o mouse no vídeo atrás dele mostrava a barra por cima do diálogo (relato de 12/11/2026).
+  function onTop(v, top) {
+    if (!top) return false;
+    if (top === v) return true;
+    let a = v.parentElement;
+    for (let d = 0; a && d < 25 && !a.contains(top); d++) a = a.parentElement;
+    if (!a || a === document.body || a === document.documentElement) return false;
+    const r = v.getBoundingClientRect(), q = a.getBoundingClientRect();
+    return q.width <= r.width * 1.3 + 40 && q.height <= r.height * 1.3 + 40;
+  }
+  // algo do Instagram cobriu o vídeo onde a barra está (um diálogo abriu com a barra aberta)
+  function coveredUnderBar() {
+    if (!ui || !cur) return false;
+    const b = ui.$('.bar2').getBoundingClientRect();
+    if (!b.width) return false;
+    const els = document.elementsFromPoint(b.left + b.width / 2, Math.max(2, b.top - 24)).filter((e) => !(e.tagName || '').startsWith('SALVA-STORIES'));
+    return els.includes(cur) && !onTop(cur, els[0]);
   }
 
   // O vídeo debaixo da barra agora. No Reels, ao passar para o próximo, o <video> muda e a barra pode continuar no mesmo
@@ -512,7 +535,11 @@
     let chk = 0;
     const step = (ts) => {
       if (!ui || !ui.$('.bar2').classList.contains('show')) { looping = false; return; }
-      if (!dragging && ts - chk > 250) { chk = ts; const v = underBar(); if (v && v !== cur) { cur = v; adopt(v); } }
+      if (!dragging && ts - chk > 250) {
+        chk = ts;
+        if (coveredUnderBar()) { hide(true); looping = false; return; } // diálogo abriu por cima: a barra some
+        const v = underBar(); if (v && v !== cur) { cur = v; adopt(v); }
+      }
       sync(); place();
       requestAnimationFrame(step);
     };

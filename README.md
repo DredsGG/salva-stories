@@ -8,7 +8,7 @@
 Stories, posts and whole profiles at original resolution, videos with sound, plus a video player, Direct multi-select and a followers check, all inside Instagram.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.10.0-d62976)
+![Version](https://img.shields.io/badge/version-1.11.0-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX
@@ -127,6 +127,7 @@ Download the files from the [latest release](https://github.com/DredsGG/salva-st
 | Direct | Click the select button, check conversations (or **All**) and pick an action in the bottom bar. |
 | Followers | Click the two-people button in the sidebar (or the menu → **Tools** → **Followers & following**) → scan. Run it again later to see who unfollowed you. |
 | Switch accounts | Click your photo with the arrows in the sidebar: Instagram's *Switch accounts* dialog opens. |
+| Fresh feed | On the home page, click the Instagram logo at the top of the sidebar: it scrolls up and reloads, so new stories show up (on other pages it just goes home, as usual). Inside a Story, the logo and the ✕ at the top open the home page reloaded. `Ctrl`/middle-click still open a new tab. Turn it off in the menu → **Tools** → **Logo reloads the feed**. |
 | Settings | The story-ring icon in Instagram's sidebar, the gear in stories, `Alt+S` or the extension icon. **?** reopens the tutorial. |
 
 ## Languages
@@ -187,6 +188,8 @@ End-to-end with the real extension loaded, against a simulated instagram.com and
 - `e2e-auto-reels.mjs`: Auto Reels on a simulated Reels page (no `loop`, `ended`, Instagram's own next button with scroll-snap): off by default and off doesn't move; on moves one reel per lap and never two at once; paused (by Instagram and by our holding pause), open dialog, focused text field, mouse on the player bar and hidden tab don't move; a photo moves after about 8 s; without the next button it doesn't move or scroll and logs once in PT/EN/ES; nothing happens on `/reel/<code>` or outside Reels; the Auto button and the menu switch are the same saved setting; tooltips in PT/EN/ES; sound stays on.
 - `e2e-story-race.mjs`: `D` and the save button save the item that was on screen when pressed (story changes 0/50/150/400 ms after the key, 0/50/150/400 ms before it, 900 ms before, between pointer down and up; post carousel), and focus returns to the page after a click so Instagram's arrow keys keep working.
 - `e2e-log-i18n.mjs`: the log that goes in *Report a bug* comes entirely in each language, with the numbers inside the sentence, with the screen in PT and in ES.
+- `e2e-player-cover.mjs`: the player bar never shows up over an Instagram dialog (the full-screen dimmed backdrop of *Share* sits outside `role=dialog`, as on the real site), hides if a dialog opens while it's showing, comes back once the dialog closes and still shows on the part of a video a dialog doesn't cover. It fails on 1.10.0 and passes on 1.11.0.
+- `e2e-logo-reload.mjs`: the logo reloads the home page (reloads counted) and, inside a Story, the logo and the ✕ open the home page fresh; the *Home* item, `Ctrl`+click, middle-click, a busy tab, the menu switch and other pages are left alone.
 - `e2e-sidebar-buttons.mjs`: the sidebar buttons, with placeholder accounts. Order and alignment of the four items, tooltips in PT/EN/ES, the photo of the current account (and not someone else's in a narrow window), Followers opening the tool with the saved scan, Switch accounts opening a simulated Instagram dialog through *More* without the menu ever being painted (also with a slow menu, a double click and an unrelated dialog that must stay visible), no read of Instagram's saved logins (watched from before any script, plus a scan of the source), the busy notice, the missing-item notice and log, Instagram's *More* menu over the buttons, the menu switch, a short window (corner), a narrow window (floating stack), the story viewer, a broken photo that isn't refetched, and followers data kept per account.
 - `e2e-save-all.mjs`: the *Save all* queue. A 25-item reel (confirmation, Cancel downloads nothing, Save downloads 25 without duplicates, 24 measured gaps all ≥ 0.5 s and not constant, progress on the button, `data-ss-busy` 1 while running and 0 after, `Esc` stops it and keeps what was saved, a second click or `Shift+D` cancels without starting another queue), an 8-item reel (starts without asking), 15 items with no captured data (at most 10 lookups, never two within 3 s, notice for the rest), an URGENT release (queue waits and resumes; the service worker still refuses the single `D`), a 10-photo carousel (same queue, `_01`–`_10`) and the confirmation in EN and ES.
 

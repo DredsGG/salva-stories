@@ -40,6 +40,8 @@
       inboxTools: 'Seleção no direct', inboxToolsD: 'Selecionar várias conversas e agir em todas de uma vez',
       ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', ghostClick: 'Clique para desligar', ghostOffA: 'Desligar o modo fantasma', ghostOffT: 'Modo fantasma desligado', ghostOffSub: 'Quem postou vê que você assistiu', ghostOnClick: 'Clique para ligar', ghostOnA: 'Ligar o modo fantasma', open2: 'Abrir',
       sideBtns: 'Botões na barra lateral', sideBtnsD: 'Seguidores e seguindo, e Trocar de conta, abaixo do fantasminha',
+      logoReload: 'Logo recarrega o feed', logoReloadD: 'Na página inicial, o clique na logo do Instagram sobe e recarrega, para aparecerem os stories novos. No Story, a logo e o X abrem o início recarregado',
+      logoBusy: 'Termine ou cancele o que está rodando antes de recarregar',
       folT: 'Seguidores e seguindo', folSub: 'Quem não te segue de volta, mútuos e mais', folClick: 'Clique para abrir',
       swT: 'Trocar de conta', swSub: 'Abre o "Trocar de conta" do Instagram', swClick: 'Na troca, a página recarrega',
       swBusy: 'Termine ou cancele o que está rodando antes de trocar', swMissing: 'Não achei o Trocar de conta do Instagram',
@@ -79,6 +81,8 @@
       inboxTools: 'Direct selection', inboxToolsD: 'Select several chats and act on all of them at once',
       ghostOn: 'Ghost mode on', ghostSub: 'Nobody sees that you watched', ghostClick: 'Click to turn it off', ghostOffA: 'Turn off ghost mode', ghostOffT: 'Ghost mode off', ghostOffSub: 'The poster sees that you watched', ghostOnClick: 'Click to turn it on', ghostOnA: 'Turn on ghost mode', open2: 'Open',
       sideBtns: 'Sidebar buttons', sideBtnsD: 'Followers and following, and Switch accounts, below the ghost',
+      logoReload: 'Logo reloads the feed', logoReloadD: 'On the home page, clicking the Instagram logo scrolls up and reloads, so new stories show up. In a Story, the logo and the X open the home page reloaded',
+      logoBusy: 'Finish or cancel what is running before reloading',
       folT: 'Followers and following', folSub: "Who doesn't follow you back, mutuals and more", folClick: 'Click to open',
       swT: 'Switch accounts', swSub: 'Opens Instagram\'s "Switch accounts"', swClick: 'The page reloads when you switch',
       swBusy: 'Finish or cancel what is running before switching', swMissing: "Couldn't find Instagram's Switch accounts",
@@ -118,6 +122,8 @@
       inboxTools: 'Selección en el direct', inboxToolsD: 'Selecciona varios chats y actúa en todos a la vez',
       ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', ghostClick: 'Haz clic para desactivarlo', ghostOffA: 'Desactivar el modo fantasma', ghostOffT: 'Modo fantasma desactivado', ghostOffSub: 'Quien publicó ve que la viste', ghostOnClick: 'Haz clic para activarlo', ghostOnA: 'Activar el modo fantasma', open2: 'Abrir',
       sideBtns: 'Botones en la barra lateral', sideBtnsD: 'Seguidores y seguidos, y Cambiar de cuenta, debajo del fantasma',
+      logoReload: 'El logo recarga el feed', logoReloadD: 'En la página de inicio, el clic en el logo de Instagram sube y recarga, para que aparezcan las historias nuevas. En una historia, el logo y la X abren el inicio recargado',
+      logoBusy: 'Termina o cancela lo que se está ejecutando antes de recargar',
       folT: 'Seguidores y seguidos', folSub: 'Quién no te sigue, mutuos y más', folClick: 'Haz clic para abrir',
       swT: 'Cambiar de cuenta', swSub: 'Abre el "Cambiar de cuenta" de Instagram', swClick: 'Al cambiar, la página se recarga',
       swBusy: 'Termina o cancela lo que se está ejecutando antes de cambiar', swMissing: 'No encontré el Cambiar de cuenta de Instagram',
@@ -136,7 +142,7 @@
     },
   };
 
-  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, reelsSound: true, autoReels: false, storySpeed: true, avatarZoom: true, postBtn: true, profileBtn: true, inboxTools: true, sideBtns: true };
+  let S = { ghost: false, hotkey: true, showAll: true, folder: 'Instagram Stories', perUser: true, maxQuality: true, lang: (() => { const l = String(navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })(), theme: 'auto', player: true, reelsSound: true, autoReels: false, storySpeed: true, avatarZoom: true, postBtn: true, profileBtn: true, inboxTools: true, sideBtns: true, logoReload: true };
   let version = '';
   let stale = false;
   const tr = (k, ...a) => { const v = (T[S.lang] || T.pt)[k] ?? T.pt[k]; return typeof v === 'function' ? v(...a) : v; };
@@ -481,7 +487,7 @@
     ensure();
     applyMode();
     const onStories = location.pathname.startsWith('/stories/');
-    if (onStories) { nav.hidden = true; ghostEl.hidden = true; folEl.hidden = true; accEl.hidden = true; hideToast(); anchorMode = 'none'; return; } // no story, engrenagem e fantasma ficam na pilha de botões
+    if (onStories) { nav.hidden = true; ghostEl.hidden = true; folEl.hidden = true; accEl.hidden = true; if (toastSide) hideToast(); anchorMode = 'none'; return; } // no story, engrenagem e fantasma ficam na pilha de botões
     const slot = sidebarSlot();
     if (slot) {
       anchorMode = 'sidebar';
@@ -547,7 +553,7 @@
       el.querySelector('.gtip i').textContent = tr(k + 'Click');
     });
     if (on) setAvatar(myAvatar());
-    if (folEl.hidden && accEl.hidden) hideToast();
+    if (folEl.hidden && accEl.hidden && toastSide) hideToast();
   }
 
   // ícone "Início" da barra do Instagram (lateral ou a de baixo): referência de coluna ou de linha da barra.
@@ -592,10 +598,11 @@
   }
 
   // aviso curto ao lado do botão (trabalho longo rodando, item do Instagram não achado)
-  let toastT = 0;
+  let toastT = 0, toastSide = false; // toastSide: o aviso é dos botões da coluna (some com eles)
   const sidePos = new Map(); // última posição de cada botão (ele pode estar escondido sob um menu na hora do aviso)
   function showToast(el, msg) {
     toastEl.textContent = msg;
+    toastSide = el === folEl || el === accEl;
     let r = el.getBoundingClientRect();
     if (!r.width && sidePos.has(el)) { const [x, y] = sidePos.get(el); r = { left: x, top: y, right: x + 48, width: 48, height: 48 }; }
     const w = toastEl.offsetWidth, h = toastEl.offsetHeight;
@@ -692,11 +699,62 @@
     logMsg('warn', { pt: `trocar de conta: não achei ${w.pt} do Instagram`, en: `switch accounts: couldn't find ${w.en} on Instagram`, es: `cambiar de cuenta: no encontré ${w.es} de Instagram` });
   }
 
+
+  // ───────────── logo do Instagram recarrega o feed (1.11.0) ─────────────
+  // Na página inicial, o clique na logo (o link para "/" com a marca "Instagram", no alto da barra lateral; não o item
+  // "Página inicial") só subia a página. Agora sobe e recarrega, para aparecerem os stories novos. Em outra página, a logo
+  // segue com o Instagram (vai para o início). Ctrl/Shift/Alt/Cmd+clique e o botão do meio ficam com o navegador.
+  // Medido em 12/11/2026: a logo é <a href="/" role="link"> com <svg aria-label="Instagram">, em y=24; o "Página inicial"
+  // é outro <a href="/"> com <svg aria-label="Página inicial">, mais abaixo.
+  function isLogo(a) {
+    const r = a.getBoundingClientRect();
+    if (!r.width || r.left > 140) return false; // só a da barra lateral
+    if ([...a.querySelectorAll('svg[aria-label]')].some((s) => /^instagram$/i.test(s.getAttribute('aria-label').trim()))) return true;
+    // sem o rótulo: o mais alto de dois ou mais links para "/" na barra (o de baixo é o "Página inicial")
+    const col = [...document.querySelectorAll('a[href="/"]')].filter((x) => { const q = x.getBoundingClientRect(); return q.width && q.left <= 140; })
+      .sort((x, y) => x.getBoundingClientRect().top - y.getBoundingClientRect().top);
+    return col.length >= 2 && col[0] === a && /^instagram$/i.test((a.textContent || '').trim());
+  }
+  // Dentro do Story (pedido do André em 12/11/2026, com print): a logo "Instagram" do canto de cima à esquerda e o X do
+  // canto de cima à direita fazem o mesmo que a logo na página inicial: saem do Story e abrem o início recarregado, no topo.
+  // No Story não há barra lateral: a logo é o link para "/" no alto à esquerda; o X é o botão com o ícone "Fechar"
+  // (Close / Cerrar), no alto à direita. Não medido ao vivo (o modo fantasma estava desligado e abrir um Story marcaria visto).
+  const CLOSE_RE = /^(fechar|close|cerrar)$/i;
+  function storyLogo(t) {
+    const a = t.closest('a[href="/"]'); if (!a) return null;
+    const r = a.getBoundingClientRect();
+    return r.width && r.top < 120 && r.left < 220 ? a : null;
+  }
+  function storyClose(t) {
+    const b = t.closest('[role="button"], button'); if (!b) return null;
+    if (![...b.querySelectorAll('svg[aria-label]')].some((s) => CLOSE_RE.test(s.getAttribute('aria-label').trim())) && !CLOSE_RE.test((b.getAttribute('aria-label') || '').trim())) return null;
+    const r = b.getBoundingClientRect();
+    return r.width && r.top < 120 && r.right > innerWidth - 220 ? b : null;
+  }
+  addEventListener('click', (e) => {
+    if (S.logoReload === false) return;
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.defaultPrevented) return;
+    const t = e.target && e.target.closest ? e.target : null;
+    if (!t) return;
+    const home = location.pathname === '/', story = location.pathname.startsWith('/stories/');
+    let el = null;
+    if (home) { const a = t.closest('a[href="/"]'); if (a && isLogo(a)) el = a; } else if (story) el = storyLogo(t) || storyClose(t);
+    if (!el) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (busyNow()) {
+      ensure(); showToast(el, tr('logoBusy'));
+      logMsg('info', { pt: 'logo: não recarregou, trabalho longo rodando', en: 'logo: did not reload, long task running', es: 'logo: no recargó, tarea larga en curso' });
+      return;
+    }
+    window.scrollTo(0, 0);
+    if (home) location.reload(); else location.assign('/'); // do Story: carga nova do início, no topo
+  }, true);
+
   // ───────────── painel ─────────────
   const isOpen = () => panel && !panel.hidden;
   let lastAnchor = null;
 
-  const LABEL = { perUser: 'perUser', maxQuality: 'maxQ', showAll: 'all', hotkey: 'hotkey', ghost: 'ghost', player: 'player', reelsSound: 'reelsSound', autoReels: 'autoReels', storySpeed: 'storySpeed', avatarZoom: 'avatarZoom', postBtn: 'postBtn', profileBtn: 'profileBtn', inboxTools: 'inboxTools', sideBtns: 'sideBtns' };
+  const LABEL = { perUser: 'perUser', maxQuality: 'maxQ', showAll: 'all', hotkey: 'hotkey', ghost: 'ghost', player: 'player', reelsSound: 'reelsSound', autoReels: 'autoReels', storySpeed: 'storySpeed', avatarZoom: 'avatarZoom', postBtn: 'postBtn', profileBtn: 'profileBtn', inboxTools: 'inboxTools', sideBtns: 'sideBtns', logoReload: 'logoReload' };
   // linha com chave liga/desliga (a descrição pode ter <kbd>, por isso não passa por esc)
   function sw(key) {
     const k = LABEL[key];
@@ -726,7 +784,7 @@
         <div class="sec">${esc(tr('secTools'))}</div>
         <div class="tool" role="button" tabindex="0" data-tool="follows"><span class="ti">${PEOPLE}</span>
           <span class="txt"><span class="t">${esc(tr('follows'))}</span><span class="d">${esc(tr('followsD'))}</span></span><span class="go">${CHEVRON}</span></div>
-        ${sw('sideBtns')}
+        ${sw('sideBtns')}${sw('logoReload')}
         ${sw('player')}${sw('reelsSound')}${sw('autoReels')}${sw('storySpeed')}${sw('postBtn')}${sw('profileBtn')}${sw('avatarZoom')}${sw('inboxTools')}
         <div class="sec">${esc(tr('secLook'))}</div>
         <div class="row static"><span class="txt"><span class="t">${esc(tr('lang'))}</span></span>
@@ -846,7 +904,7 @@
       disco ? `Auto-reload: checked ${Math.round((Date.now() - (disco.em || 0)) / 60000)} min ago · disk v${disco.noDisco || '?'} · running v${disco.rodando || '?'} · ${disco.estado || '?'}` : 'Auto-reload: no check yet',
       `Browser: ${brow} · ${os} · UI ${S.lang} · ${navigator.language}${perm && perm.ok === false ? ' · site access MISSING' : ''}`,
       `Page: ${page} · theme ${S.theme} (${mode()})`,
-      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, reelsSound ${on('reelsSound')}, autoReels ${on('autoReels')}, storySpeed ${on('storySpeed')}, avatarZoom ${on('avatarZoom')}, postBtn ${on('postBtn')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, sideBtns ${on('sideBtns')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
+      `Settings: ghost ${on('ghost')}, maxQuality ${on('maxQuality')}, perUser ${on('perUser')}, showAll ${on('showAll')}, hotkey ${on('hotkey')}, player ${on('player')}, reelsSound ${on('reelsSound')}, autoReels ${on('autoReels')}, storySpeed ${on('storySpeed')}, avatarZoom ${on('avatarZoom')}, postBtn ${on('postBtn')}, profileBtn ${on('profileBtn')}, inboxTools ${on('inboxTools')}, sideBtns ${on('sideBtns')}, logoReload ${on('logoReload')}, custom folder ${S.folder && S.folder !== 'Instagram Stories' ? 'yes' : 'no'}`,
       api && api.itemCount ? `Cache: ${api.itemCount()} items` : '',
     ].filter(Boolean).join('\n');
     const logs = api && api.logs ? api.logs() : [];
@@ -1006,6 +1064,6 @@
     } : null,
     ghostBadge: ghostEl && !ghostEl.hidden ? box(ghostEl) : null,
     side: folEl ? { fol: folEl.hidden ? null : box(folEl), acc: accEl.hidden ? null : box(accEl), corner: sideCorner, flip: folEl.classList.contains('flip'), avatar: !!accEl.querySelector('img.av'), toast: toastEl.classList.contains('show') ? toastEl.textContent : null, tipFol: folEl.querySelector('.gtip b').textContent, tipAcc: accEl.querySelector('.gtip b').textContent, switching } : null,
-    sideRow: isOpen() ? box(panel.querySelector('.row[data-key="sideBtns"] .sw')) : null, ghostOff: ghostEl ? ghostEl.classList.contains('off') : null, navHidden: nav ? nav.hidden : null,
+    sideRow: isOpen() ? box(panel.querySelector('.row[data-key="sideBtns"] .sw')) : null, logoRow: isOpen() ? box(panel.querySelector('.row[data-key="logoReload"] .sw')) : null, ghostOff: ghostEl ? ghostEl.classList.contains('off') : null, navHidden: nav ? nav.hidden : null,
   });
 })();

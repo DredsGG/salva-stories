@@ -1,5 +1,9 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.11.0': [
+    "En la página de inicio, hacer clic en el logo de Instagram (arriba en la barra lateral) ahora sube y recarga la página, para que aparezcan las historias nuevas. Dentro de una historia, el logo y la X de arriba salen de la historia y abren el inicio recargado. En otras páginas, el logo sigue llevando al inicio. Se desactiva en menú → Herramientas → El logo recarga el feed.",
+    "Corrección: con un diálogo de Instagram abierto (Compartir, Cambiar de cuenta, comentarios), la barra del reproductor ya no aparece encima cuando el mouse pasa por el video de atrás.",
+  ],
   '1.10.0': [
     "Auto Reels: en Reels, cuando un reel termina, pasa solo al siguiente. Se activa con el botón Auto de la barra del reproductor (solo en Reels) o con el interruptor Auto Reels del menú, en Herramientas. Empieza desactivado.",
     "No pasa con el reel en pausa, comentarios abiertos, mientras escribes, con el mouse en la barra del reproductor o con la pestaña oculta. Un reel de foto pasa tras unos 8 segundos.",

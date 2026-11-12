@@ -1,5 +1,9 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.11.0': [
+    "On the home page, clicking the Instagram logo (at the top of the sidebar) now scrolls up and reloads the page, so new stories show up. Inside a Story, the logo and the X at the top leave the Story and open the home page reloaded. On other pages, the logo still takes you home. Turn it off in menu → Tools → Logo reloads the feed.",
+    "Fix: with an Instagram dialog open (Share, Switch accounts, comments), the player bar no longer shows up over it when the mouse goes over the video behind.",
+  ],
   '1.10.0': [
     "Auto Reels: in Reels, when a reel ends it moves to the next one by itself. Toggle it with the Auto button on the player bar (Reels only) or the Auto Reels switch in the menu, under Tools. It starts off.",
     "It does not move while the reel is paused, comments are open, you are typing, the mouse is on the player bar or the tab is hidden. A photo reel moves on after about 8 seconds.",
