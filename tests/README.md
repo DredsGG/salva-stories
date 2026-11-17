@@ -46,3 +46,7 @@ O Chromium do Playwright só abre pelo caminho **real** (`%LOCALAPPDATA%\Package
 - `e2e-player-cover.mjs`: a barra do player não aparece por cima de um diálogo do Instagram (fundo escuro de tela inteira fora do `role=dialog`, como o "Compartilhar" real), some se o diálogo abre com ela aberta, volta quando o diálogo fecha e aparece na parte do vídeo que o diálogo não cobre. Falha na 1.10.0 (`ext-1100`, extraída do zip) e passa na 1.11.0.
 - `e2e-logo-reload.mjs`: a logo da barra lateral recarrega a página inicial (conta as recargas), não toca no "Página inicial", não intercepta Ctrl+clique nem o botão do meio, não recarrega com `data-ss-busy` = 1 (aviso em pt/en/es), não intercepta com a chave desligada e, fora de `/`, deixa o Instagram navegar.
 - A CDN simulada (`node cdn.mjs`, porta 443) tem de estar de pé: sem ela o `e2e-repo` falha com `served: []`.
+
+## Espaço em disco
+
+Cada execução cria uma pasta de perfil de navegador (`p…-<número>`), que não é apagada no fim. Elas se acumulam (em 2026-11-12 eram ~1.150 pastas, ~11,7 GB). Pode mandar todas para a Lixeira de tempos em tempos: nenhum teste depende delas.

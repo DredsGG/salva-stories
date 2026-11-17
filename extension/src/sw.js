@@ -8,7 +8,7 @@ const ext = (globalThis.browser && globalThis.browser.runtime) ? globalThis.brow
 const SYNC = ext.storage.sync || ext.storage.local;
 
 // muda a cada versão do service worker: a página confere e avisa se o Chrome ficou com o código antigo
-const SW_BUILD = 'ss-sw-1.11.0';
+const SW_BUILD = 'ss-sw-1.12.0';
 
 // idioma da primeira abertura: o da interface do navegador (pt, en ou es; qualquer outro → en). Regra 13.
 const UI_LANG = (() => { const l = String((ext.i18n && ext.i18n.getUILanguage && ext.i18n.getUILanguage()) || navigator.language || 'en').toLowerCase(); return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en'; })();

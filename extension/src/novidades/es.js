@@ -1,5 +1,8 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.12.0': [
+    "El logo de Instagram y el elemento Inicio de la barra lateral ahora llevan al inicio con una carga nueva, desde cualquier página: en el inicio suben y recargan, en otras lo abren desde cero, arriba del todo. Ctrl, Shift o el botón central siguen abriendo en otra pestaña. Se puede desactivar en el menú, en Herramientas.",
+  ],
   '1.11.0': [
     "En la página de inicio, hacer clic en el logo de Instagram (arriba en la barra lateral) ahora sube y recarga la página, para que aparezcan las historias nuevas. Dentro de una historia, el logo y la X de arriba salen de la historia y abren el inicio recargado. En otras páginas, el logo sigue llevando al inicio. Se desactiva en menú → Herramientas → El logo recarga el feed.",
     "Corrección: con un diálogo de Instagram abierto (Compartir, Cambiar de cuenta, comentarios), la barra del reproductor ya no aparece encima cuando el mouse pasa por el video de atrás.",

@@ -1,5 +1,8 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.12.0': [
+    "The Instagram logo and the Home item in the sidebar now take you to the start page with a fresh load, from any page: on the start page they scroll up and reload, elsewhere they open it from scratch, at the top. Ctrl, Shift or the middle button still open in another tab. You can turn it off in the menu, under Tools.",
+  ],
   '1.11.0': [
     "On the home page, clicking the Instagram logo (at the top of the sidebar) now scrolls up and reloads the page, so new stories show up. Inside a Story, the logo and the X at the top leave the Story and open the home page reloaded. On other pages, the logo still takes you home. Turn it off in menu → Tools → Logo reloads the feed.",
     "Fix: with an Instagram dialog open (Share, Switch accounts, comments), the player bar no longer shows up over it when the mouse goes over the video behind.",

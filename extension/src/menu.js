@@ -40,7 +40,7 @@
       inboxTools: 'Seleção no direct', inboxToolsD: 'Selecionar várias conversas e agir em todas de uma vez',
       ghostOn: 'Modo fantasma ligado', ghostSub: 'Ninguém vê que você assistiu', ghostClick: 'Clique para desligar', ghostOffA: 'Desligar o modo fantasma', ghostOffT: 'Modo fantasma desligado', ghostOffSub: 'Quem postou vê que você assistiu', ghostOnClick: 'Clique para ligar', ghostOnA: 'Ligar o modo fantasma', open2: 'Abrir',
       sideBtns: 'Botões na barra lateral', sideBtnsD: 'Seguidores e seguindo, e Trocar de conta, abaixo do fantasminha',
-      logoReload: 'Logo recarrega o feed', logoReloadD: 'Na página inicial, o clique na logo do Instagram sobe e recarrega, para aparecerem os stories novos. No Story, a logo e o X abrem o início recarregado',
+      logoReload: 'Logo e Página inicial recarregam o início', logoReloadD: 'A logo do Instagram e o item Página inicial da barra lateral, clicados em qualquer página, levam ao início numa carga nova, no topo (na página inicial, sobem e recarregam), para aparecerem os stories novos. No Story, a logo e o X fazem o mesmo. Desligada, os dois voltam a ser só do Instagram',
       logoBusy: 'Termine ou cancele o que está rodando antes de recarregar',
       folT: 'Seguidores e seguindo', folSub: 'Quem não te segue de volta, mútuos e mais', folClick: 'Clique para abrir',
       swT: 'Trocar de conta', swSub: 'Abre o "Trocar de conta" do Instagram', swClick: 'Na troca, a página recarrega',
@@ -81,7 +81,7 @@
       inboxTools: 'Direct selection', inboxToolsD: 'Select several chats and act on all of them at once',
       ghostOn: 'Ghost mode on', ghostSub: 'Nobody sees that you watched', ghostClick: 'Click to turn it off', ghostOffA: 'Turn off ghost mode', ghostOffT: 'Ghost mode off', ghostOffSub: 'The poster sees that you watched', ghostOnClick: 'Click to turn it on', ghostOnA: 'Turn on ghost mode', open2: 'Open',
       sideBtns: 'Sidebar buttons', sideBtnsD: 'Followers and following, and Switch accounts, below the ghost',
-      logoReload: 'Logo reloads the feed', logoReloadD: 'On the home page, clicking the Instagram logo scrolls up and reloads, so new stories show up. In a Story, the logo and the X open the home page reloaded',
+      logoReload: 'Logo and Home reload the start page', logoReloadD: 'The Instagram logo and the Home item in the sidebar, clicked on any page, take you to the start page with a fresh load, at the top (on the home page they scroll up and reload), so new stories show up. In a Story, the logo and the X do the same. Off, both go back to being Instagram-only',
       logoBusy: 'Finish or cancel what is running before reloading',
       folT: 'Followers and following', folSub: "Who doesn't follow you back, mutuals and more", folClick: 'Click to open',
       swT: 'Switch accounts', swSub: 'Opens Instagram\'s "Switch accounts"', swClick: 'The page reloads when you switch',
@@ -122,7 +122,7 @@
       inboxTools: 'Selección en el direct', inboxToolsD: 'Selecciona varios chats y actúa en todos a la vez',
       ghostOn: 'Modo fantasma activado', ghostSub: 'Nadie ve que la viste', ghostClick: 'Haz clic para desactivarlo', ghostOffA: 'Desactivar el modo fantasma', ghostOffT: 'Modo fantasma desactivado', ghostOffSub: 'Quien publicó ve que la viste', ghostOnClick: 'Haz clic para activarlo', ghostOnA: 'Activar el modo fantasma', open2: 'Abrir',
       sideBtns: 'Botones en la barra lateral', sideBtnsD: 'Seguidores y seguidos, y Cambiar de cuenta, debajo del fantasma',
-      logoReload: 'El logo recarga el feed', logoReloadD: 'En la página de inicio, el clic en el logo de Instagram sube y recarga, para que aparezcan las historias nuevas. En una historia, el logo y la X abren el inicio recargado',
+      logoReload: 'Logo e Inicio recargan el inicio', logoReloadD: 'El logo de Instagram y el elemento Inicio de la barra lateral, con clic en cualquier página, llevan al inicio con una carga nueva, arriba del todo (en la página de inicio suben y recargan), para que aparezcan las historias nuevas. En una historia, el logo y la X hacen lo mismo. Desactivado, los dos vuelven a ser solo de Instagram',
       logoBusy: 'Termina o cancela lo que se está ejecutando antes de recargar',
       folT: 'Seguidores y seguidos', folSub: 'Quién no te sigue, mutuos y más', folClick: 'Haz clic para abrir',
       swT: 'Cambiar de cuenta', swSub: 'Abre el "Cambiar de cuenta" de Instagram', swClick: 'Al cambiar, la página se recarga',
@@ -715,6 +715,18 @@
       .sort((x, y) => x.getBoundingClientRect().top - y.getBoundingClientRect().top);
     return col.length >= 2 && col[0] === a && /^instagram$/i.test((a.textContent || '').trim());
   }
+  // v1.12.0: o item "Página inicial" (o outro link para "/" da barra lateral) faz o mesmo que a logo. Medido ao vivo em 16/11/2026 (barra
+  // recolhida, num perfil): <a href="/" role="link"> de 48 px, left 12, y 421, com <svg aria-label="Página inicial"> (e o texto repetido no
+  // link); a logo fica em y 24 com <svg aria-label="Instagram">. Rótulos pt/en/es; em outro idioma, vale o 2º link para "/" da coluna
+  // da barra. Na janela estreita (barra embaixo, fora da coluna) vale só o rótulo.
+  const HOME_RE = /^(p[áa]gina inicial|home|inicio|início)$/i;
+  function isHomeItem(a) {
+    if (isLogo(a)) return false;
+    if ([...a.querySelectorAll('svg[aria-label]')].some((s) => HOME_RE.test(s.getAttribute('aria-label').trim())) || HOME_RE.test((a.getAttribute('aria-label') || '').trim())) return true;
+    const col = [...document.querySelectorAll('a[href="/"]')].filter((x) => { const q = x.getBoundingClientRect(); return q.width && q.left <= 140; })
+      .sort((x, y) => x.getBoundingClientRect().top - y.getBoundingClientRect().top);
+    return col.length >= 2 && col[1] === a;
+  }
   // Dentro do Story (pedido do André em 12/11/2026, com print): a logo "Instagram" do canto de cima à esquerda e o X do
   // canto de cima à direita fazem o mesmo que a logo na página inicial: saem do Story e abrem o início recarregado, no topo.
   // No Story não há barra lateral: a logo é o link para "/" no alto à esquerda; o X é o botão com o ícone "Fechar"
@@ -738,16 +750,17 @@
     if (!t) return;
     const home = location.pathname === '/', story = location.pathname.startsWith('/stories/');
     let el = null;
-    if (home) { const a = t.closest('a[href="/"]'); if (a && isLogo(a)) el = a; } else if (story) el = storyLogo(t) || storyClose(t);
+    if (story) el = storyLogo(t) || storyClose(t);
+    else { const a = t.closest('a[href="/"]'); if (a && (isLogo(a) || isHomeItem(a))) el = a; } // v1.12.0: logo e Página inicial, em qualquer página
     if (!el) return;
     e.preventDefault(); e.stopImmediatePropagation();
     if (busyNow()) {
       ensure(); showToast(el, tr('logoBusy'));
-      logMsg('info', { pt: 'logo: não recarregou, trabalho longo rodando', en: 'logo: did not reload, long task running', es: 'logo: no recargó, tarea larga en curso' });
+      logMsg('info', { pt: 'logo ou Página inicial: não recarregou, trabalho longo rodando', en: 'logo or Home: did not reload, long task running', es: 'logo o Inicio: no recargó, tarea larga en curso' });
       return;
     }
     window.scrollTo(0, 0);
-    if (home) location.reload(); else location.assign('/'); // do Story: carga nova do início, no topo
+    if (home) location.reload(); else location.assign('/'); // fora do início e do Story: carga nova do início, no topo
   }, true);
 
   // ───────────── painel ─────────────

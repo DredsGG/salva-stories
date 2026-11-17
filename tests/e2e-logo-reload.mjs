@@ -1,4 +1,6 @@
-// v1.11.0: na página inicial, a logo do Instagram (o link para "/" com <svg aria-label="Instagram">, no alto da barra
+// v1.12.0: a logo do Instagram E o item "Página inicial" da barra lateral, clicados em QUALQUER página, levam ao início numa carga nova
+// (em "/": sobe e recarrega; fora de "/": location.assign("/"), não a navegação SPA do Instagram). Reels e Mensagens não são tocados.
+// (v1.11.0: na página inicial, a logo do Instagram (o link para "/" com <svg aria-label="Instagram">, no alto da barra
 // lateral) sobe e recarrega a página. Barra lateral simulada como a real (medida em 12/11/2026), com um "Instagram"
 // simulado que faz o que o de verdade faz: na página inicial, o clique na logo só sobe a página; fora dela, vai para "/"
 // sem recarregar (pushState). Uso: node e2e-logo-reload.mjs $PWD/ext-test
@@ -14,6 +16,8 @@ const page = `<!doctype html><html><head><meta charset="utf-8"></head><body styl
   <a id="logo" href="/" role="link" style="position:absolute;left:12px;top:24px;width:48px;height:56px;display:grid;place-items:center">${icon('Instagram')}<span style="position:absolute;left:-9999px">Instagram</span></a>
   <a id="home" href="/" role="link" style="position:absolute;left:12px;top:241px;width:48px;height:56px;display:grid;place-items:center">${icon('Página inicial')}<span style="position:absolute;left:-9999px">Página inicial</span></a>
   <a href="/explore/" role="link" style="position:absolute;left:12px;top:297px;width:48px;height:56px;display:grid;place-items:center">${icon('Explorar')}</a>
+  <a id="reels" href="/reels/" role="link" style="position:absolute;left:12px;top:353px;width:48px;height:56px;display:grid;place-items:center">${icon('Reels')}</a>
+  <a id="msgs" href="/direct/inbox/" role="link" style="position:absolute;left:12px;top:409px;width:48px;height:56px;display:grid;place-items:center">${icon('Mensagens')}</a>
 </nav>
 <main style="margin-left:120px;height:4000px"><h1>feed</h1></main>
 <script>
@@ -62,67 +66,74 @@ const at = (id) => p.evaluate((id) => { const r = document.getElementById(id).ge
 const toast = () => p.evaluate(() => { const d = window.__salvaStoriesMenuDebug(); return d.side && d.side.toast; });
 
 await p.goto('https://www.instagram.com/'); await wait(1500);
-const logo = await at('logo'), home = await at('home');
+const logo = await at('logo'), home = await at('home'), reels = await at('reels'), msgs = await at('msgs');
+const BOTOES = [['logo', logo], ['Página inicial', home]];
+let a, b; // usados também na parte do Story, mais abaixo
+const fora = async (path) => { await p.evaluate((x) => history.pushState({}, '', x), path); await wait(300); };
+const clique = async (q, opt) => { await Promise.all([p.waitForEvent('load', { timeout: 6000 }).catch(() => null), p.mouse.click(q.x, q.y, opt)]); await wait(1200); };
 
-// 1) na inicial: rola, clica na logo → sobe e recarrega
-await p.evaluate(() => scrollTo(0, 1500)); await wait(200);
-let a = await st();
-await Promise.all([p.waitForEvent('load', { timeout: 8000 }).catch(() => null), p.mouse.click(logo.x, logo.y)]); await wait(1200);
-let b = await st();
-check('em "/": a logo recarrega a página (1 recarga)', b.reloads === a.reloads + 1 && b.loads === a.loads + 1, { a, b });
-check('em "/": depois da recarga, a página está no topo', b.y === 0, b);
+// 1) na inicial: rola, clica → sobe e recarrega (o mesmo para a logo e para o item "Página inicial")
+for (const [nome, q] of BOTOES) {
+  await p.evaluate(() => scrollTo(0, 1500)); await wait(200);
+  const a = await st(); await clique(q); const b = await st();
+  check('em "/": ' + nome + ' sobe e recarrega (1 recarga)', b.reloads === a.reloads + 1 && b.loads === a.loads + 1 && b.y === 0, { a, b });
+}
 
-// 2) o item "Página inicial" da lista não é afetado
-await p.evaluate(() => scrollTo(0, 1200)); await wait(200);
-a = await st();
-await p.mouse.click(home.x, home.y); await wait(1500);
-b = await st();
-check('"Página inicial" da lista: não recarrega (fica com o Instagram)', b.loads === a.loads && b.ig === a.ig + 1, { a, b });
+// 2) fora de "/" (perfil, post, Reels, Explorar): uma carga nova de "/", no topo (não a navegação do Instagram)
+for (const [nome, q] of BOTOES) for (const path of ['/instagram/', '/p/DQabcDEFghi/', '/reels/', '/explore/']) {
+  await fora(path); await p.evaluate(() => scrollTo(0, 600)); await wait(200);
+  const a = await st(); await clique(q); const b = await st();
+  check('em ' + path + ': ' + nome + ' abre "/" numa carga nova, no topo (sem passar pelo Instagram)', b.path === '/' && b.loads === a.loads + 1 && b.reloads === a.reloads && b.ig === 0 && b.y === 0, { a, b });
+}
 
-// 3) Ctrl+clique e clique do meio: ficam com o navegador (nova aba), sem recarregar
-a = await st();
-let pages = ctx.pages().length;
-await p.keyboard.down('Control'); await p.mouse.click(logo.x, logo.y); await p.keyboard.up('Control'); await wait(1500);
-b = await st();
-check('Ctrl+clique: não intercepta (nova aba, sem recarga)', b.loads === a.loads && ctx.pages().length === pages + 1, { a, b, pages: ctx.pages().length });
-for (const q of ctx.pages()) if (q !== p) await q.close();
-pages = ctx.pages().length; a = await st();
-await p.mouse.click(logo.x, logo.y, { button: 'middle' }); await wait(1500);
-b = await st();
-check('clique do meio: não intercepta (nova aba, sem recarga)', b.loads === a.loads && ctx.pages().length === pages + 1, { a, b, pages: ctx.pages().length });
-for (const q of ctx.pages()) if (q !== p) await q.close();
+// 3) Ctrl+clique e clique do meio: ficam com o navegador (nova aba), sem recarregar nem navegar, dentro e fora de "/"
+for (const [nome, q] of BOTOES) for (const path of ['/', '/explore/']) {
+  await fora(path);
+  let a = await st(); let pages = ctx.pages().length;
+  await p.keyboard.down('Control'); await p.mouse.click(q.x, q.y); await p.keyboard.up('Control'); await wait(1300);
+  let b = await st();
+  check('Ctrl+clique em ' + nome + ' (' + path + '): não intercepta (nova aba, sem recarga nem navegação)', b.loads === a.loads && b.path === a.path && ctx.pages().length === pages + 1, { a, b, pages: ctx.pages().length });
+  for (const o of ctx.pages()) if (o !== p) await o.close();
+  pages = ctx.pages().length; a = await st();
+  await p.mouse.click(q.x, q.y, { button: 'middle' }); await wait(1300);
+  b = await st();
+  check('clique do meio em ' + nome + ' (' + path + '): não intercepta (nova aba, sem recarga nem navegação)', b.loads === a.loads && b.path === a.path && ctx.pages().length === pages + 1, { a, b, pages: ctx.pages().length });
+  for (const o of ctx.pages()) if (o !== p) await o.close();
+}
 
-// 4) trabalho longo rodando: não recarrega e avisa
-await p.evaluate(() => { document.documentElement.dataset.ssBusy = '1'; scrollTo(0, 900); }); await wait(200);
-a = await st();
-await p.mouse.click(logo.x, logo.y); await wait(1500);
-b = await st();
-check('data-ss-busy=1: não recarrega', b.loads === a.loads && b.ig === a.ig, { a, b });
-check('data-ss-busy=1: aviso "Termine ou cancele…"', (await toast()) === 'Termine ou cancele o que está rodando antes de recarregar', await toast());
-await sw.evaluate(() => chrome.storage.sync.set({ lang: 'es' })); await wait(700);
-await p.mouse.click(logo.x, logo.y); await wait(500);
-check('aviso em es', (await toast()) === 'Termina o cancela lo que se está ejecutando antes de recargar', await toast());
-await sw.evaluate(() => chrome.storage.sync.set({ lang: 'en' })); await wait(700);
-await p.mouse.click(logo.x, logo.y); await wait(500);
-check('aviso em en', (await toast()) === 'Finish or cancel what is running before reloading', await toast());
+// 4) trabalho longo rodando: nem recarrega nem navega, e avisa (nos 3 idiomas)
+for (const [nome, q] of BOTOES) for (const path of ['/', '/explore/']) {
+  await fora(path); await p.evaluate(() => { document.documentElement.dataset.ssBusy = '1'; scrollTo(0, 900); }); await wait(200);
+  const a = await st(); await p.mouse.click(q.x, q.y); await wait(1200); const b = await st();
+  check('data-ss-busy=1 em ' + path + ': ' + nome + ' nem recarrega nem navega', b.loads === a.loads && b.path === a.path && b.ig === a.ig, { a, b });
+  check('data-ss-busy=1 em ' + path + ': ' + nome + ' avisa "Termine ou cancele…"', (await toast()) === 'Termine ou cancele o que está rodando antes de recarregar', await toast());
+  await p.evaluate(() => { document.documentElement.dataset.ssBusy = '0'; });
+}
+await fora('/'); await p.evaluate(() => { document.documentElement.dataset.ssBusy = '1'; });
+for (const [lang, txt] of [['es', 'Termina o cancela lo que se está ejecutando antes de recargar'], ['en', 'Finish or cancel what is running before reloading']]) {
+  await sw.evaluate((l) => chrome.storage.sync.set({ lang: l }), lang); await wait(700);
+  await p.mouse.click(home.x, home.y); await wait(500);
+  check('aviso da Página inicial em ' + lang, (await toast()) === txt, await toast());
+}
 await sw.evaluate(() => chrome.storage.sync.set({ lang: 'pt' })); await wait(700);
 await p.evaluate(() => { document.documentElement.dataset.ssBusy = '0'; });
 
-// 5) chave desligada: a logo volta a ser só do Instagram (sobe, sem recarregar)
+// 5) chave desligada: nenhum dos dois é interceptado (voltam a ser só do Instagram)
 await sw.evaluate(() => chrome.storage.sync.set({ logoReload: false })); await wait(800);
-await p.evaluate(() => scrollTo(0, 900)); await wait(200);
-a = await st();
-await p.mouse.click(logo.x, logo.y); await wait(1500);
-b = await st();
-check('chave desligada: não intercepta (o Instagram sobe a página, sem recarga)', b.loads === a.loads && b.ig === a.ig + 1 && b.y === 0, { a, b });
+for (const [nome, q] of BOTOES) {
+  await p.evaluate(() => scrollTo(0, 900)); await wait(200);
+  let a = await st(); await p.mouse.click(q.x, q.y); await wait(1200); let b = await st();
+  check('chave desligada em "/": ' + nome + ' fica com o Instagram (sobe, sem recarga)', b.loads === a.loads && b.ig === a.ig + 1 && b.y === 0, { a, b });
+  await fora('/explore/'); a = await st(); await p.mouse.click(q.x, q.y); await wait(1200); b = await st();
+  check('chave desligada fora de "/": ' + nome + ' fica com o Instagram (navegação dele, sem carga nova)', b.loads === a.loads && b.path === '/' && b.ig === a.ig + 1, { a, b });
+}
 await sw.evaluate(() => chrome.storage.sync.set({ logoReload: true })); await wait(800);
 
-// 6) fora de "/": a logo navega normal e não recarrega antes
-await p.evaluate(() => history.pushState({}, '', '/explore/')); await wait(300);
-a = await st();
-await p.mouse.click(logo.x, logo.y); await wait(1500);
-b = await st();
-check('fora de "/": a logo vai para "/" pelo Instagram, sem recarregar', b.loads === a.loads && b.path === '/' && b.ig === a.ig + 1, { a, b });
+// 6) Reels e Mensagens não são afetados: seguem a navegação do Instagram, sem recarregar
+for (const [nome, q, dest] of [['Reels', reels, '/reels/'], ['Mensagens', msgs, '/direct/inbox/']]) {
+  await fora('/'); const a = await st(); await p.mouse.click(q.x, q.y); await wait(1200); const b = await st();
+  check(nome + ': não é afetado (navegação do Instagram, sem recarga)', b.loads === a.loads && b.path === dest && b.ig === a.ig + 1, { a, b });
+}
 
 // 6b) dentro do Story: a logo e o X saem do Story e abrem o início numa carga nova (não o fechar do Instagram)
 for (const [nome, id] of [['logo', 'slogo'], ['X', 'sclose']]) {
@@ -150,7 +161,7 @@ await p.goto('https://www.instagram.com/'); await wait(1200);
 // 7) a chave aparece no menu → Ferramentas, ligada
 await p.keyboard.press('Alt+s'); await wait(500);
 const row = await p.evaluate(() => { const d = window.__salvaStoriesMenuDebug(); return { row: d.logoRow, on: d.S.logoReload }; });
-check('chave "Logo recarrega o feed" no menu, ligada por padrão', !!row.row && row.on === true, row);
+check('chave "Logo e Página inicial recarregam o início" no menu, ligada por padrão', !!row.row && row.on === true, row);
 
 console.log(JSON.stringify(R, null, 1));
 console.log(ok ? 'TUDO PASSOU' : 'FALHOU');
