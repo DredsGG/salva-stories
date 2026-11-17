@@ -1,5 +1,9 @@
 // What's new per version, in English (rule 12). Update on every new version, together with pt.js and es.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).en = {
+  '1.13.0': [
+    "See all button: on the home page, next to the stories tray, it marks every story you haven't seen yet as seen, one at a time, in the background, while you keep using Instagram. A small bar under the button shows how many are done and whose turn it is.",
+    "Click again to pause and once more to continue. If you reload or close the page, the button turns into Continue and picks up where it stopped. It overrides ghost mode only for those stories (the poster sees that you watched) and stops on its own if Instagram asks to wait. Turn it off in menu → Tools.",
+  ],
   '1.12.0': [
     "The Instagram logo and the Home item in the sidebar now take you to the start page with a fresh load, from any page: on the start page they scroll up and reload, elsewhere they open it from scratch, at the top. Ctrl, Shift or the middle button still open in another tab. You can turn it off in the menu, under Tools.",
   ],

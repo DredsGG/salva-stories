@@ -245,6 +245,16 @@
     if (url.indexOf('/graphql') === -1 || typeof body !== 'string') return false;
     return SEEN_MARKERS.some((m) => body.indexOf(m) !== -1);
   }
+  // v1.13.0, botão "Ver todos": exceção do modo fantasma SÓ para o aviso de "visto" que o próprio botão manda.
+  // O botão libera o pk do story logo antes de chamar a função do Instagram e tira logo depois (dura só o envio).
+  // Qualquer outro "visto" (story aberto na mão, durante a rodada ou não) continua bloqueado.
+  const SEEN_PASS = new Set();
+  function passSeen(text) {
+    if (!SEEN_PASS.size || !text) return false;
+    let s = text; try { s = decodeURIComponent(text.replace(/\+/g, ' ')); } catch (_) {}
+    for (const pk of SEEN_PASS) if (s.indexOf('"reelMediaId":"' + pk + '"') !== -1) return true;
+    return false;
+  }
   function bodyToText(body) {
     if (typeof body === 'string') return body;
     if (body instanceof URLSearchParams) return body.toString();
@@ -265,7 +275,7 @@
       if (!text && req) { try { text = await req.clone().text(); } catch (_) {} }
       if (looksSeen(url, method, text)) {
         await settingsReady;
-        if (settings.ghost) {
+        if (settings.ghost && !passSeen(text)) {
           console.debug(TAG, 'visto bloqueado (fetch)');
           return new Response('{"status":"ok"}', { status: 200, headers: { 'content-type': 'application/json' } });
         }
@@ -297,7 +307,7 @@
       });
     }
     const text = bodyToText(body);
-    if (looksSeen(url, this.__ssMethod, text)) {
+    if (looksSeen(url, this.__ssMethod, text) && !passSeen(text)) {
       if (settings) {
         if (settings.ghost) { console.debug(TAG, 'visto bloqueado (xhr)'); return; }
       } else {
@@ -1310,6 +1320,9 @@
       lang: () => (settings && settings.lang) || NAV_LANG, tAll,
       avatar: (user) => { harvestInline(); return AVATARS.get(String(user || '').toLowerCase()) || null; },
       avatarCount: () => AVATARS.size,
+      // botão "Ver todos" (seeall.js): libera o "visto" de UM story enquanto a função do Instagram manda o aviso
+      seenPass: async (pk, send) => { pk = String(pk); SEEN_PASS.add(pk); try { return await send(); } finally { SEEN_PASS.delete(pk); } },
+      seenPassCount: () => SEEN_PASS.size,
     }),
   });
   // depuração pelo console: __salvaStoriesDebug()

@@ -8,7 +8,7 @@
 Stories, posts and whole profiles at original resolution, videos with sound, plus a video player, Direct multi-select and a followers check, all inside Instagram.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.12.0-d62976)
+![Version](https://img.shields.io/badge/version-1.13.0-d62976)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX
@@ -73,6 +73,18 @@ Stories, posts and whole profiles at original resolution, videos with sound, plu
 - Safe scanning: only Instagram's `friendships` lists, 1.5–3 s per page with a pause every 15 pages, a full stop on any block or checkpoint, and an incomplete list is never saved. Results stay on your computer.
 - **Kept per account:** the scan, the ignore list and the daily unfollow limit are stored under each account's id, so switching accounts never mixes them up.
 
+**See all stories** (new in 1.13.0)
+
+<img src="docs/salva-stories-see-all.png" width="560" alt="The stories tray on the Instagram home page with six placeholder accounts, the first two with gray (seen) rings, and next to the tray arrow a round Salva Stories button showing pause, with a progress card below it reading 10/24 · example.carla">
+
+- On the home page, a round button right after the stories tray's arrow marks **every unseen story in the tray as seen**, one by one, in the background, while you keep using Instagram. It only shows up when there is something unseen.
+- A thin bar under it shows the progress and whose stories are being marked (`12/34 · name`). When it's done it says *All seen* for a few seconds and the button goes away. Rings turn gray as it goes.
+- Same order as the tray, at a person's pace: about 1 to 2 seconds per story and a longer pause between people. It never opens the story viewer: it uses Instagram's own *seen* function. Ads, live videos, your own story and what you've already seen are skipped.
+- Click it to pause (*Paused 12/34*) and again to carry on. Moving around Instagram doesn't stop it; reloading or closing the tab does, and the button then reads *Continue (12/34)* (kept for 24 hours, per account).
+- **Ghost mode** stays as you set it: the exception covers only the story being marked, only while that one request is sent.
+- It stops right away on an Instagram action block (*feedback_required*, checkpoint, 429, "try again later") or after 3 failures in a row, with a notice. Turn the button off in the menu → **Tools** → **See all stories button**.
+- **Instagram may limit accounts that do a lot of actions in bulk.** The pace is there to keep it looking like a person skipping through stories, but use it at your own risk.
+
 **Auto Reels** (new in 1.10.0)
 
 <img src="docs/salva-stories-auto-reels.png" width="380" alt="A Reels page with the Salva Stories player bar and the lit Auto button next to the speed button">
@@ -126,6 +138,7 @@ Download the files from the [latest release](https://github.com/DredsGG/salva-st
 | Post or reel with video | Hover the video to show the player; the last button downloads it. |
 | Direct | Click the select button, check conversations (or **All**) and pick an action in the bottom bar. |
 | Followers | Click the two-people button in the sidebar (or the menu → **Tools** → **Followers & following**) → scan. Run it again later to see who unfollowed you. |
+| See all stories | On the home page, click the round button after the stories tray: every unseen story is marked as seen in the background. Click again to pause or continue. |
 | Switch accounts | Click your photo with the arrows in the sidebar: Instagram's *Switch accounts* dialog opens. |
 | Fresh feed | Click the Instagram logo at the top of the sidebar, or the **Home** item below it, on any page: you land on the home page with a fresh load, at the top, so new stories show up (on the home page itself it scrolls up and reloads). Inside a Story, the logo and the ✕ at the top do the same. `Ctrl`/`Shift`/`Alt`/`Cmd`+click and middle-click still open a new tab, and nothing reloads while a long task (like Save all) is running. Turn it off in the menu → **Tools** → **Logo and Home reload the start page**. |
 | Settings | The story-ring icon in Instagram's sidebar, the gear in stories, `Alt+S` or the extension icon. **?** reopens the tutorial. |
@@ -139,6 +152,7 @@ Everything comes in **Portuguese, English and Spanish**: menu, footer, tutorial,
 - **Desktop browsers on instagram.com only** (Chrome, Edge, Brave and Opera GX). No mobile app.
 - **It depends on how Instagram's web app works today.** When Instagram changes its responses or layout, a feature can stop until the extension is updated (see [When Instagram changes something](#when-instagram-changes-something)).
 - **Updates need one manual step.** An extension loaded from a folder can't replace its own files, so you extract the new zip yourself (the **Update** button downloads it for you).
+- **"See all stories" marks stories as seen in bulk.** Instagram may limit accounts that do many actions in a row; it stops on the first block, but use it at your own risk. Stories posted while it runs are left for the next click.
 - **Bulk unfollow is slow by design** (at most 150 a day). Instagram may still action-block an account that unfollows a lot; use it at your own risk.
 - **"Save all" only covers the stories the viewer already loaded** for that profile.
 - **Private profiles** can only be downloaded or checked if you follow them.
@@ -185,6 +199,7 @@ Open the console on instagram.com and run `__salvaStoriesDebug()`. It shows how 
 
 End-to-end with the real extension loaded, against a simulated instagram.com and CDN. Setup is in [`tests/README.md`](tests/README.md); `node tests/suite.mjs 3` runs everything three times in a row, and every test ends in `TUDO PASSOU` or `FALHOU`.
 
+- `e2e-see-all.mjs`: the *See all stories* button on a simulated tray built like the real one (React fibers, Instagram's Relay and *seen* function faked, the *seen* request sent as a real XHR so ghost mode is really in the way): hidden when everything is seen, next to the tray and only on the home page; no request before the click; tray order; at least 0.8 s between stories and a longer pause between people; skips live, ads, seen and your own; ghost mode still blocks a manual *seen* during and after the run; `N/5 · name` text; busy flag on during and off at the end; *All seen*; log in the three languages; a block stops it at the first story with a notice; reload in the middle shows *Continue (2/5)* and carries on without repeats; pause and continue; the menu switch (hides, comes back, and turned off mid-run stops it). `prints-see-all.mjs` makes the screenshot above.
 - `e2e-auto-reels.mjs`: Auto Reels on a simulated Reels page (no `loop`, `ended`, Instagram's own next button with scroll-snap): off by default and off doesn't move; on moves one reel per lap and never two at once; paused (by Instagram and by our holding pause), open dialog, focused text field, mouse on the player bar and hidden tab don't move; a photo moves after about 8 s; without the next button it doesn't move or scroll and logs once in PT/EN/ES; nothing happens on `/reel/<code>` or outside Reels; the Auto button and the menu switch are the same saved setting; tooltips in PT/EN/ES; sound stays on.
 - `e2e-story-race.mjs`: `D` and the save button save the item that was on screen when pressed (story changes 0/50/150/400 ms after the key, 0/50/150/400 ms before it, 900 ms before, between pointer down and up; post carousel), and focus returns to the page after a click so Instagram's arrow keys keep working.
 - `e2e-log-i18n.mjs`: the log that goes in *Report a bug* comes entirely in each language, with the numbers inside the sentence, with the screen in PT and in ES.

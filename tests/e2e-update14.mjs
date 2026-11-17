@@ -30,6 +30,9 @@ const R = {}; let ok = true; const check = (n, c, i) => { R[n] = c ? 'ok' : ['FA
 const dbg = (p) => p.evaluate(() => window.__salvaStoriesOnboardDebug());
 const age = (min) => sw.evaluate((m) => chrome.storage.local.get('ss.update').then((r) => chrome.storage.local.set({ 'ss.update': Object.assign({}, r['ss.update'], { procuradoEm: Date.now() - m * 60000 }) })), min);
 const backToTab = (p) => p.evaluate(() => window.dispatchEvent(new Event('focus')));
+// 17/11/2026: o service worker às vezes leva mais de 1,5 s para responder ao "voltar para a aba" (falhava 2 de 3 vezes também na 1.12.0).
+// Espera o pedido chegar (até 8 s) e dá 900 ms para o quadro desenhar; a conferência é a mesma.
+const backAndSettle = async (p) => { const h0 = hits; await backToTab(p); const end = Date.now() + 8000; while (hits === h0 && Date.now() < end) await wait(150); await wait(900); };
 
 const p = await ctx.newPage();
 await p.clock.install();
@@ -42,7 +45,7 @@ check('abrir: confere sozinho (1 pedido) e sem versão nova não mostra nada', h
 REL = { tag_name: 'v9.9.9', name: 'v9.9.9', body: '- Botões mais rápidos.\n- Corrige o player.', assets: [] };
 await backToTab(p); await wait(800);
 check('voltar para a aba antes de 10 min: não confere (trava)', hits === 1, { hits });
-await age(11); await backToTab(p); await wait(1500);
+await age(11); await backAndSettle(p);
 d = await dbg(p);
 check('voltar depois de 10 min: confere e mostra o quadro sem recarregar', hits === 2 && d.open === 'update' && /9\.9\.9/.test(d.title || ''), { hits, d });
 await p.screenshot({ path: path.join(DIR, 'shots-u14', 'normal.png') });
@@ -54,7 +57,7 @@ if (!d.at || !d.at.close) { console.log(JSON.stringify(R, null, 1)); console.log
 await p.mouse.click(d.at.close.x, d.at.close.y); await wait(400);
 d = await dbg(p);
 check('X fecha (adia)', d.open === null && d.snoozeUntil > 0, d);
-await age(11); await backToTab(p); await wait(1500);
+await age(11); await backAndSettle(p);
 d = await dbg(p);
 check('dentro da 1 h não volta, mesmo conferindo de novo', d.open === null, d);
 await p.clock.fastForward('01:00:30'); await wait(800);
@@ -67,7 +70,7 @@ check('próxima abertura: aparece de novo', (await dbg(p)).open === 'update', aw
 
 // Release URGENTE
 REL = { tag_name: 'v9.9.10', name: 'v9.9.10 URGENTE', body: '- Corrige um erro grave.', assets: [] };
-await age(11); await backToTab(p); await wait(1500);
+await age(11); await backAndSettle(p);
 d = await dbg(p);
 await p.screenshot({ path: path.join(DIR, 'shots-u14', 'urgente.png') });
 check('URGENTE: quadro sem X', d.open === 'update' && !d.hasX && /urgente/i.test(d.title || '') && d.upd.urgente, d);

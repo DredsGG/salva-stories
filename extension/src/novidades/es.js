@@ -1,5 +1,9 @@
 // Novedades por versión, en español (regla 12). Actualizar en cada versión nueva, junto con pt.js y en.js.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).es = {
+  '1.13.0': [
+    "Botón Ver todas: en la página de inicio, junto a la bandeja de historias, marca como vistas todas las historias que aún no viste, una por una, en segundo plano, mientras sigues usando Instagram. Una barrita debajo del botón muestra cuántas van y de quién es el turno.",
+    "Haz clic de nuevo para pausar y otra vez para continuar. Si recargas o cierras la página, el botón pasa a ser Continuar y sigue desde donde se detuvo. Pasa por encima del modo fantasma solo para esas historias (quien publicó ve que la viste) y se detiene solo si Instagram pide esperar. Se desactiva en menú → Herramientas.",
+  ],
   '1.12.0': [
     "El logo de Instagram y el elemento Inicio de la barra lateral ahora llevan al inicio con una carga nueva, desde cualquier página: en el inicio suben y recargan, en otras lo abren desde cero, arriba del todo. Ctrl, Shift o el botón central siguen abriendo en otra pestaña. Se puede desactivar en el menú, en Herramientas.",
   ],

@@ -103,6 +103,14 @@
   const sleep = async (ms) => { await rawSleep(ms); while (urgent) await rawSleep(1000); };
   const jitter = (a, b) => a + Math.random() * (b - a);
 
+  // bloqueio de ação do Instagram (feedback_required, checkpoint, 429, "tente mais tarde"): quem pega para na hora.
+  // Usado pelo "deixar de seguir" (follows.js) e pelo "Ver todos" dos stories (seeall.js).
+  const isBlock = (e) => {
+    const m = String((e && (e.message || e.errorMessage || e.error_type || e.description || e.summary)) || e || '') + ' ' +
+      (() => { try { return JSON.stringify(e && (e.responseObject || e.data || e.json || e.source || {})); } catch (_) { return ''; } })();
+    return /feedback_required|checkpoint|challenge|\b429\b|try again later|tente novamente|intenta(lo)? (de nuevo )?más tarde|please wait|rate limit|spam/i.test(m);
+  };
+
   // versão do manifest (chega pelo bridge na mensagem "settings")
   let version = '';
   window.addEventListener('message', (ev) => {
@@ -129,7 +137,7 @@
 
   Object.defineProperty(window, KEY, {
     value: Object.freeze({
-      esc, igDark, mode, lang, tr, nf, makeHost, ICON, signature, sleep, jitter, busy, urgent: () => urgent,
+      esc, igDark, mode, lang, tr, nf, makeHost, ICON, signature, sleep, jitter, busy, isBlock, urgent: () => urgent,
       version: () => version,
       lget: (key) => local('lget', key), lset: (key, value) => local('lset', key, value),
       myId: () => (document.cookie.match(/(?:^|;\s*)ds_user_id=(\d+)/) || [])[1] || null,

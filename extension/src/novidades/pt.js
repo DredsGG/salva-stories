@@ -1,6 +1,10 @@
 // Novidades por versão, em português (regra 12). Atualizar em toda versão nova, junto com en.js e es.js.
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 (window[Symbol.for('salvaStories.novidades')] = window[Symbol.for('salvaStories.novidades')] || {}).pt = {
+  '1.13.0': [
+    "Botão Ver todos: na página inicial, ao lado da bandeja de stories, marca como vistos todos os stories que você ainda não viu, um por vez, em segundo plano, enquanto você usa o Instagram. Uma barrinha embaixo do botão mostra quantos já foram e de quem é a vez.",
+    "Clique de novo para pausar e outra vez para continuar. Se recarregar ou fechar a página, o botão vira Continuar e segue de onde parou. Ele passa por cima do modo fantasma só para esses stories (quem postou vê que você viu) e para sozinho se o Instagram pedir para esperar. Desliga em menu → Ferramentas.",
+  ],
   '1.12.0': [
     "A logo do Instagram e o item Página inicial da barra lateral agora levam ao início numa carga nova, de qualquer página: no início sobem e recarregam, fora dele abrem o início do zero, no topo. Ctrl, Shift ou o botão do meio continuam abrindo em outra aba. Dá para desligar no menu, em Ferramentas.",
   ],

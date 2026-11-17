@@ -47,6 +47,11 @@ O Chromium do Playwright só abre pelo caminho **real** (`%LOCALAPPDATA%\Package
 - `e2e-logo-reload.mjs`: a logo da barra lateral recarrega a página inicial (conta as recargas), não toca no "Página inicial", não intercepta Ctrl+clique nem o botão do meio, não recarrega com `data-ss-busy` = 1 (aviso em pt/en/es), não intercepta com a chave desligada e, fora de `/`, deixa o Instagram navegar.
 - A CDN simulada (`node cdn.mjs`, porta 443) tem de estar de pé: sem ela o `e2e-repo` falha com `served: []`.
 
+## Novo na 1.13.0
+
+- `e2e-see-all.mjs` (entra na `suite.mjs`, ~20 s): botão "Ver todos" na bandeja de stories, com bandeja simulada por fibras (ana 2 não vistos, bruno 1 visto + 2, uma live, um já visto, um reel de anúncio, eva 1 + um item de anúncio, o próprio story) e o Relay/`PolarisAPIReelSeen` falsos (o "visto" sai como XHR de verdade para `/api/graphql`, então o modo fantasma do `page.js` é testado de verdade). Confere: botão escondido com tudo visto, ao lado da bandeja e só no início; nenhuma consulta antes do clique; ordem da bandeja; pausa de 0,8 s ou mais entre stories e maior entre pessoas; pula live, anúncio, visto e o próprio; o fantasma segura um "visto" manual durante e depois; texto "N/5 · nome"; `data-ss-busy` 1 durante e 0 no fim; "Todos vistos"; registros nos 3 idiomas; bloqueio (para no 1º com aviso); recarregar no meio ("Continuar (2/5)" e segue sem repetir); pausar e continuar; chave do menu (some e volta; desligada no meio para a rodada). Usa uma pasta de perfil em `%TEMP%`, apagada no fim.
+- `e2e-update14.mjs`: depois de voltar à aba, espera o service worker responder de fato (até 8 s) em vez de 1,5 s fixos. Com a máquina ocupada ele falhava 2 de 3 vezes também na 1.12.0; agora passou 4 de 4.
+
 ## Espaço em disco
 
 Cada execução cria uma pasta de perfil de navegador (`p…-<número>`), que não é apagada no fim. Elas se acumulam (em 2026-11-12 eram ~1.150 pastas, ~11,7 GB). Pode mandar todas para a Lixeira de tempos em tempos: nenhum teste depende delas.

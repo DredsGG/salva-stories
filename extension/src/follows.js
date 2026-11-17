@@ -612,8 +612,7 @@
   }
 
   const sleepStop = async (ms, tick) => { const end = Date.now() + ms; while (Date.now() < end) { if (unf.stop) return; tick && tick(Math.ceil((end - Date.now()) / 1000)); await K().sleep(Math.min(1000, end - Date.now())); } };
-  const isBlock = (e) => { const m = String((e && (e.message || e.errorMessage || e.error_type)) || e || '') + ' ' + (() => { try { return JSON.stringify(e && (e.responseObject || e.data || e.json || {})); } catch (_) { return ''; } })();
-    return /feedback_required|checkpoint|challenge|429|try again later|tente novamente|please wait|rate limit|spam/i.test(m); };
+  const isBlock = (e) => K().isBlock(e); // detector compartilhado (kit.js), o mesmo do "Ver todos" dos stories
 
   async function runUnfollow(limit) {
     const fn = igUnfollow();
